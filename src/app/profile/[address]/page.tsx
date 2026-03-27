@@ -61,6 +61,26 @@ export default function ProfilePage({
             ))}
           </div>
 
+          {/* Referral */}
+          <div className="bg-surface rounded-2xl border border-border-light p-5 mb-12">
+            <h2 className="font-display text-lg font-700 text-text-primary mb-2">
+              Referral Link
+            </h2>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={`${typeof window !== "undefined" ? window.location.origin : ""}?ref=${address.slice(0, 8)}`}
+                className="flex-1 px-3 py-2 rounded-lg bg-bg-primary border border-border-light font-mono text-xs text-text-secondary"
+              />
+              <button
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}?ref=${address.slice(0, 8)}`)}
+                className="px-4 py-2 rounded-lg bg-accent-primary text-white text-xs font-semibold hover:bg-accent-hover transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
           {/* Badges */}
           <h2 className="font-display text-lg font-700 text-text-primary mb-4">
             Badges

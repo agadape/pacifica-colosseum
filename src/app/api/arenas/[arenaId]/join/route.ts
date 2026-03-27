@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { ARENA_PUBLIC_COLUMNS } from "@/lib/utils/columns";
 import { generateKeypair, publicKeyToString, secretKeyToString } from "@/lib/utils/keypair";
 import { encryptPrivateKey } from "@/lib/utils/encryption";
+import { checkSybil } from "@/lib/fuul/client";
 import type { Database } from "@/lib/supabase/types";
 
 type ArenaRow = Database["public"]["Tables"]["arenas"]["Row"];
@@ -57,6 +58,15 @@ export async function POST(
 
   if (existing) {
     return Response.json({ error: "Already joined this arena" }, { status: 409 });
+  }
+
+  // Sybil check via Fuul
+  const sybilResult = await checkSybil(user.wallet_address);
+  if (!sybilResult.allowed) {
+    return Response.json(
+      { error: sybilResult.reason ?? "Wallet flagged by anti-sybil check" },
+      { status: 403 }
+    );
   }
 
   // Check not full
