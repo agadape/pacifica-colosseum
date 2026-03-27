@@ -4,6 +4,9 @@ import { PacificaClient } from "../../../src/lib/pacifica/client";
 import { keypairFromBase58, publicKeyToString } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { STARTING_CAPITAL, ROUND_PARAMS } from "../../../src/lib/utils/constants";
+import { initArena } from "./risk-monitor";
+import { startPeriodicSync } from "./periodic-sync";
+import { startLeaderboardUpdater } from "./leaderboard-updater";
 
 function getSupabase() {
   return createClient<Database>(
@@ -123,6 +126,11 @@ export async function startArena(arenaId: string): Promise<void> {
     message: `Arena "${arena.name}" has started with ${participants.length} traders!`,
     data: { participant_count: participants.length },
   });
+
+  // Start risk monitoring, periodic sync, and leaderboard updates
+  await initArena(arenaId);
+  startPeriodicSync(arenaId);
+  startLeaderboardUpdater(arenaId);
 
   console.log(`[Arena ${arenaId}] Started successfully — Round 1 active`);
 }

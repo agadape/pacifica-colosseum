@@ -4,6 +4,7 @@ import { PacificaClient } from "../../../src/lib/pacifica/client";
 import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { validateOrder, type OrderInput, type ValidationResult } from "./order-validator";
+import { onTradeExecuted } from "./risk-monitor";
 
 type TradeInsert = Database["public"]["Tables"]["trades"]["Insert"];
 
@@ -121,6 +122,15 @@ export async function executeOrder(
     actor_id: userId,
     message: `${order.side === "bid" ? "Long" : "Short"} ${order.size} ${order.symbol} (${order.type})`,
     data: { symbol: order.symbol, side: order.side, size: order.size, type: order.type },
+  });
+
+  // Notify risk monitor of position change
+  onTradeExecuted(arenaId, participant.id, {
+    symbol: order.symbol,
+    side: order.side === "bid" ? "buy" : "sell",
+    size: parseFloat(order.size),
+    price: order.price ? parseFloat(order.price) : 0,
+    leverage: order.leverage,
   });
 
   return {
