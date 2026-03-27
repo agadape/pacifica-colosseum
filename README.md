@@ -196,5 +196,3 @@ Built for the **Pacifica Hackathon 2026** (deadline: April 16, 2026).
 - Deployed on Vercel + Railway
 
 ---
-
-*Built with [Claude Code](https://claude.ai/claude-code)*
