@@ -854,11 +854,11 @@ engine/src/config.ts
 - [ ] **15.5** Run all edge case scenarios from PROTOCOL.md Section 3.9
 
 #### UI Polish
-- [ ] **15.6** Loading states and skeleton screens for all pages
-- [ ] **15.7** Error states (network error, API error, empty states)
-- [ ] **15.8** Responsive layout (desktop priority, 1920px, 1440px, 1024px)
-- [ ] **15.9** Animation polish (Framer Motion on key transitions)
-- [ ] **15.10** Typography consistency (Inter + JetBrains Mono)
+- [x] **15.6** Loading states: SkeletonCard, SkeletonLine, SkeletonBlock components, 6-card grid skeleton on arena list
+- [x] **15.7** Error states: ErrorState (retry button), EmptyState (action link), ConnectionStatus (WS reconnect banner)
+- [x] **15.8** Responsive: sm/md/lg breakpoints on arena list, trade page, spectate page. Overflow-x-auto on filters.
+- [x] **15.9** Animation: PageTransition component, stagger on arena grid, fadeUp variants
+- [x] **15.10** Typography: Sora display font on all headings, Inter body, JetBrains Mono on all numbers/prices
 
 #### Deployment
 - [ ] **15.11** Deploy frontend to Vercel (production)
@@ -912,7 +912,7 @@ engine/src/config.ts
 | 14 | Mock Engine | ✅ Complete | 6/6 |
 | 15 | Polish & Deployment | ⬜ Not Started | 0/25 |
 
-**Total tasks: 156 | Done: 129 | Remaining: 27**
+**Total tasks: 156 | Done: 134 | Remaining: 22**
 
 ---
 
