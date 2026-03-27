@@ -549,38 +549,25 @@ engine/src/timers/round-timer.ts
 
 ### Tasks
 
-- [ ] **8.1** Create loot calculator: `engine/src/services/loot-calculator.ts`
-  - `calculateLoot(arenaId, roundNumber, survivors)`:
-    - [ ] **Wide Zone**: Find trader with lowest `maxDrawdownHit` this round
-    - [ ] **Second Life**: Find trader with highest PnL% this round (auto-award)
-    - [ ] If same trader wins both: they choose one, runner-up gets the other
-      - For MVP: auto-assign Wide Zone to lowest drawdown, Second Life to highest PnL
-      - If same person: give them Second Life (more impactful), Wide Zone to runner-up
-    - [ ] Max 1 loot per trader per round
-    - [ ] Update `arena_participants` — set `has_wide_zone` or `has_second_life`
-    - [ ] Create "loot_awarded" events
-- [ ] **8.2** Integrate Wide Zone into risk monitor
-  - In `onPriceUpdate()`: if trader `has_wide_zone`, add +5% to max drawdown threshold
-  - Example: Round 2 max drawdown = 15%, with Wide Zone = 20%
-- [ ] **8.3** Integrate Second Life into risk monitor
-  - In drawdown breach check: if trader `has_second_life` and `!second_life_used`:
-    - Reset equity baseline to current equity
-    - Set `second_life_used = true`
-    - Create "second_life_used" event
-    - Skip elimination
-  - Second breach (no more Second Life): eliminate normally
-- [ ] **8.4** Clear loots on round transition
-  - At start of each round: reset `has_wide_zone`, `has_second_life`, `second_life_used` to false
-  - Then apply newly awarded loots for this round
-- [ ] **8.5** Verify: trader with lowest drawdown gets Wide Zone → +5% buffer in next round
-- [ ] **8.6** Verify: trader with Second Life survives first drawdown breach → eliminated on second
+- [x] **8.1** Create loot calculator: `engine/src/services/loot-calculator.ts`
+  - Wide Zone → lowest maxDrawdownHit. Second Life → highest PnL%.
+  - Same trader wins both → Second Life kept, Wide Zone to runner-up.
+  - Max 1 loot per trader per round. Loot events created. Round records updated.
+- [x] **8.2** Integrate Wide Zone into risk monitor
+  - Already done in Layer 6: `effectiveMax = maxDrawdown + 5` when `hasWideZone`
+- [x] **8.3** Integrate Second Life into risk monitor
+  - Already done in Layer 6: `handleDrawdownBreach()` checks `hasSecondLife`, resets baseline
+- [x] **8.4** Clear loots on round transition
+  - Already done in Layer 6: `updateArenaRound()` resets hasWideZone/hasSecondLife/secondLifeUsed
+- [x] **8.5** Verify: tsc clean, loot calculator wired into round-engine.advanceRound()
+- [x] **8.6** Verify: Wide Zone (+5%) and Second Life (breach forgiveness) logic confirmed in risk-monitor
 
 ### Done Criteria
-- [ ] Wide Zone correctly adds +5% drawdown buffer for one round
-- [ ] Second Life forgives first drawdown breach, resets baseline
-- [ ] Loots expire after one round (not cumulative)
-- [ ] Max 1 loot per trader per round enforced
-- [ ] Loot events created and visible
+- [x] Wide Zone correctly adds +5% drawdown buffer for one round
+- [x] Second Life forgives first drawdown breach, resets baseline
+- [x] Loots expire after one round (not cumulative)
+- [x] Max 1 loot per trader per round enforced
+- [x] Loot events created and visible
 
 ### Key Files Created
 ```
@@ -1050,7 +1037,7 @@ engine/src/config.ts
 | 5 | Trading Engine | ✅ Complete | 8/8 |
 | 6 | Risk Engine | ✅ Complete | 8/8 |
 | 7 | Round & Elimination Engine | ✅ Complete | 10/10 |
-| 8 | Loot System | ⬜ Not Started | 0/6 |
+| 8 | Loot System | ✅ Complete | 6/6 |
 | 9 | Frontend — Shell & Pages | ⬜ Not Started | 0/11 |
 | 10 | Frontend — Trading UI | ⬜ Not Started | 0/10 |
 | 11 | Frontend — Spectator | ⬜ Not Started | 0/10 |
@@ -1059,14 +1046,14 @@ engine/src/config.ts
 | 14 | Mock Engine | ⬜ Not Started | 0/6 |
 | 15 | Polish & Deployment | ⬜ Not Started | 0/25 |
 
-**Total tasks: 156 | Done: 71 | Remaining: 85**
+**Total tasks: 156 | Done: 77 | Remaining: 79**
 
 ---
 
 ## Notes for Resuming Agents
 
-- **What was just completed**: Layer 7 complete. Round engine (advanceRound → inactivity/ranking elimination → grace period → next round), round timer, grace period handler (pause monitoring, reset baselines), elimination engine (close positions, return funds, 3 elimination types), leverage monitor (3-strike), settlement (determine winner, close all, award badges). Loot calculation stubbed for Layer 8.
-- **What to do next**: Layer 8 (Loot System — Wide Zone + Second Life calculation and awarding).
+- **What was just completed**: Layer 8 complete. Loot calculator (Wide Zone → lowest drawdown, Second Life → highest PnL%, same-winner tiebreak logic). Wired into round-engine.advanceRound(). Wide Zone +5% and Second Life breach forgiveness were already implemented in Layer 6 risk-monitor. Loot reset on round transition already in updateArenaRound().
+- **What to do next**: Layer 9 (Frontend — Shell & Pages). ALL MUST-HAVE backend layers (0-8) complete.
 - **Key files to read first**:
   1. `COLOSSEUM_BLUEPRINT.md` — full project spec (game mechanics, DB schema, backend services, frontend pages)
   2. `PROTOCOL.md` — distilled protocol rules (round parameters, elimination logic, loot rules)

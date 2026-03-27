@@ -4,6 +4,7 @@ import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
 import { updateArenaRound, getArenaState } from "./risk-monitor";
 import { startGracePeriod } from "./grace-period";
 import { processInactivityElimination, processRankingElimination } from "./elimination-engine";
+import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
 
@@ -49,8 +50,8 @@ export async function advanceRound(arenaId: string): Promise<void> {
     await processRankingElimination(arenaId, currentRound, 0);
   }
 
-  // Step 3: Loot calculation (stub — filled in Layer 8)
-  // await calculateLoot(arenaId, currentRound);
+  // Step 3: Loot calculation (Wide Zone + Second Life)
+  await calculateLoot(arenaId, currentRound);
 
   // Step 4: Count remaining active traders
   const state = getArenaState(arenaId);
