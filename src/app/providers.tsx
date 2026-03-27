@@ -1,21 +1,22 @@
 "use client";
 
-import { PrivyProvider } from "@privy-io/react-auth";
+import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { privyConfig } from "@/lib/privy/config";
+
+const PrivyProviderWrapper = dynamic(
+  () => import("@/components/shared/PrivyWrapper"),
+  { ssr: false }
+);
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
-      config={privyConfig}
-    >
+    <PrivyProviderWrapper>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
-    </PrivyProvider>
+    </PrivyProviderWrapper>
   );
 }

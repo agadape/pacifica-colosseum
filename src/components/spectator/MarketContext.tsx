@@ -62,7 +62,7 @@ export default function MarketContext({ arenaId, symbols }: MarketContextProps) 
           animate={{ opacity: 1 }}
           className="text-sm text-text-secondary italic mb-4 leading-relaxed"
         >
-          "{commentary}"
+          &ldquo;{commentary}&rdquo;
         </motion.p>
       )}
 

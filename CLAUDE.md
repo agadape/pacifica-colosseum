@@ -95,6 +95,8 @@ This is a Battle Royale trading competition platform built on Pacifica's perpetu
 - Create `src/lib/env.ts` that validates all required env vars at import time.
 - API routes and engine import from this file instead of reading `process.env` directly.
 - Missing env var = immediate throw with clear message, not a silent undefined at runtime.
+- **VERCEL DEPLOYMENT: NEVER pipe env values with trailing newlines.** Use `echo -n "value"` or trim whitespace. Trailing `\n` in env vars silently breaks Privy, Supabase, and all API integrations. This caused a multi-hour debug in Layer 15.
+- When setting Vercel env vars via CLI: `echo -n "value" | npx vercel env add VAR_NAME production --scope SCOPE`
 
 ### Engine ↔ Next.js Communication
 - Engine exposes internal REST endpoints for Next.js to call after DB writes:
