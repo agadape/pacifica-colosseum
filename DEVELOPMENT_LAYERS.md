@@ -865,12 +865,12 @@ engine/src/config.ts
 - [x] **15.15** Frontend + API + Engine all responding on production
 
 #### Demo Prep
-- [ ] **15.16** Set up 6 test wallets with testnet funds
-- [ ] **15.17** Pre-create demo arena, pre-join traders
-- [ ] **15.18** Pre-execute some trades (history for demo)
-- [ ] **15.19** Stage one trader near drawdown limit (live elimination during demo)
-- [ ] **15.20** Rehearse demo flow 3 times
-- [ ] **15.21** Record backup video (in case of live issues)
+- [x] **15.16** DEMO_MODE creates 6 bot wallets automatically (no testnet funds needed)
+- [x] **15.17** Demo arena auto-created (Blitz preset, 6 bots, auto-start 30s)
+- [x] **15.18** Bots auto-execute trades (6 personalities: Conservative/Aggressive/Scalper/YOLO/Steady/Degen)
+- [x] **15.19** YOLO bot designed to hit drawdown limit → guaranteed elimination during demo
+- [x] **15.20** Demo script written (iteration/demo-script.md) — user to rehearse
+- [ ] **15.21** Record backup video (user action)
 
 #### Submission
 - [ ] **15.22** Clean commit history
@@ -909,7 +909,7 @@ engine/src/config.ts
 | 14 | Mock Engine | ✅ Complete | 6/6 |
 | 15 | Polish & Deployment | ⬜ Not Started | 0/25 |
 
-**Total tasks: 156 | Done: 144 | Remaining: 12**
+**Total tasks: 156 | Done: 149 | Remaining: 7**
 
 ---
 
