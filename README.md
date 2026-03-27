@@ -1,0 +1,200 @@
+# Pacifica Colosseum
+
+**Battle Royale Trading Competition** — built on [Pacifica](https://pacifica.fi) perpetual futures.
+
+> Traders enter an arena. Rounds get harder. Leverage drops. Drawdown tightens. Only one survives.
+
+**Live**: [pacifica-colosseum.vercel.app](https://pacifica-colosseum.vercel.app)
+
+---
+
+## How It Works
+
+1. **Join** — Enter an arena with other traders
+2. **Trade** — Open positions on Pacifica perpetual futures (BTC, ETH, SOL)
+3. **Survive** — Each round tightens the rules. Hit the drawdown limit = eliminated
+4. **Win** — Last trader standing takes the crown
+
+### Round Progression
+
+| Round | Name | Max Leverage | Max Drawdown | Elimination |
+|-------|------|-------------|-------------|-------------|
+| 1 | Open Field | 20x | 20% | Bottom 30% |
+| 2 | The Storm | 10x | 15% | Bottom 40% |
+| 3 | Final Circle | 5x | 10% | Top 5 advance |
+| 4 | Sudden Death | 3x | 8% | Any breach |
+
+### Loot System
+
+- **Wide Zone** — +5% drawdown buffer for one round (awarded to lowest drawdown)
+- **Second Life** — Forgives one drawdown breach (awarded to highest PnL%)
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15, React 19, Tailwind CSS v4, Framer Motion |
+| State | Zustand, TanStack React Query v5 |
+| Auth | Privy (email, social, wallet) |
+| Database | Supabase (PostgreSQL, Realtime, RLS) |
+| Trading | Pacifica TypeScript SDK (REST + WebSocket) |
+| Engine | Node.js, Express 5, WebSocket |
+| Charts | TradingView Lightweight Charts v5 |
+| Deployment | Vercel (frontend), Railway (engine) |
+
+---
+
+## Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────┐
+│   Next.js App    │────▶│   Game Engine     │────▶│  Pacifica    │
+│   (Vercel)       │     │   (Railway)       │     │  Testnet     │
+│                  │     │                   │     │              │
+│  • Pages/UI      │     │  • Risk Monitor   │     │  • REST API  │
+│  • API Routes    │     │  • Round Engine   │     │  • WebSocket │
+│  • Auth (Privy)  │     │  • Price Feed     │     │  • Orders    │
+└────────┬─────────┘     │  • Eliminations   │     └──────────────┘
+         │               │  • Settlement     │
+         │               └────────┬──────────┘
+         │                        │
+         └────────────┬───────────┘
+                      │
+              ┌───────▼───────┐
+              │   Supabase    │
+              │               │
+              │  • 11 Tables  │
+              │  • RLS        │
+              │  • Realtime   │
+              └───────────────┘
+```
+
+### Real-Time Risk Engine
+
+The engine monitors every trader's equity on every price tick (~1/sec) using WebSocket mark prices — **zero REST API calls** during normal operation:
+
+```
+Pacifica WS → PriceManager → RiskMonitor → Drawdown Check → Elimination
+                                         → Equity Snapshots (every 30s)
+                                         → Leaderboard Updates (every 3s)
+```
+
+---
+
+## Pacifica API Endpoints Used
+
+### REST (Authenticated, Ed25519 signed)
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /orders/create_market` | Market orders |
+| `POST /orders/create` | Limit orders |
+| `POST /orders/cancel` | Cancel order |
+| `POST /orders/cancel_all` | Cancel all orders |
+| `POST /orders/batch` | Batch orders |
+| `POST /account/subaccount/create` | Create trader subaccount |
+| `POST /account/subaccount/transfer` | Fund/withdraw subaccount |
+| `POST /account/leverage` | Set leverage |
+| `GET /account/info` | Account balance/equity |
+| `GET /account/positions` | Open positions |
+
+### WebSocket (Public)
+| Channel | Purpose |
+|---------|---------|
+| `prices` | Real-time mark prices for risk monitoring + charts |
+
+---
+
+## Local Development
+
+### Prerequisites
+- Node.js 22+
+- npm
+- Supabase project
+- Privy app
+
+### Setup
+
+```bash
+# Clone
+git clone <repo-url>
+cd pacifica-colosseum
+
+# Install
+npm install
+cd engine && npm install && cd ..
+
+# Environment
+cp .env.example .env.local
+# Fill in all values (see .env.example for descriptions)
+
+# Run migrations
+# Paste each file in supabase/migrations/ into Supabase SQL Editor
+
+# Start frontend (port 3000)
+npm run dev
+
+# Start engine (port 4000) — separate terminal
+DOTENV_CONFIG_PATH=.env.local npx tsx -r dotenv/config engine/src/index.ts
+
+# Demo mode (mock data, no Pacifica needed)
+DEMO_MODE=true DOTENV_CONFIG_PATH=.env.local npx tsx -r dotenv/config engine/src/index.ts
+```
+
+### Tests
+
+```bash
+npx vitest run    # 53 tests
+npx tsc --noEmit  # type check
+```
+
+---
+
+## Project Structure
+
+```
+pacifica-colosseum/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/                # API routes (arenas, users, trade, vote)
+│   │   ├── arenas/             # Arena pages (list, create, detail, trade, spectate)
+│   │   └── page.tsx            # Landing page
+│   ├── components/
+│   │   ├── arena/              # ArenaCard, RoundIndicator, RoundTransition
+│   │   ├── shared/             # Navbar, Timer, DrawdownMeter, StatusBadge
+│   │   ├── spectator/          # SurvivorGrid, TraderCard, ActivityFeed, VotePanel
+│   │   └── trading/            # OrderForm, PositionList, Chart, AccountPanel
+│   ├── hooks/                  # useArena, useCountdown, useTrading, useWebSocket
+│   ├── stores/                 # Zustand (arena, trading, ws)
+│   └── lib/
+│       ├── pacifica/           # Pacifica SDK (auth, client, websocket, types)
+│       ├── supabase/           # Supabase clients + types
+│       ├── auth/               # Privy middleware + user registration
+│       └── utils/              # Constants, encryption, keypair, columns
+├── engine/
+│   ├── src/
+│   │   ├── services/           # arena-manager, risk-monitor, order-relay, settlement, etc.
+│   │   ├── state/              # In-memory types, price manager
+│   │   ├── timers/             # Arena + round timers
+│   │   └── mock/               # Demo mode (price gen, bot traders, mock Pacifica)
+│   └── package.json
+├── supabase/migrations/        # SQL schema (4 files)
+├── tests/                      # Vitest unit tests (53 tests)
+└── iteration/                  # Layer-by-layer development summaries
+```
+
+---
+
+## Hackathon
+
+Built for the **Pacifica Hackathon 2026** (deadline: April 16, 2026).
+
+- 16 development layers, 156 tasks
+- ~95 source files
+- 53 unit tests
+- Deployed on Vercel + Railway
+
+---
+
+*Built with [Claude Code](https://claude.ai/claude-code)*

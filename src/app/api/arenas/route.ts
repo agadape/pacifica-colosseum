@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from("arenas")
-    .select("*, arena_participants(count)", { count: "exact" })
+    .select(`${ARENA_PUBLIC_COLUMNS}, arena_participants(count)`, { count: "exact" })
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useArena, useJoinArena, useLeaveArena, useCurrentUser } from "@/hooks/use-arena";
 import Timer from "@/components/shared/Timer";
@@ -76,6 +77,30 @@ export default function ArenaDetailPage({
               <p className="mt-2 text-text-secondary">{arena.description}</p>
             )}
           </div>
+
+          {/* Action buttons (active arena) */}
+          {isActive && (
+            <div className="flex gap-3 mb-8">
+              <Link href={`/arenas/${arenaId}/trade`}>
+                <motion.span
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-block px-6 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
+                >
+                  Trade
+                </motion.span>
+              </Link>
+              <Link href={`/arenas/${arenaId}/spectate`}>
+                <motion.span
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-block px-6 py-2.5 rounded-full border border-border text-text-secondary text-sm font-semibold hover:text-text-primary hover:border-text-secondary transition-colors"
+                >
+                  Spectate
+                </motion.span>
+              </Link>
+            </div>
+          )}
 
           {/* Round Indicator (if active) */}
           {isActive && currentRound && (
