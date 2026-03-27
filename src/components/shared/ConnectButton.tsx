@@ -1,6 +1,7 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
+import { motion } from "framer-motion";
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
@@ -11,12 +12,9 @@ export default function ConnectButton() {
 
   if (!ready) {
     return (
-      <button
-        disabled
-        className="px-4 py-2 rounded-lg bg-bg-tertiary text-text-secondary"
-      >
+      <div className="px-5 py-2 rounded-full bg-border-light text-text-tertiary text-sm">
         Loading...
-      </button>
+      </div>
     );
   }
 
@@ -31,22 +29,26 @@ export default function ConnectButton() {
         <span className="text-sm text-text-secondary font-mono">
           {displayName}
         </span>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={logout}
-          className="px-4 py-2 rounded-lg bg-bg-tertiary text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-colors"
+          className="px-4 py-2 rounded-full text-sm text-text-secondary border border-border hover:border-text-secondary hover:text-text-primary transition-colors"
         >
           Disconnect
-        </button>
+        </motion.button>
       </div>
     );
   }
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
       onClick={login}
-      className="px-6 py-2.5 rounded-lg bg-accent-primary text-white font-semibold hover:brightness-110 transition-all"
+      className="px-5 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors shadow-sm"
     >
-      Enter the Arena
-    </button>
+      Connect
+    </motion.button>
   );
 }

@@ -53,6 +53,19 @@ This is a Battle Royale trading competition platform built on Pacifica's perpetu
   - Known issues at this point
 - This serves as a **rollback reference** — if something breaks at Layer 8, scan the table to know exactly which commit to revert to and what state the project was in.
 
+### Frontend Design Direction (MANDATORY for Layers 9-11)
+- Follow `iteration/frontend-design-direction.md` for all visual decisions.
+- **Aesthetic**: Clean minimalist, cinematic, light theme. joseph-san.com elegance + bombon.rs playful motion.
+- **Core rules**:
+  - One idea per section. Full-viewport sections. Big typography, few words.
+  - Whitespace IS the design. No clutter, no walls of text.
+  - Light base (#FAFAF8), dark overlays only for dramatic moments (elimination, round transition, winner).
+  - Display font for headings (NOT Inter). Inter for body. JetBrains Mono for numbers.
+  - All animations via Framer Motion (already installed). No Three.js. No new heavy packages.
+  - Scroll-triggered reveals (`whileInView`), page transitions (`AnimatePresence`), stagger effects.
+- **Use the `/frontend-design` skill** when building UI components for high design quality.
+- **Whenever adding/changing colors, fonts, animations, or component patterns** — immediately update `iteration/frontend-design-direction.md`. This file must always reflect the current design state, not just initial decisions.
+
 ### Code Standards
 - TypeScript strict mode. No `any` types unless absolutely unavoidable.
 - Use the tech stack specified in the blueprint: Next.js 15, React 19, Tailwind v4, Zustand, TanStack Query.
