@@ -22,5 +22,12 @@ next-env.d.ts
 .DS_Store
 *.log
 .claude/
-
 .vercel
+
+# Internal docs (not for public repo)
+CLAUDE.md
+COLOSSEUM_BLUEPRINT.md
+PROTOCOL.md
+DEVELOPMENT_LAYERS.md
+COMMITS.md
+iteration/
