@@ -1,0 +1,556 @@
+/**
+ * Database types — manually written to match the schema in 001_create_tables.sql.
+ * Replace with `npx supabase gen types typescript` once CLI auth is set up.
+ */
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          wallet_address: string;
+          privy_user_id: string | null;
+          username: string | null;
+          avatar_url: string | null;
+          referral_code: string;
+          referred_by: string | null;
+          total_arenas_entered: number;
+          total_arenas_won: number;
+          total_rounds_survived: number;
+          total_eliminations: number;
+          best_pnl_percent: number;
+          win_streak: number;
+          current_win_streak: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          wallet_address: string;
+          privy_user_id?: string | null;
+          username?: string | null;
+          avatar_url?: string | null;
+          referral_code: string;
+          referred_by?: string | null;
+          total_arenas_entered?: number;
+          total_arenas_won?: number;
+          total_rounds_survived?: number;
+          total_eliminations?: number;
+          best_pnl_percent?: number;
+          win_streak?: number;
+          current_win_streak?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          wallet_address?: string;
+          privy_user_id?: string | null;
+          username?: string | null;
+          avatar_url?: string | null;
+          referral_code?: string;
+          referred_by?: string | null;
+          total_arenas_entered?: number;
+          total_arenas_won?: number;
+          total_rounds_survived?: number;
+          total_eliminations?: number;
+          best_pnl_percent?: number;
+          win_streak?: number;
+          current_win_streak?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      arenas: {
+        Row: {
+          id: string;
+          creator_id: string;
+          name: string;
+          description: string | null;
+          status: string;
+          preset: string;
+          starting_capital: number;
+          min_participants: number;
+          max_participants: number;
+          is_invite_only: boolean;
+          invite_code: string | null;
+          registration_deadline: string;
+          starts_at: string;
+          current_round: number;
+          current_round_ends_at: string | null;
+          ended_at: string | null;
+          round_1_duration: number;
+          round_2_duration: number;
+          round_3_duration: number;
+          sudden_death_duration: number;
+          master_wallet_address: string | null;
+          master_private_key_encrypted: string | null;
+          winner_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_id: string;
+          name: string;
+          description?: string | null;
+          status?: string;
+          preset?: string;
+          starting_capital?: number;
+          min_participants?: number;
+          max_participants?: number;
+          is_invite_only?: boolean;
+          invite_code?: string | null;
+          registration_deadline: string;
+          starts_at: string;
+          current_round?: number;
+          current_round_ends_at?: string | null;
+          ended_at?: string | null;
+          round_1_duration: number;
+          round_2_duration: number;
+          round_3_duration: number;
+          sudden_death_duration: number;
+          master_wallet_address?: string | null;
+          master_private_key_encrypted?: string | null;
+          winner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          creator_id?: string;
+          name?: string;
+          description?: string | null;
+          status?: string;
+          preset?: string;
+          starting_capital?: number;
+          min_participants?: number;
+          max_participants?: number;
+          is_invite_only?: boolean;
+          invite_code?: string | null;
+          registration_deadline?: string;
+          starts_at?: string;
+          current_round?: number;
+          current_round_ends_at?: string | null;
+          ended_at?: string | null;
+          round_1_duration?: number;
+          round_2_duration?: number;
+          round_3_duration?: number;
+          sudden_death_duration?: number;
+          master_wallet_address?: string | null;
+          master_private_key_encrypted?: string | null;
+          winner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      arena_participants: {
+        Row: {
+          id: string;
+          arena_id: string;
+          user_id: string;
+          subaccount_address: string | null;
+          subaccount_private_key_encrypted: string | null;
+          status: string;
+          eliminated_at: string | null;
+          eliminated_in_round: number | null;
+          elimination_reason: string | null;
+          elimination_equity: number | null;
+          equity_round_1_start: number | null;
+          equity_round_1_end: number | null;
+          equity_round_2_start: number | null;
+          equity_round_2_end: number | null;
+          equity_round_3_start: number | null;
+          equity_round_3_end: number | null;
+          equity_sudden_death_start: number | null;
+          equity_final: number | null;
+          has_wide_zone: boolean;
+          has_second_life: boolean;
+          second_life_used: boolean;
+          trades_this_round: number;
+          volume_this_round: number;
+          total_trades: number;
+          total_pnl: number;
+          total_pnl_percent: number;
+          max_drawdown_hit: number;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          user_id: string;
+          subaccount_address?: string | null;
+          subaccount_private_key_encrypted?: string | null;
+          status?: string;
+          eliminated_at?: string | null;
+          eliminated_in_round?: number | null;
+          elimination_reason?: string | null;
+          elimination_equity?: number | null;
+          equity_round_1_start?: number | null;
+          equity_round_1_end?: number | null;
+          equity_round_2_start?: number | null;
+          equity_round_2_end?: number | null;
+          equity_round_3_start?: number | null;
+          equity_round_3_end?: number | null;
+          equity_sudden_death_start?: number | null;
+          equity_final?: number | null;
+          has_wide_zone?: boolean;
+          has_second_life?: boolean;
+          second_life_used?: boolean;
+          trades_this_round?: number;
+          volume_this_round?: number;
+          total_trades?: number;
+          total_pnl?: number;
+          total_pnl_percent?: number;
+          max_drawdown_hit?: number;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          user_id?: string;
+          subaccount_address?: string | null;
+          subaccount_private_key_encrypted?: string | null;
+          status?: string;
+          eliminated_at?: string | null;
+          eliminated_in_round?: number | null;
+          elimination_reason?: string | null;
+          elimination_equity?: number | null;
+          equity_round_1_start?: number | null;
+          equity_round_1_end?: number | null;
+          equity_round_2_start?: number | null;
+          equity_round_2_end?: number | null;
+          equity_round_3_start?: number | null;
+          equity_round_3_end?: number | null;
+          equity_sudden_death_start?: number | null;
+          equity_final?: number | null;
+          has_wide_zone?: boolean;
+          has_second_life?: boolean;
+          second_life_used?: boolean;
+          trades_this_round?: number;
+          volume_this_round?: number;
+          total_trades?: number;
+          total_pnl?: number;
+          total_pnl_percent?: number;
+          max_drawdown_hit?: number;
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      rounds: {
+        Row: {
+          id: string;
+          arena_id: string;
+          round_number: number;
+          starts_at: string;
+          ends_at: string;
+          actual_ended_at: string | null;
+          name: string;
+          max_leverage: number;
+          margin_mode: string;
+          max_drawdown_percent: number;
+          elimination_percent: number;
+          allowed_pairs: string[];
+          wide_zone_winner_id: string | null;
+          second_life_winner_id: string | null;
+          traders_at_start: number | null;
+          traders_at_end: number | null;
+          traders_eliminated: number | null;
+          status: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          round_number: number;
+          starts_at: string;
+          ends_at: string;
+          actual_ended_at?: string | null;
+          name: string;
+          max_leverage: number;
+          margin_mode: string;
+          max_drawdown_percent: number;
+          elimination_percent: number;
+          allowed_pairs: string[];
+          wide_zone_winner_id?: string | null;
+          second_life_winner_id?: string | null;
+          traders_at_start?: number | null;
+          traders_at_end?: number | null;
+          traders_eliminated?: number | null;
+          status?: string;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          round_number?: number;
+          starts_at?: string;
+          ends_at?: string;
+          actual_ended_at?: string | null;
+          name?: string;
+          max_leverage?: number;
+          margin_mode?: string;
+          max_drawdown_percent?: number;
+          elimination_percent?: number;
+          allowed_pairs?: string[];
+          wide_zone_winner_id?: string | null;
+          second_life_winner_id?: string | null;
+          traders_at_start?: number | null;
+          traders_at_end?: number | null;
+          traders_eliminated?: number | null;
+          status?: string;
+        };
+        Relationships: [];
+      };
+      equity_snapshots: {
+        Row: {
+          id: number;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          equity: number;
+          balance: number;
+          unrealized_pnl: number;
+          drawdown_percent: number;
+          recorded_at: string;
+        };
+        Insert: {
+          id?: number;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          equity: number;
+          balance: number;
+          unrealized_pnl: number;
+          drawdown_percent: number;
+          recorded_at?: string;
+        };
+        Update: {
+          id?: number;
+          arena_id?: string;
+          participant_id?: string;
+          round_number?: number;
+          equity?: number;
+          balance?: number;
+          unrealized_pnl?: number;
+          drawdown_percent?: number;
+          recorded_at?: string;
+        };
+        Relationships: [];
+      };
+      trades: {
+        Row: {
+          id: string;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          symbol: string;
+          side: string;
+          order_type: string;
+          size: number;
+          price: number;
+          leverage: number | null;
+          realized_pnl: number | null;
+          fee: number | null;
+          pacifica_order_id: string | null;
+          pacifica_trade_id: string | null;
+          executed_at: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          symbol: string;
+          side: string;
+          order_type: string;
+          size: number;
+          price: number;
+          leverage?: number | null;
+          realized_pnl?: number | null;
+          fee?: number | null;
+          pacifica_order_id?: string | null;
+          pacifica_trade_id?: string | null;
+          executed_at?: string;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          participant_id?: string;
+          round_number?: number;
+          symbol?: string;
+          side?: string;
+          order_type?: string;
+          size?: number;
+          price?: number;
+          leverage?: number | null;
+          realized_pnl?: number | null;
+          fee?: number | null;
+          pacifica_order_id?: string | null;
+          pacifica_trade_id?: string | null;
+          executed_at?: string;
+        };
+        Relationships: [];
+      };
+      eliminations: {
+        Row: {
+          id: string;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          reason: string;
+          equity_at_elimination: number;
+          drawdown_at_elimination: number | null;
+          rank_at_elimination: number | null;
+          total_traders_at_elimination: number | null;
+          positions_snapshot: Json | null;
+          eliminated_at: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          participant_id: string;
+          round_number: number;
+          reason: string;
+          equity_at_elimination: number;
+          drawdown_at_elimination?: number | null;
+          rank_at_elimination?: number | null;
+          total_traders_at_elimination?: number | null;
+          positions_snapshot?: Json | null;
+          eliminated_at?: string;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          participant_id?: string;
+          round_number?: number;
+          reason?: string;
+          equity_at_elimination?: number;
+          drawdown_at_elimination?: number | null;
+          rank_at_elimination?: number | null;
+          total_traders_at_elimination?: number | null;
+          positions_snapshot?: Json | null;
+          eliminated_at?: string;
+        };
+        Relationships: [];
+      };
+      spectator_votes: {
+        Row: {
+          id: string;
+          arena_id: string;
+          round_number: number;
+          voter_id: string;
+          voted_for_id: string;
+          voted_at: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          round_number: number;
+          voter_id: string;
+          voted_for_id: string;
+          voted_at?: string;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          round_number?: number;
+          voter_id?: string;
+          voted_for_id?: string;
+          voted_at?: string;
+        };
+        Relationships: [];
+      };
+      badges: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon_url: string | null;
+          rarity: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          icon_url?: string | null;
+          rarity: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          icon_url?: string | null;
+          rarity?: string;
+        };
+        Relationships: [];
+      };
+      user_badges: {
+        Row: {
+          id: string;
+          user_id: string;
+          badge_id: string;
+          arena_id: string | null;
+          earned_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          badge_id: string;
+          arena_id?: string | null;
+          earned_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          badge_id?: string;
+          arena_id?: string | null;
+          earned_at?: string;
+        };
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: number;
+          arena_id: string;
+          round_number: number | null;
+          event_type: string;
+          actor_id: string | null;
+          target_id: string | null;
+          data: Json;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          arena_id: string;
+          round_number?: number | null;
+          event_type: string;
+          actor_id?: string | null;
+          target_id?: string | null;
+          data?: Json;
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          arena_id?: string;
+          round_number?: number | null;
+          event_type?: string;
+          actor_id?: string | null;
+          target_id?: string | null;
+          data?: Json;
+          message?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+  };
+}

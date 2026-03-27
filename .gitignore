@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.local
+.env.*.local
+
+# next.js
+.next/
+out/
+
+# engine build
+engine/dist/
+
+# reference SDK (has its own git repo)
+pacifica-sdk/
+
+# misc
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+*.log
+.claude/

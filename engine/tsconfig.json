@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "..",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": [
+    "src/**/*",
+    "../src/lib/supabase/types.ts",
+    "../src/lib/pacifica/**/*",
+    "../src/lib/utils/**/*"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
