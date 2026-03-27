@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Sora, JetBrains_Mono } from "next/font/google";
 import Providers from "./providers";
 import Navbar from "@/components/shared/Navbar";
+import BackgroundEffects from "@/components/shared/BackgroundEffects";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,6 +37,7 @@ export default function RootLayout({
         className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <Providers>
+          <BackgroundEffects />
           <Navbar />
           {children}
         </Providers>

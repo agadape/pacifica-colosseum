@@ -37,8 +37,15 @@
 
 - **Framer Motion** (installed): page transitions, scroll reveals, stagger, layout animations, exit animations
 - **CSS**: gradients, glows, backdrop-blur, transitions
-- **Canvas 2D**: background particles for dramatic moments (eliminations, winner)
+- **Canvas 2D**: background particles (always-on, subtle floating indigo dots)
 - **NO Three.js/GSAP** — Framer Motion covers 95% of needs
+
+## Background Effects (BackgroundEffects.tsx — global, in layout)
+
+- **Gradient orbs**: 3 large blurred circles (indigo, purple, gold) that slowly drift. Opacity 4-7%.
+- **Canvas particles**: ~80 tiny indigo dots floating randomly. Opacity 3-15%. Wraps around edges.
+- **Grain overlay**: SVG noise texture at 3% opacity for subtle depth.
+- All fixed position, -z-10, pointer-events-none. Zero performance impact.
 
 ## Page Structure (Landing)
 
