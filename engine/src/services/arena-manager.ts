@@ -7,6 +7,7 @@ import { STARTING_CAPITAL, ROUND_PARAMS } from "../../../src/lib/utils/constants
 import { initArena } from "./risk-monitor";
 import { startPeriodicSync } from "./periodic-sync";
 import { startLeaderboardUpdater } from "./leaderboard-updater";
+import { scheduleRoundEnd } from "../timers/round-timer";
 
 function getSupabase() {
   return createClient<Database>(
@@ -131,6 +132,18 @@ export async function startArena(arenaId: string): Promise<void> {
   await initArena(arenaId);
   startPeriodicSync(arenaId);
   startLeaderboardUpdater(arenaId);
+
+  // Schedule round 1 end
+  const { data: round1Data } = await supabase
+    .from("rounds")
+    .select("ends_at")
+    .eq("arena_id", arenaId)
+    .eq("round_number", 1)
+    .single();
+
+  if (round1Data?.ends_at) {
+    scheduleRoundEnd(arenaId, new Date(round1Data.ends_at));
+  }
 
   console.log(`[Arena ${arenaId}] Started successfully — Round 1 active`);
 }
