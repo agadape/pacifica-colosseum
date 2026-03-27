@@ -1,23 +1,31 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useWSStore } from "@/stores/ws-store";
 
 const WS_URL = "wss://test-ws.pacifica.fi/ws";
+const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 15000, 30000];
 
 /**
  * Connect to Pacifica public WebSocket for real-time prices.
  * Stores prices in Zustand ws-store.
+ * Auto-reconnects with exponential backoff.
  */
 export function usePacificaWS() {
   const wsRef = useRef<WebSocket | null>(null);
+  const attemptRef = useRef(0);
+  const mountedRef = useRef(true);
   const { setConnected, updatePrice } = useWSStore();
 
-  useEffect(() => {
+  const connect = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      attemptRef.current = 0;
       setConnected(true);
       ws.send(JSON.stringify({
         method: "subscribe",
@@ -45,17 +53,26 @@ export function usePacificaWS() {
 
     ws.onclose = () => {
       setConnected(false);
-      // Auto-reconnect after 3s
-      setTimeout(() => {
-        if (wsRef.current === ws) {
-          wsRef.current = null;
-        }
-      }, 3000);
+      if (!mountedRef.current) return;
+
+      const delay = RECONNECT_DELAYS[Math.min(attemptRef.current, RECONNECT_DELAYS.length - 1)];
+      attemptRef.current++;
+      setTimeout(connect, delay);
     };
 
-    return () => {
+    ws.onerror = () => {
       ws.close();
-      wsRef.current = null;
     };
   }, [setConnected, updatePrice]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    connect();
+
+    return () => {
+      mountedRef.current = false;
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
+  }, [connect]);
 }

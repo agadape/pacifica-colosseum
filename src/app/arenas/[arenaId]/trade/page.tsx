@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { motion } from "framer-motion";
 import { useArena } from "@/hooks/use-arena";
 import { usePacificaWS } from "@/hooks/use-websocket";
+import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
 import Chart from "@/components/trading/Chart";
 import OrderForm from "@/components/trading/OrderForm";
@@ -20,8 +21,9 @@ export default function TradePage({
   const { data } = useArena(arenaId);
   const arena = data?.data;
 
-  // Connect to WS prices
+  // Connect to WS prices + Supabase Realtime
   usePacificaWS();
+  useArenaRealtime(arenaId);
 
   // Symbol selector — defaults to first allowed pair
   const rounds = arena?.rounds ?? [];

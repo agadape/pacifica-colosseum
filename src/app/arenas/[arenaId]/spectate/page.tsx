@@ -4,6 +4,7 @@ import { use, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useArena } from "@/hooks/use-arena";
 import { useLeaderboard, useArenaEvents } from "@/hooks/use-leaderboard";
+import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
 import SurvivorGrid from "@/components/spectator/SurvivorGrid";
 import ActivityFeed from "@/components/spectator/ActivityFeed";
@@ -24,6 +25,7 @@ export default function SpectatePage({
   const { data: arenaData } = useArena(arenaId);
   const participants = useLeaderboard(arenaId);
   const { data: eventsData } = useArenaEvents(arenaId);
+  useArenaRealtime(arenaId);
 
   const arena = arenaData?.data;
   const events = eventsData?.data ?? [];
