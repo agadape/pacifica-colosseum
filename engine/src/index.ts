@@ -5,6 +5,8 @@ import { WebSocketServer } from "ws";
 import { healthHandler } from "./health";
 import { initArenaTimers, scheduleArenaStart } from "./timers/arena-timer";
 import { getPriceManager } from "./state/price-manager";
+import { DEMO_MODE } from "./config";
+import { setupDemoArena } from "./mock/demo-setup";
 import { executeOrder, cancelOrder, getPositions, getAccountInfo } from "./services/order-relay";
 import type { OrderInput } from "./services/order-validator";
 
@@ -83,10 +85,15 @@ server.listen(PORT, async () => {
   console.log(`[Engine] HTTP server running on http://localhost:${PORT}`);
   console.log(`[Engine] WebSocket server running on ws://localhost:${PORT}/ws`);
 
-  // Start price feed
-  const priceManager = getPriceManager();
-  priceManager.start();
-  console.log("[Engine] Price manager started");
+  if (DEMO_MODE) {
+    console.log("[Engine] DEMO_MODE enabled — using mock data");
+    await setupDemoArena();
+  } else {
+    // Start real price feed
+    const priceManager = getPriceManager();
+    priceManager.start();
+    console.log("[Engine] Price manager started");
+  }
 
   // Initialize arena timers from DB
   await initArenaTimers();
