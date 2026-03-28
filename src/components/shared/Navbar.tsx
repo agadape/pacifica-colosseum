@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { useState } from "react";
 import ConnectButton from "./ConnectButton";
 
 const navLinks = [
@@ -12,16 +13,33 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isHome = pathname === "/";
+  const { scrollY } = useScroll();
+  const [scrolled, setScrolled] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 50);
+  });
+
+  // On homepage: transparent at top, solid on scroll
+  // On other pages: always solid
+  const isTransparent = isHome && !scrolled;
 
   return (
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 bg-bg-primary/80 backdrop-blur-md border-b border-border-light"
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 transition-all duration-300 ${
+        isTransparent
+          ? "bg-transparent border-b border-transparent"
+          : "bg-bg-primary/80 backdrop-blur-md border-b border-border-light"
+      }`}
     >
       <Link href="/" className="flex items-center gap-2">
-        <span className="font-display text-xl font-800 tracking-tight text-text-primary">
+        <span className={`font-display text-xl font-800 tracking-tight transition-colors duration-300 ${
+          isTransparent ? "text-white" : "text-text-primary"
+        }`}>
           COLOSSEUM
         </span>
       </Link>
@@ -34,9 +52,11 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative text-sm font-medium transition-colors ${
+                className={`relative text-sm font-medium transition-colors duration-300 ${
                   isActive
                     ? "text-accent-primary"
+                    : isTransparent
+                    ? "text-white/60 hover:text-white"
                     : "text-text-secondary hover:text-text-primary"
                 }`}
               >
