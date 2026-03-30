@@ -88,13 +88,14 @@ server.listen(PORT, async () => {
   if (DEMO_MODE) {
     console.log("[Engine] DEMO_MODE enabled — using mock data");
     await setupDemoArena();
+    // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
     // Start real price feed
     const priceManager = getPriceManager();
     priceManager.start();
     console.log("[Engine] Price manager started");
-  }
 
-  // Initialize arena timers from DB
-  await initArenaTimers();
+    // Initialize arena timers from DB (real mode only)
+    await initArenaTimers();
+  }
 });
