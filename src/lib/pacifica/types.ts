@@ -119,12 +119,30 @@ export interface Position {
   liquidation_price: string;
 }
 
+export interface SpotBalance {
+  symbol: string;
+  amount: string;
+  available_to_withdraw: string;
+}
+
 export interface AccountInfo {
-  address: string;
   balance: string;
-  equity: string;
-  available_margin: string;
-  positions: Position[];
+  fee_level: number;
+  maker_fee: string;
+  taker_fee: string;
+  account_equity: string;
+  spot_collateral: string;
+  available_to_spend: string;
+  available_to_withdraw: string;
+  pending_balance: string;
+  pending_interest: string;
+  total_margin_used: string;
+  cross_mmr: string;
+  positions_count: number;
+  orders_count: number;
+  stop_orders_count: number;
+  spot_balances: SpotBalance[];
+  updated_at: number;
 }
 
 export interface SubaccountInfo {

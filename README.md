@@ -96,8 +96,9 @@ Pacifica WS → PriceManager → RiskMonitor → Drawdown Check → Elimination
 | `POST /account/subaccount/create` | Create trader subaccount |
 | `POST /account/subaccount/transfer` | Fund/withdraw subaccount |
 | `POST /account/leverage` | Set leverage |
-| `GET /account/info` | Account balance/equity |
-| `GET /account/positions` | Open positions |
+| `GET /account` | Account balance/equity |
+| `GET /positions` | Open positions |
+| `POST /whitelist/claim` | Claim access code (type: claim_access_code) |
 
 ### WebSocket (Public)
 | Channel | Purpose |
@@ -193,6 +194,9 @@ Built for the **Pacifica Hackathon 2026** (deadline: April 16, 2026).
 - 16 development layers, 156 tasks
 - ~95 source files
 - 53 unit tests
+- Live E2E verified on Pacifica testnet (subaccounts, trading, fund transfers)
 - Deployed on Vercel + Railway
+
+**Testnet Access**: Use code `Pacifica` at [test-app.pacifica.fi](https://test-app.pacifica.fi)
 
 ---

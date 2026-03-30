@@ -61,7 +61,7 @@ export class PacificaClient {
       body: JSON.stringify(body),
     });
 
-    return res.json() as Promise<PacificaResponse<T>>;
+    return this.parseResponse<T>(res);
   }
 
   private async get<T>(path: string): Promise<PacificaResponse<T>> {
@@ -70,7 +70,16 @@ export class PacificaClient {
       headers: { "Content-Type": "application/json" },
     });
 
-    return res.json() as Promise<PacificaResponse<T>>;
+    return this.parseResponse<T>(res);
+  }
+
+  private async parseResponse<T>(res: Response): Promise<PacificaResponse<T>> {
+    const text = await res.text();
+    try {
+      return JSON.parse(text) as PacificaResponse<T>;
+    } catch {
+      return { data: null as T, error: text } as PacificaResponse<T>;
+    }
   }
 
   get accountAddress(): string {
@@ -188,11 +197,11 @@ export class PacificaClient {
   }
 
   async getAccountInfo() {
-    return this.get<AccountInfo>(`/account/info?account=${this.accountAddress}`);
+    return this.get<AccountInfo>(`/account?account=${this.accountAddress}`);
   }
 
   async getPositions() {
-    return this.get(`/account/positions?account=${this.accountAddress}`);
+    return this.get(`/positions?account=${this.accountAddress}`);
   }
 
   // ============================================================

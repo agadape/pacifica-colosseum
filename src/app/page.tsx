@@ -39,13 +39,13 @@ export default function Home() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
-    <main className="overflow-x-hidden">
+    <main className="overflow-x-hidden bg-[#0a0a1a] text-white">
 
-      {/* ═══ HERO — DARK WITH ARENA IMAGE ═══ */}
+      {/* ═══ HERO ═══ */}
       <motion.section
         ref={heroRef}
         style={{ opacity: heroOpacity }}
-        className="relative min-h-screen flex items-center justify-center bg-[#0a0a1a]"
+        className="relative min-h-screen flex items-center justify-center"
       >
         {/* Arena background image */}
         <div className="absolute inset-0">
@@ -56,7 +56,6 @@ export default function Home() {
             className="object-cover opacity-60"
             priority
           />
-          {/* Overlay gradient for text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a]/40 via-transparent to-[#0a0a1a]/80" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-transparent to-transparent" />
         </div>
@@ -140,72 +139,107 @@ export default function Home() {
         </motion.div>
       </motion.section>
 
-      {/* ═══ HOW IT WORKS — LIGHT ═══ */}
-      <section className="pt-16 pb-20 md:pt-20 md:pb-24 px-6 bg-bg-primary relative">
-        {/* Smooth dark→light transition */}
-        <div className="absolute -top-32 left-0 right-0 h-32 bg-gradient-to-b from-[#0a0a1a] to-bg-primary" />
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section className="pt-24 pb-20 md:pt-28 md:pb-24 px-6 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a] via-[#0d0d24] to-[#0a0a1a]" />
+
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}
-          className="max-w-5xl mx-auto">
+          className="relative max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-12">
-            <p className="text-[11px] tracking-[0.3em] uppercase text-text-tertiary mb-3">How it works</p>
-            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-text-primary">Three steps to glory</h2>
+            <p className="text-[11px] tracking-[0.3em] uppercase text-white/30 mb-3">How it works</p>
+            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-white">Three steps to glory</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { num: "01", title: "Join", desc: "Pick an arena. Connect your wallet. Minimum 4 traders to start the battle.", img: "/images/Join.png", borderColor: "border-indigo-200", numColor: "text-indigo-500" },
-              { num: "02", title: "Trade", desc: "Open positions on BTC, ETH, SOL perpetuals. Manage leverage. Stay above the drawdown limit.", img: "/images/Trade.png", borderColor: "border-amber-200", numColor: "text-amber-500" },
-              { num: "03", title: "Win", desc: "Survive 4 rounds of increasing pressure. Last trader standing takes the crown.", img: "/images/Win.png", borderColor: "border-orange-200", numColor: "text-orange-500" },
+              { num: "01", title: "Join", desc: "Pick an arena. Connect your wallet. Minimum 4 traders to start the battle.", img: "/images/Join.png", accent: "from-indigo-500/20 to-indigo-500/0", borderHover: "hover:border-indigo-400/30", numColor: "text-indigo-400" },
+              { num: "02", title: "Trade", desc: "Open positions on BTC, ETH, SOL perpetuals. Manage leverage. Stay above the drawdown limit.", img: "/images/Trade.png", accent: "from-amber-500/20 to-amber-500/0", borderHover: "hover:border-amber-400/30", numColor: "text-amber-400" },
+              { num: "03", title: "Win", desc: "Survive 4 rounds of increasing pressure. Last trader standing takes the crown.", img: "/images/Win.png", accent: "from-orange-500/20 to-orange-500/0", borderHover: "hover:border-orange-400/30", numColor: "text-orange-400" },
             ].map((step) => (
               <motion.div key={step.num} variants={fadeUp} whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.25 }}
-                className={`group bg-white rounded-2xl border ${step.borderColor} p-7 hover:shadow-2xl hover:border-accent-primary/30 transition-all duration-300`}>
-                {/* Icon image — larger */}
-                <div className="relative w-20 h-20 mb-6 rounded-2xl overflow-hidden bg-[#0a0a1a] shadow-lg">
-                  <Image src={step.img} alt={step.title} fill className="object-contain p-2.5 group-hover:scale-110 transition-transform duration-300" />
+                className={`group relative bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-7 ${step.borderHover} hover:bg-white/[0.06] transition-all duration-300`}>
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-b ${step.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+                <div className="relative">
+                  <div className="relative w-20 h-20 mb-6 rounded-2xl overflow-hidden bg-white/[0.05] border border-white/[0.06] shadow-lg">
+                    <Image src={step.img} alt={step.title} fill className="object-contain p-2.5 group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  <p className={`font-mono text-[10px] tracking-widest uppercase mb-1 ${step.numColor}`}>{step.num}</p>
+                  <h3 className="font-display text-xl font-700 text-white mb-2">{step.title}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">{step.desc}</p>
                 </div>
-                <p className={`font-mono text-[10px] tracking-widest uppercase mb-1 ${step.numColor}`}>{step.num}</p>
-                <h3 className="font-display text-xl font-700 text-text-primary mb-2">{step.title}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </section>
 
+      {/* ═══ TRUST SIGNALS ═══ */}
+      <section className="py-10 px-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto"
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 py-6 border-t border-b border-white/[0.06]">
+            <span className="text-[11px] tracking-[0.2em] uppercase text-white/25">Powered by</span>
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                  <span className="text-[8px] font-bold text-white">P</span>
+                </div>
+                <span className="text-sm font-medium text-white/60">Pacifica Exchange</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-white/[0.08]" />
+              <div className="hidden sm:flex items-center gap-3">
+                {["BTC", "ETH", "SOL"].map((asset) => (
+                  <span key={asset} className="text-[11px] font-mono font-medium text-white/30 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                    {asset}
+                  </span>
+                ))}
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-white/[0.08]" />
+              <span className="text-[11px] font-mono text-white/25 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/50">Testnet</span>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* ═══ ROUNDS ═══ */}
       <section id="rounds" className="py-16 md:py-20 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-bg-secondary/40 via-bg-secondary/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.02] to-transparent" />
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}
           className="relative max-w-4xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-12">
-            <p className="text-[11px] tracking-[0.3em] uppercase text-text-tertiary mb-3">The gauntlet</p>
-            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-text-primary">Each round gets harder</h2>
+            <p className="text-[11px] tracking-[0.3em] uppercase text-white/30 mb-3">The gauntlet</p>
+            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-white">Each round gets harder</h2>
           </motion.div>
 
           <div className="space-y-3">
             {rounds.map((r) => (
               <motion.div key={r.num} variants={fadeUp} whileHover={{ x: 4 }}
-                className="group bg-white rounded-xl border border-border-light overflow-hidden hover:shadow-lg transition-all">
+                className="group bg-white/[0.03] rounded-xl border border-white/[0.06] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.1] transition-all">
                 <div className="flex items-center">
                   <div className="w-1.5 self-stretch transition-all group-hover:w-2" style={{ backgroundColor: r.color }} />
                   <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-4">
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-2xl font-900 w-8" style={{ color: r.color }}>{r.num}</span>
-                      <h3 className="font-display text-base font-700 text-text-primary">{r.name}</h3>
+                      <h3 className="font-display text-base font-700 text-white">{r.name}</h3>
                     </div>
-                    <div className="flex items-center gap-5 ml-12 sm:ml-0">
+                    <div className="flex items-center gap-6 ml-12 sm:ml-0">
                       <div className="text-center">
-                        <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Leverage</p>
-                        <p className="font-mono text-sm font-bold text-text-primary">{r.leverage}</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Leverage</p>
+                        <p className="font-mono text-sm font-bold text-white/90">{r.leverage}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Max DD</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Max DD</p>
                         <p className="font-mono text-sm font-bold" style={{ color: r.color }}>{r.drawdown}</p>
                       </div>
                       <div className="text-center hidden sm:block">
-                        <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Cut</p>
-                        <p className="font-mono text-xs font-semibold text-text-secondary">{r.elim}</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Cut</p>
+                        <p className="font-mono text-sm font-semibold text-white/70">{r.elim}</p>
                       </div>
                     </div>
                   </div>
@@ -214,31 +248,41 @@ export default function Home() {
             ))}
           </div>
 
-          <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mt-12">
-            {[
-              { label: "Max Traders", value: 100, prefix: "" },
-              { label: "Starting Capital", value: 1000, prefix: "$" },
-              { label: "Rounds", value: 4, prefix: "" },
-              { label: "Survival Rate", value: 12, prefix: "", suffix: "%" },
-            ].map((s) => (
-              <div key={s.label} className="text-center py-4">
-                <p className="text-2xl md:text-3xl font-bold text-text-primary">
-                  <Counter target={s.value} prefix={s.prefix} />{s.suffix ?? ""}
-                </p>
-                <p className="text-[9px] text-text-tertiary uppercase tracking-wider mt-1">{s.label}</p>
+          {/* ═══ STATS — glass card with dividers ═══ */}
+          <motion.div variants={fadeUp} className="mt-12">
+            <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
+              <div className="grid grid-cols-2 md:grid-cols-4">
+                {[
+                  { label: "Max Traders", value: 100, prefix: "" },
+                  { label: "Starting Capital", value: 1000, prefix: "$" },
+                  { label: "Rounds", value: 4, prefix: "" },
+                  { label: "Survival Rate", value: 12, prefix: "", suffix: "%" },
+                ].map((s, i) => (
+                  <div key={s.label} className={`text-center py-6 px-3 border-white/[0.06] ${
+                    i % 2 === 0 ? "border-r" : ""
+                  } ${
+                    i < 2 ? "border-b md:border-b-0" : ""
+                  } ${
+                    i < 3 ? "md:border-r" : "md:border-r-0"
+                  }`}>
+                    <p className="text-2xl md:text-3xl font-bold text-white">
+                      <Counter target={s.value} prefix={s.prefix} />{s.suffix ?? ""}
+                    </p>
+                    <p className="text-[11px] text-white/40 uppercase tracking-wider mt-1.5 font-medium">{s.label}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </motion.div>
         </motion.div>
       </section>
 
-      {/* ═══ CTA — DARK ═══ */}
+      {/* ═══ CTA ═══ */}
       <section className="py-10 px-4 md:px-8">
         <div className="relative rounded-[2rem] overflow-hidden py-20 md:py-28">
-          {/* Reuse arena image for CTA bg */}
           <div className="absolute inset-0">
             <Image src="/images/Hero_Background.png" alt="" fill className="object-cover opacity-30" />
-            <div className="absolute inset-0 bg-[#0a0a1a]/85" />
+            <div className="absolute inset-0 bg-[#0a0a1a]/70" />
           </div>
 
           {/* 3D Trophy */}
@@ -264,10 +308,11 @@ export default function Home() {
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
             className="relative z-10 text-center px-6">
-            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-6xl font-800 tracking-tight text-white leading-tight">
-              Ready to <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">compete?</span>
+            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-6xl font-800 tracking-tight leading-tight">
+              <span className="text-white">Ready to </span>
+              <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.35)]">compete?</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-white/40 text-base max-w-md mx-auto">
+            <motion.p variants={fadeUp} className="mt-3 text-white/50 text-base max-w-md mx-auto">
               Connect your wallet and enter the arena.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-8">
@@ -284,12 +329,12 @@ export default function Home() {
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="py-10 px-6 border-t border-border-light bg-bg-primary">
+      <footer className="py-10 px-6 border-t border-white/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="font-display text-base font-800 tracking-tight text-text-primary">COLOSSEUM</span>
-          <div className="flex items-center gap-6 text-xs text-text-tertiary">
-            <Link href="/arenas" className="hover:text-text-primary transition-colors">Arenas</Link>
-            <Link href="/leaderboard" className="hover:text-text-primary transition-colors">Leaderboard</Link>
+          <span className="font-display text-base font-800 tracking-tight text-white">COLOSSEUM</span>
+          <div className="flex items-center gap-6 text-xs text-white/30">
+            <Link href="/arenas" className="hover:text-white/60 transition-colors">Arenas</Link>
+            <Link href="/leaderboard" className="hover:text-white/60 transition-colors">Leaderboard</Link>
             <span>Built on Pacifica</span>
           </div>
         </div>

@@ -33,12 +33,14 @@ export default function Navbar() {
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 transition-all duration-300 ${
         isTransparent
           ? "bg-transparent border-b border-transparent"
-          : "bg-bg-primary/80 backdrop-blur-md border-b border-border-light"
+          : isHome
+            ? "bg-[#0a0a1a]/80 backdrop-blur-md border-b border-white/[0.06]"
+            : "bg-bg-primary/80 backdrop-blur-md border-b border-border-light"
       }`}
     >
       <Link href="/" className="flex items-center gap-2">
         <span className={`font-display text-xl font-800 tracking-tight transition-colors duration-300 ${
-          isTransparent ? "text-white" : "text-text-primary"
+          isHome ? "text-white" : "text-text-primary"
         }`}>
           COLOSSEUM
         </span>
@@ -55,7 +57,7 @@ export default function Navbar() {
                 className={`relative text-sm font-medium transition-colors duration-300 ${
                   isActive
                     ? "text-accent-primary"
-                    : isTransparent
+                    : isHome
                     ? "text-white/60 hover:text-white"
                     : "text-text-secondary hover:text-text-primary"
                 }`}
