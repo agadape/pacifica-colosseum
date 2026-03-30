@@ -283,12 +283,13 @@ export async function setupDemoArena(): Promise<void> {
 
   console.log("[Demo] Setting up demo arena...");
 
-  // Check if there's already a demo arena running
+  // Check if there's already a demo arena actively running (not ended/broken)
   const { data: existing } = await supabase
     .from("arenas")
     .select("id")
     .eq("name", "Demo Arena")
     .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
+    .is("ended_at", null)
     .single();
 
   if (existing) {
