@@ -108,6 +108,15 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: roundsError.message }, { status: 500 });
   }
 
+  // Notify engine to schedule arena start (fire-and-forget)
+  const engineUrl = process.env.ENGINE_URL || "http://localhost:4000";
+  const internalKey = process.env.INTERNAL_API_KEY || "dev-internal-key";
+  fetch(`${engineUrl}/internal/arenas/${arena.id}/schedule`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-internal-key": internalKey },
+    body: JSON.stringify({ startsAt: startsAt.toISOString() }),
+  }).catch((err) => console.error("[Arena] Failed to notify engine to schedule:", err));
+
   return Response.json({ data: arena }, { status: 201 });
 }
 

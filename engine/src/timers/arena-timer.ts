@@ -64,8 +64,7 @@ export async function initArenaTimers(): Promise<void> {
   const { data: arenas } = await supabase
     .from("arenas")
     .select("id, starts_at")
-    .eq("status", "registration")
-    .gte("starts_at", new Date().toISOString());
+    .eq("status", "registration");
 
   if (!arenas || arenas.length === 0) {
     console.log("[Timer] No pending arenas to schedule");
