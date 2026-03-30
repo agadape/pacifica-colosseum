@@ -4,9 +4,8 @@ import { generateKeypair, publicKeyToString, secretKeyToString } from "../../../
 import { encryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { PRESETS, STARTING_CAPITAL, calculateRoundTimings } from "../../../src/lib/utils/constants";
 import { MockPriceGenerator } from "./price-generator";
-import { mockTransferFunds, mockCreateSubaccount } from "./mock-pacifica";
-import { startBotTraders } from "./bot-traders";
-import { startArena } from "../services/arena-manager";
+import { mockTransferFunds, mockCreateSubaccount, getAccount } from "./mock-pacifica";
+import { startBotTraders, stopBotTraders } from "./bot-traders";
 
 function getSupabase() {
   return createClient<Database>(
@@ -23,6 +22,251 @@ const BOT_NAMES = [
   "Steady Steve",
   "Degen Dave",
 ];
+
+interface BotParticipant {
+  id: string;
+  subaccount_address: string;
+  name: string;
+}
+
+/**
+ * Compute equity for a bot from mock in-memory state + current prices.
+ */
+function computeEquity(address: string, priceGenerator: MockPriceGenerator): number {
+  const account = getAccount(address);
+  if (!account) return STARTING_CAPITAL;
+
+  let unrealizedPnL = 0;
+  for (const [symbol, pos] of account.positions) {
+    const currentPrice = priceGenerator.getPrice(symbol) ?? pos.entryPrice;
+    const direction = pos.side === "bid" ? 1 : -1;
+    unrealizedPnL += (currentPrice - pos.entryPrice) * pos.size * direction;
+  }
+  return account.balance + unrealizedPnL;
+}
+
+/**
+ * Start mock leaderboard: every 3s compute equity from mock positions,
+ * update arena_participants with real PnL%.
+ */
+function startMockLeaderboard(
+  arenaId: string,
+  bots: BotParticipant[],
+  activeIds: Set<string>,
+  priceGenerator: MockPriceGenerator
+): NodeJS.Timeout {
+  const supabase = getSupabase();
+
+  return setInterval(async () => {
+    for (const bot of bots) {
+      if (!activeIds.has(bot.id)) continue;
+
+      const equity = computeEquity(bot.subaccount_address, priceGenerator);
+      const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
+      const drawdown = Math.max(0, -pnlPercent);
+
+      await supabase
+        .from("arena_participants")
+        .update({
+          total_pnl: equity - STARTING_CAPITAL,
+          total_pnl_percent: Math.round(pnlPercent * 100) / 100,
+          max_drawdown_hit: Math.round(drawdown * 100) / 100,
+        })
+        .eq("id", bot.id);
+    }
+  }, 3000);
+}
+
+/**
+ * Schedule demo round progression for Blitz arena.
+ * R1 (90s): eliminate bottom 30% = 2 bots
+ * R2 (90s): eliminate bottom 40% = 2 bots
+ * R3 (60s): advance survivors to Sudden Death
+ * SD (60s): declare winner
+ */
+function scheduleDemoRounds(
+  arenaId: string,
+  bots: BotParticipant[],
+  activeIds: Set<string>,
+  priceGenerator: MockPriceGenerator,
+  leaderboardTimer: NodeJS.Timeout
+): void {
+  const supabase = getSupabase();
+  const blitz = PRESETS.blitz;
+
+  const ROUND_SCHEDULE = [
+    { from: 1, to: 2, status: "round_2", name: "The Storm", eliminatePct: 30, delayMs: blitz.round1 * 1000 },
+    { from: 2, to: 3, status: "round_3", name: "Final Circle", eliminatePct: 40, delayMs: (blitz.round1 + blitz.round2) * 1000 },
+    { from: 3, to: 4, status: "sudden_death", name: "Sudden Death", eliminatePct: 0, delayMs: (blitz.round1 + blitz.round2 + blitz.round3) * 1000 },
+  ];
+
+  const endDelayMs = (blitz.round1 + blitz.round2 + blitz.round3 + blitz.suddenDeath) * 1000;
+
+  for (const round of ROUND_SCHEDULE) {
+    setTimeout(async () => {
+      const activeBots = bots.filter((b) => activeIds.has(b.id));
+      if (activeBots.length === 0) return;
+
+      // Score all active bots
+      const scored = activeBots.map((bot) => {
+        const equity = computeEquity(bot.subaccount_address, priceGenerator);
+        return { bot, equity, pnlPct: ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100 };
+      });
+
+      // Eliminate bottom % (worst PnL first)
+      scored.sort((a, b) => a.pnlPct - b.pnlPct);
+      const numEliminate = round.eliminatePct > 0
+        ? Math.max(1, Math.ceil(activeBots.length * round.eliminatePct / 100))
+        : 0;
+
+      const toEliminate = scored.slice(0, numEliminate);
+      const toAdvance = scored.slice(numEliminate);
+
+      for (const { bot, equity, pnlPct } of toEliminate) {
+        activeIds.delete(bot.id);
+
+        await supabase
+          .from("arena_participants")
+          .update({
+            status: "eliminated",
+            eliminated_at: new Date().toISOString(),
+            eliminated_in_round: round.from,
+            elimination_reason: "ranking",
+            elimination_equity: Math.round(equity * 100) / 100,
+            total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
+            total_pnl_percent: Math.round(pnlPct * 100) / 100,
+          })
+          .eq("id", bot.id);
+
+        await supabase.from("events").insert({
+          arena_id: arenaId,
+          round_number: round.from,
+          event_type: "elimination",
+          message: `${bot.name} eliminated! Final equity: $${equity.toFixed(2)} (${pnlPct.toFixed(1)}%)`,
+          data: { reason: "ranking", equity, pnlPct, botName: bot.name },
+        });
+
+        console.log(`[Demo] ${bot.name} eliminated in round ${round.from} (equity: $${equity.toFixed(2)})`);
+      }
+
+      // Update round fields on eliminated bots
+      for (const { bot, equity } of toEliminate) {
+        const roundKey = `equity_round_${round.from}_end` as keyof Database["public"]["Tables"]["arena_participants"]["Update"];
+        await supabase
+          .from("arena_participants")
+          .update({ [roundKey]: Math.round(equity * 100) / 100 })
+          .eq("id", bot.id);
+      }
+
+      // Update surviving bots' round start equity for next round
+      for (const { bot, equity } of toAdvance) {
+        const roundKey = `equity_round_${round.to}_start` as keyof Database["public"]["Tables"]["arena_participants"]["Update"];
+        await supabase
+          .from("arena_participants")
+          .update({ [roundKey]: Math.round(equity * 100) / 100 })
+          .eq("id", bot.id);
+      }
+
+      // Advance arena round
+      await supabase
+        .from("arenas")
+        .update({ status: round.status, current_round: round.to })
+        .eq("id", arenaId);
+
+      await supabase.from("events").insert({
+        arena_id: arenaId,
+        round_number: round.to,
+        event_type: "round_start",
+        message: `${round.name} begins! ${toAdvance.length} traders remain.`,
+        data: { round: round.to, survivorCount: toAdvance.length },
+      });
+
+      console.log(`[Demo] Round ${round.from} → ${round.to}. ${toAdvance.length} survivors.`);
+    }, round.delayMs);
+  }
+
+  // Final: declare winner
+  setTimeout(async () => {
+    clearInterval(leaderboardTimer);
+    stopBotTraders(arenaId);
+
+    const activeBots = bots.filter((b) => activeIds.has(b.id));
+
+    if (activeBots.length === 0) {
+      await supabase
+        .from("arenas")
+        .update({ status: "completed", ended_at: new Date().toISOString() })
+        .eq("id", arenaId);
+      return;
+    }
+
+    // Pick winner: highest equity among survivors
+    const finalScores = activeBots.map((bot) => {
+      const equity = computeEquity(bot.subaccount_address, priceGenerator);
+      return { bot, equity, pnlPct: ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100 };
+    });
+    finalScores.sort((a, b) => b.pnlPct - a.pnlPct);
+
+    const winner = finalScores[0];
+    const loser = finalScores.slice(1);
+
+    // Eliminate runners-up
+    for (const { bot, equity, pnlPct } of loser) {
+      activeIds.delete(bot.id);
+      await supabase
+        .from("arena_participants")
+        .update({
+          status: "eliminated",
+          eliminated_at: new Date().toISOString(),
+          eliminated_in_round: 4,
+          elimination_reason: "ranking",
+          elimination_equity: Math.round(equity * 100) / 100,
+          total_pnl_percent: Math.round(pnlPct * 100) / 100,
+        })
+        .eq("id", bot.id);
+    }
+
+    // Get winner's user_id to set as arena winner
+    const { data: winnerParticipant } = await supabase
+      .from("arena_participants")
+      .select("user_id")
+      .eq("id", winner.bot.id)
+      .single();
+
+    const finalEquity = computeEquity(winner.bot.subaccount_address, priceGenerator);
+    const finalPnl = finalEquity - STARTING_CAPITAL;
+    const finalPct = (finalPnl / STARTING_CAPITAL) * 100;
+
+    await supabase
+      .from("arena_participants")
+      .update({
+        status: "active",
+        total_pnl: Math.round(finalPnl * 100) / 100,
+        total_pnl_percent: Math.round(finalPct * 100) / 100,
+        equity_final: Math.round(finalEquity * 100) / 100,
+      })
+      .eq("id", winner.bot.id);
+
+    await supabase
+      .from("arenas")
+      .update({
+        status: "completed",
+        ended_at: new Date().toISOString(),
+        winner_id: winnerParticipant?.user_id ?? null,
+      })
+      .eq("id", arenaId);
+
+    await supabase.from("events").insert({
+      arena_id: arenaId,
+      round_number: 4,
+      event_type: "arena_end",
+      message: `${winner.bot.name} wins the arena! Final PnL: ${finalPct.toFixed(1)}%`,
+      data: { winner: winner.bot.name, equity: finalEquity, pnlPct: finalPct },
+    });
+
+    console.log(`[Demo] Arena complete! Winner: ${winner.bot.name} ($${finalEquity.toFixed(2)})`);
+  }, endDelayMs);
+}
 
 /**
  * Auto-setup a demo arena with bot traders.
@@ -130,31 +374,46 @@ export async function setupDemoArena(): Promise<void> {
   }
 
   // Create bot users + participants
-  const botParticipants: Array<{ id: string; subaccount_address: string }> = [];
+  const botParticipants: BotParticipant[] = [];
 
-  for (const botName of BOT_NAMES) {
-    // Create bot user
-    const botKeypair = generateKeypair();
-    const { data: botUser } = await supabase
+  for (let i = 0; i < BOT_NAMES.length; i++) {
+    const botName = BOT_NAMES[i];
+
+    // Create bot user (or reuse existing)
+    const botWallet = `demo:${botName.toLowerCase().replace(/\s/g, "-")}`;
+    let botUserId: string;
+
+    const { data: existingBot } = await supabase
       .from("users")
-      .insert({
-        wallet_address: `demo:${botName.toLowerCase().replace(/\s/g, "-")}`,
-        referral_code: `BOT${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-        username: botName,
-      })
       .select("id")
+      .eq("wallet_address", botWallet)
       .single();
 
-    if (!botUser) continue;
+    if (existingBot) {
+      botUserId = existingBot.id;
+    } else {
+      const { data: botUser } = await supabase
+        .from("users")
+        .insert({
+          wallet_address: botWallet,
+          referral_code: `BOT${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+          username: botName,
+        })
+        .select("id")
+        .single();
+      if (!botUser) continue;
+      botUserId = botUser.id;
+    }
 
     // Create participant
     const subKeypair = generateKeypair();
+    const subAddress = publicKeyToString(subKeypair.publicKey);
     const { data: participant } = await supabase
       .from("arena_participants")
       .insert({
         arena_id: arena.id,
-        user_id: botUser.id,
-        subaccount_address: publicKeyToString(subKeypair.publicKey),
+        user_id: botUserId,
+        subaccount_address: subAddress,
         subaccount_private_key_encrypted: encryptPrivateKey(
           secretKeyToString(subKeypair.secretKey),
           encryptionKey
@@ -166,12 +425,13 @@ export async function setupDemoArena(): Promise<void> {
 
     if (participant) {
       // Mock: create subaccount + fund it
-      mockCreateSubaccount(publicKeyToString(vault.publicKey), participant.subaccount_address!);
-      mockTransferFunds(publicKeyToString(vault.publicKey), participant.subaccount_address!, STARTING_CAPITAL);
+      mockCreateSubaccount(publicKeyToString(vault.publicKey), subAddress);
+      mockTransferFunds(publicKeyToString(vault.publicKey), subAddress, STARTING_CAPITAL);
 
       botParticipants.push({
         id: participant.id,
-        subaccount_address: participant.subaccount_address!,
+        subaccount_address: subAddress,
+        name: botName,
       });
     }
   }
@@ -180,14 +440,14 @@ export async function setupDemoArena(): Promise<void> {
   console.log(`[Demo] Arena starts in 30 seconds...`);
 
   // Start price generator
-  const priceGenerator = new MockPriceGenerator(0.002); // slightly higher volatility for demo
+  const priceGenerator = new MockPriceGenerator(0.002);
   priceGenerator.start();
 
-  // Schedule arena start
+  // Schedule arena start in 30s
   setTimeout(async () => {
     console.log("[Demo] Starting arena...");
 
-    // Update all participants to active
+    // Activate all participants
     for (const p of botParticipants) {
       await supabase
         .from("arena_participants")
@@ -195,7 +455,7 @@ export async function setupDemoArena(): Promise<void> {
         .eq("id", p.id);
     }
 
-    // Update arena status
+    // Update arena status to round_1
     await supabase
       .from("arenas")
       .update({ status: "round_1", current_round: 1 })
@@ -210,9 +470,18 @@ export async function setupDemoArena(): Promise<void> {
       data: { participant_count: botParticipants.length, demo: true },
     });
 
+    // Track which bots are still active
+    const activeIds = new Set(botParticipants.map((b) => b.id));
+
     // Start bot traders
     startBotTraders(arena.id, botParticipants, priceGenerator, ["BTC", "ETH", "SOL"]);
 
-    console.log("[Demo] Arena running! Bots are trading.");
+    // Start mock leaderboard updater
+    const leaderboardTimer = startMockLeaderboard(arena.id, botParticipants, activeIds, priceGenerator);
+
+    // Schedule round progression + eliminations
+    scheduleDemoRounds(arena.id, botParticipants, activeIds, priceGenerator, leaderboardTimer);
+
+    console.log("[Demo] Arena running! Bots trading, rounds scheduled.");
   }, 30_000);
 }
