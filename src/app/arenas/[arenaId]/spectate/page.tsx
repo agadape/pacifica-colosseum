@@ -10,6 +10,7 @@ import SurvivorGrid from "@/components/spectator/SurvivorGrid";
 import ActivityFeed from "@/components/spectator/ActivityFeed";
 import EliminationBanner from "@/components/spectator/EliminationBanner";
 import VotePanel from "@/components/spectator/VotePanel";
+import AvatarRow from "@/components/spectator/AvatarRow";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -101,7 +102,7 @@ export default function SpectatePage({
         )}
 
         {/* Header */}
-        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="mb-4">
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="mb-5">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.3em] text-text-tertiary">
               {isCompleted ? "Results" : "Live"}
@@ -114,9 +115,16 @@ export default function SpectatePage({
               />
             )}
           </div>
-          <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
-            {arena.name}
-          </h1>
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
+              {arena.name}
+            </h1>
+            {/* Avatar Row */}
+            <AvatarRow
+              participants={leaderboard as never[]}
+              maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
+            />
+          </div>
         </motion.div>
 
         {/* Round info */}
