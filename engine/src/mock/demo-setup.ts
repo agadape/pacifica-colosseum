@@ -329,15 +329,27 @@ export async function setupDemoArena(): Promise<void> {
   // Check if there's already a demo arena actively running (not ended/broken)
   const { data: existing } = await supabase
     .from("arenas")
-    .select("id")
+    .select("id, updated_at")
     .eq("name", "Demo Arena")
     .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
     .is("ended_at", null)
     .single();
 
   if (existing) {
-    console.log("[Demo] Demo arena already exists, skipping setup");
-    return;
+    // Stale check: if arena hasn't updated in 10 minutes, it's a zombie (engine redeployed mid-run)
+    const lastUpdate = new Date(existing.updated_at).getTime();
+    const staleMs = Date.now() - lastUpdate;
+    if (staleMs < 10 * 60 * 1000) {
+      console.log("[Demo] Demo arena already exists and is fresh, skipping setup");
+      return;
+    }
+
+    // Force-complete the stale zombie arena so we can start fresh
+    console.log(`[Demo] Stale arena detected (${Math.round(staleMs / 60000)}m old) — force-completing`);
+    await supabase
+      .from("arenas")
+      .update({ status: "completed", ended_at: new Date().toISOString() })
+      .eq("id", existing.id);
   }
 
   // Create a "system" user for demo (or find existing)
