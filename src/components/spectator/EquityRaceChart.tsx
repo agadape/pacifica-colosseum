@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useEquitySnapshots, type EquitySnapshot } from "@/hooks/use-leaderboard";
 
-const STARTING_CAPITAL = 1000;
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EC4899", "#06B6D4", "#8B5CF6"];
 
 const VW = 1000;
@@ -125,18 +124,26 @@ export default function EquityRaceChart({
     return { series, deathY, warnY, zeroY, baseY, ticks };
   }, [snapshotsMap, currentRound, participants, maxDrawdown]);
 
+  // Persist last valid chart so we can freeze it instead of blanking out
+  const lastChartRef = useRef(chart);
+  useEffect(() => {
+    if (chart) lastChartRef.current = chart;
+  }, [chart]);
+  const frozen = !chart && !!lastChartRef.current;
+  const display = chart ?? lastChartRef.current;
+
   // Sort for rendering: eliminated first (behind), then by pnl asc (losers behind winners)
-  const sorted = chart
-    ? [...chart.series].sort((a, b) => {
+  const sorted = display
+    ? [...display.series].sort((a, b) => {
         if (a.eliminated && !b.eliminated) return -1;
         if (!a.eliminated && b.eliminated) return 1;
         return a.lastPnl - b.lastPnl;
       })
     : [];
 
-  const leader = chart?.series.filter((s) => !s.eliminated).sort((a, b) => b.lastPnl - a.lastPnl)[0];
+  const leader = display?.series.filter((s) => !s.eliminated).sort((a, b) => b.lastPnl - a.lastPnl)[0];
 
-  if (!chart) {
+  if (!display) {
     return (
       <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFAF8", border: "1px solid rgba(0,0,0,0.07)" }}>
         <div className="px-5 py-3 border-b border-black/[0.05]">
@@ -161,11 +168,22 @@ export default function EquityRaceChart({
     <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFAF8", border: "1px solid rgba(0,0,0,0.07)" }}>
       {/* Header */}
       <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-black/[0.05] flex-wrap">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-black/25 flex-shrink-0">
-          Equity Race · Round {currentRound}
-        </span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-black/25">
+            Equity Race · Round {currentRound}
+          </span>
+          {frozen ? (
+            <span className="text-[9px] font-mono text-amber-500/70 bg-amber-50 border border-amber-200/60 rounded px-1.5 py-0.5">
+              ⏸ waiting for data
+            </span>
+          ) : (
+            <span className="text-[9px] font-mono text-black/20 bg-black/[0.03] rounded px-1.5 py-0.5">
+              ↻ updates every 15s
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3 flex-wrap justify-end">
-          {[...chart.series].sort((a, b) => b.lastPnl - a.lastPnl).map((s) => (
+          {[...display.series].sort((a, b) => b.lastPnl - a.lastPnl).map((s) => (
             <div key={s.id} className={`flex items-center gap-1.5 transition-opacity ${s.eliminated ? "opacity-20" : ""}`}>
               <span className="w-2.5 h-0.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
               <span className="text-[10px] text-black/40">{s.name}</span>
@@ -199,7 +217,7 @@ export default function EquityRaceChart({
         </defs>
 
         {/* Y-axis ticks */}
-        {chart.ticks.map((tick, i) => (
+        {display.ticks.map((tick, i) => (
           <g key={i}>
             <line x1={PAD.left - 4} y1={tick.y} x2={PAD.left} y2={tick.y}
               stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
@@ -215,30 +233,30 @@ export default function EquityRaceChart({
           stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
 
         {/* Death zone fill */}
-        {chart.deathY < chart.baseY && (
-          <rect x={PAD.left} y={chart.deathY}
-            width={IW} height={chart.baseY - chart.deathY}
+        {display.deathY < display.baseY && (
+          <rect x={PAD.left} y={display.deathY}
+            width={IW} height={display.baseY - display.deathY}
             fill="url(#death-bg)" />
         )}
 
         {/* Zero line */}
-        {chart.zeroY > PAD.top && chart.zeroY < PAD.top + IH && (
-          <line x1={PAD.left} y1={chart.zeroY} x2={PAD.left + IW} y2={chart.zeroY}
+        {display.zeroY > PAD.top && display.zeroY < PAD.top + IH && (
+          <line x1={PAD.left} y1={display.zeroY} x2={PAD.left + IW} y2={display.zeroY}
             stroke="rgba(0,0,0,0.12)" strokeWidth="1" strokeDasharray="4 4" />
         )}
 
         {/* Warning line */}
-        {chart.warnY > PAD.top && chart.warnY < PAD.top + IH && (
-          <line x1={PAD.left} y1={chart.warnY} x2={PAD.left + IW} y2={chart.warnY}
+        {display.warnY > PAD.top && display.warnY < PAD.top + IH && (
+          <line x1={PAD.left} y1={display.warnY} x2={PAD.left + IW} y2={display.warnY}
             stroke="rgba(251,191,36,0.25)" strokeWidth="1" strokeDasharray="3 5" />
         )}
 
         {/* Death line */}
-        {chart.deathY > PAD.top && chart.deathY < PAD.top + IH && (
+        {display.deathY > PAD.top && display.deathY < PAD.top + IH && (
           <>
-            <line x1={PAD.left} y1={chart.deathY} x2={PAD.left + IW} y2={chart.deathY}
+            <line x1={PAD.left} y1={display.deathY} x2={PAD.left + IW} y2={display.deathY}
               stroke="#EF4444" strokeWidth="1" opacity="0.5" />
-            <text x={PAD.left + 6} y={chart.deathY - 5}
+            <text x={PAD.left + 6} y={display.deathY - 5}
               fontSize="8" fill="rgba(239,68,68,0.6)" fontFamily="monospace">
               DEATH −{maxDrawdown}%
             </text>
@@ -249,7 +267,7 @@ export default function EquityRaceChart({
         {sorted.map((s) => (
           s.svgPts.length >= 2 && (
             <path key={`f-${s.id}`}
-              d={fillPath(s.svgPts, chart.baseY)}
+              d={fillPath(s.svgPts, display.baseY)}
               fill={`url(#g-${s.id})`} />
           )
         ))}
