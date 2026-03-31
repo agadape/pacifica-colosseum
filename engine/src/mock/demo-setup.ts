@@ -54,10 +54,11 @@ function startMockLeaderboard(
   bots: BotParticipant[],
   activeIds: Set<string>,
   priceGenerator: MockPriceGenerator
-): NodeJS.Timeout {
+): { stop: () => void } {
   const supabase = getSupabase();
 
-  return setInterval(async () => {
+  // 3s: update PnL on arena_participants
+  const pnlTimer = setInterval(async () => {
     for (const bot of bots) {
       if (!activeIds.has(bot.id)) continue;
 
@@ -75,6 +76,42 @@ function startMockLeaderboard(
         .eq("id", bot.id);
     }
   }, 3000);
+
+  // 15s: write equity_snapshots for chart
+  const snapshotTimer = setInterval(async () => {
+    const { data: arenaRow } = await supabase
+      .from("arenas")
+      .select("current_round")
+      .eq("id", arenaId)
+      .single();
+    const currentRound = arenaRow?.current_round ?? 1;
+
+    const inserts = [];
+    for (const bot of bots) {
+      if (!activeIds.has(bot.id)) continue;
+      const equity = computeEquity(bot.subaccount_address, priceGenerator);
+      const drawdownPct = Math.max(0, ((STARTING_CAPITAL - equity) / STARTING_CAPITAL) * 100);
+      inserts.push({
+        arena_id: arenaId,
+        participant_id: bot.id,
+        round_number: currentRound,
+        equity: Math.round(equity * 100) / 100,
+        balance: Math.round(equity * 100) / 100,
+        unrealized_pnl: 0,
+        drawdown_percent: Math.round(drawdownPct * 100) / 100,
+      });
+    }
+    if (inserts.length > 0) {
+      await supabase.from("equity_snapshots").insert(inserts);
+    }
+  }, 15000);
+
+  return {
+    stop: () => {
+      clearInterval(pnlTimer);
+      clearInterval(snapshotTimer);
+    },
+  };
 }
 
 /**
@@ -89,7 +126,7 @@ function scheduleDemoRounds(
   bots: BotParticipant[],
   activeIds: Set<string>,
   priceGenerator: MockPriceGenerator,
-  leaderboardTimer: NodeJS.Timeout
+  leaderboard: { stop: () => void }
 ): void {
   const supabase = getSupabase();
   const blitz = PRESETS.blitz;
@@ -187,7 +224,7 @@ function scheduleDemoRounds(
 
   // Final: declare winner
   setTimeout(async () => {
-    clearInterval(leaderboardTimer);
+    leaderboard.stop();
     stopBotTraders(arenaId);
 
     const activeBots = bots.filter((b) => activeIds.has(b.id));
@@ -483,11 +520,11 @@ export async function setupDemoArena(): Promise<void> {
     // Start bot traders
     startBotTraders(arena.id, botParticipants, priceGenerator, ["BTC", "ETH", "SOL"]);
 
-    // Start mock leaderboard updater
-    const leaderboardTimer = startMockLeaderboard(arena.id, botParticipants, activeIds, priceGenerator);
+    // Start mock leaderboard updater + snapshot writer
+    const leaderboard = startMockLeaderboard(arena.id, botParticipants, activeIds, priceGenerator);
 
     // Schedule round progression + eliminations
-    scheduleDemoRounds(arena.id, botParticipants, activeIds, priceGenerator, leaderboardTimer);
+    scheduleDemoRounds(arena.id, botParticipants, activeIds, priceGenerator, leaderboard);
 
     console.log("[Demo] Arena running! Bots trading, rounds scheduled.");
   }, 30_000);

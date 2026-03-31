@@ -34,3 +34,32 @@ export function useArenaEvents(arenaId: string) {
     refetchInterval: 3000,
   });
 }
+
+export interface EquitySnapshot {
+  id: number;
+  participant_id: string;
+  round_number: number;
+  equity: number;
+  drawdown_percent: number;
+  recorded_at: string;
+}
+
+export function useEquitySnapshots(arenaId: string) {
+  return useQuery({
+    queryKey: ["snapshots", arenaId],
+    queryFn: async () => {
+      const res = await fetch(`/api/arenas/${arenaId}/snapshots`);
+      const json = await res.json();
+      // Group snapshots by participant_id for easy chart consumption
+      const byParticipant = new Map<string, EquitySnapshot[]>();
+      for (const snap of (json.data ?? []) as EquitySnapshot[]) {
+        const arr = byParticipant.get(snap.participant_id) ?? [];
+        arr.push(snap);
+        byParticipant.set(snap.participant_id, arr);
+      }
+      return byParticipant;
+    },
+    enabled: !!arenaId,
+    refetchInterval: 15000,
+  });
+}
