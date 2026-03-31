@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  createChart,
-  type IChartApi,
-  type ISeriesApi,
-  ColorType,
-  LineSeries,
-  LineStyle,
-} from "lightweight-charts";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
 import { useEquitySnapshots, type EquitySnapshot } from "@/hooks/use-leaderboard";
 
 const STARTING_CAPITAL = 1000;
+const COLORS = ["#818CF8", "#34D399", "#FBBF24", "#F472B6", "#22D3EE", "#A78BFA"];
 
-// 6 distinct colors for traders
-const COLORS = [
-  "#6366F1", // indigo
-  "#22C55E", // green
-  "#F59E0B", // amber
-  "#EC4899", // pink
-  "#06B6D4", // cyan
-  "#8B5CF6", // violet
-];
+const VW = 1000;
+const VH = 260;
+const PAD = { top: 24, right: 12, bottom: 28, left: 48 };
+const IW = VW - PAD.left - PAD.right; // inner width
+const IH = VH - PAD.top - PAD.bottom; // inner height
+
+function polyline(points: [number, number][]): string {
+  if (points.length < 2) return "";
+  return points.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+}
+
+function fillPath(points: [number, number][], baseY: number): string {
+  if (points.length < 2) return "";
+  const line = polyline(points);
+  const last = points[points.length - 1];
+  const first = points[0];
+  return `${line} L ${last[0].toFixed(1)} ${baseY.toFixed(1)} L ${first[0].toFixed(1)} ${baseY.toFixed(1)} Z`;
+}
 
 interface Participant {
   id: string;
@@ -44,218 +47,255 @@ export default function EquityRaceChart({
   maxDrawdown,
   currentRound,
 }: EquityRaceChartProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesMap = useRef<Map<string, ISeriesApi<"Line">>>(new Map());
-  const initializedRef = useRef(false);
-  const [hasData, setHasData] = useState(false);
-
   const { data: snapshotsMap } = useEquitySnapshots(arenaId);
 
-  // Build chart once participants are loaded
-  useEffect(() => {
-    if (!containerRef.current || participants.length === 0 || initializedRef.current) return;
-    initializedRef.current = true;
+  const chart = useMemo(() => {
+    if (!snapshotsMap || snapshotsMap.size === 0) return null;
 
-    const chart = createChart(containerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#9CA3AF",
-        fontFamily: "Inter, sans-serif",
-        fontSize: 10,
-      },
-      grid: {
-        vertLines: { color: "rgba(243,244,246,0.04)" },
-        horzLines: { color: "rgba(243,244,246,0.08)" },
-      },
-      crosshair: {
-        vertLine: { color: "rgba(99,102,241,0.2)", width: 1, style: LineStyle.Dashed },
-        horzLine: { color: "rgba(99,102,241,0.2)", width: 1, style: LineStyle.Dashed },
-      },
-      rightPriceScale: { borderColor: "#E5E7EB" },
-      timeScale: {
-        borderColor: "#E5E7EB",
-        timeVisible: true,
-        secondsVisible: true,
-      },
-      handleScroll: { vertTouchDrag: false },
-      handleScale: { mouseWheel: false, pinch: false },
-    });
+    // Build per-participant series for current round
+    const rawSeries: Array<{
+      id: string;
+      color: string;
+      name: string;
+      eliminated: boolean;
+      pts: Array<{ t: number; pnl: number }>;
+    }> = [];
 
-    // Add one LineSeries per participant
-    participants.forEach((p, i) => {
-      const color = COLORS[i % COLORS.length];
-      const isElim = p.status === "eliminated";
-      const name = (p.users?.username ?? p.subaccount_address).split(" ")[0];
+    for (let i = 0; i < participants.length; i++) {
+      const p = participants[i];
+      const snaps = snapshotsMap.get(p.id) ?? [];
+      const round = snaps.filter((s: EquitySnapshot) => s.round_number === currentRound);
+      if (round.length < 1) continue;
 
-      const series = chart.addSeries(LineSeries, {
-        color: isElim ? `${color}35` : color,
-        lineWidth: isElim ? 1 : 2,
-        priceLineVisible: false,
-        lastValueVisible: !isElim,
-        title: name,
+      const base = round[0].equity;
+      rawSeries.push({
+        id: p.id,
+        color: COLORS[i % COLORS.length],
+        name: (p.users?.username ?? p.subaccount_address).split(" ")[0],
+        eliminated: p.status === "eliminated",
+        pts: round.map((s: EquitySnapshot) => ({
+          t: new Date(s.recorded_at).getTime(),
+          pnl: ((s.equity - base) / base) * 100,
+        })),
       });
-      seriesMap.current.set(p.id, series);
-
-      // Add death / warning / zero price lines onto the first series
-      if (i === 0) {
-        series.createPriceLine({
-          price: -maxDrawdown,
-          color: "#EF4444",
-          lineWidth: 1,
-          lineStyle: LineStyle.Solid,
-          axisLabelVisible: true,
-          title: `DEATH −${maxDrawdown}%`,
-        });
-        series.createPriceLine({
-          price: -(maxDrawdown * 0.7),
-          color: "#F59E0B",
-          lineWidth: 1,
-          lineStyle: LineStyle.Dashed,
-          axisLabelVisible: false,
-          title: "",
-        });
-        series.createPriceLine({
-          price: 0,
-          color: "rgba(107,114,128,0.25)",
-          lineWidth: 1,
-          lineStyle: LineStyle.Dashed,
-          axisLabelVisible: false,
-          title: "",
-        });
-      }
-    });
-
-    chartRef.current = chart;
-
-    const ro = new ResizeObserver((entries) => {
-      for (const e of entries) {
-        chart.applyOptions({ width: e.contentRect.width, height: e.contentRect.height });
-      }
-    });
-    ro.observe(containerRef.current);
-
-    return () => {
-      ro.disconnect();
-      chart.remove();
-      chartRef.current = null;
-      seriesMap.current.clear();
-      initializedRef.current = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [participants.length > 0]); // init once when participants arrive
-
-  // Feed snapshot data into series, filtered to current round
-  useEffect(() => {
-    if (!snapshotsMap || snapshotsMap.size === 0) return;
-    let anyData = false;
-
-    for (const [participantId, snapshots] of snapshotsMap) {
-      const series = seriesMap.current.get(participantId);
-      if (!series) continue;
-
-      // Filter to current round for per-round view
-      const roundSnaps = snapshots.filter((s: EquitySnapshot) => s.round_number === currentRound);
-      if (roundSnaps.length < 1) continue;
-
-      anyData = true;
-
-      // Compute pnl% from round-start equity (first snapshot of this round)
-      const roundStartEquity = roundSnaps[0].equity;
-
-      const chartData = roundSnaps.map((s: EquitySnapshot) => ({
-        time: Math.floor(
-          new Date(s.recorded_at).getTime() / 1000
-        ) as unknown as import("lightweight-charts").Time,
-        value:
-          Math.round(
-            ((s.equity - roundStartEquity) / roundStartEquity) * 10000
-          ) / 100,
-      }));
-
-      series.setData(chartData);
     }
 
-    if (anyData) {
-      setHasData(true);
-      chartRef.current?.timeScale().fitContent();
-    }
-  }, [snapshotsMap, currentRound]);
+    if (rawSeries.length === 0) return null;
 
-  // Legend from participants (ordered same as COLORS)
-  const legend = participants.map((p, i) => ({
-    id: p.id,
-    name: (p.users?.username ?? p.subaccount_address).split(" ")[0],
-    color: COLORS[i % COLORS.length],
-    pnl: p.total_pnl_percent,
-    eliminated: p.status === "eliminated",
-  }));
+    // Y bounds: always include 0 and death zone
+    let minPnl = -maxDrawdown - 3;
+    let maxPnl = 3;
+    rawSeries.forEach((s) => s.pts.forEach((p) => {
+      minPnl = Math.min(minPnl, p.pnl);
+      maxPnl = Math.max(maxPnl, p.pnl);
+    }));
+    // Add 10% headroom
+    const pnlRange = (maxPnl - minPnl) * 1.1;
+    const pnlMin = minPnl - pnlRange * 0.05;
+    const pnlMax = pnlMin + pnlRange;
+
+    // Time bounds
+    const allTimes = rawSeries.flatMap((s) => s.pts.map((p) => p.t));
+    const tMin = Math.min(...allTimes);
+    const tMax = Math.max(...allTimes);
+    const tRange = tMax - tMin || 1;
+
+    const toX = (t: number) => PAD.left + ((t - tMin) / tRange) * IW;
+    const toY = (pnl: number) => PAD.top + IH - ((pnl - pnlMin) / (pnlMax - pnlMin)) * IH;
+    const baseY = toY(pnlMin);
+
+    // Compute SVG points
+    const series = rawSeries.map((s) => ({
+      ...s,
+      svgPts: s.pts.map((p): [number, number] => [toX(p.t), toY(p.pnl)]),
+      lastPnl: s.pts[s.pts.length - 1]?.pnl ?? 0,
+    }));
+
+    const deathY = toY(-maxDrawdown);
+    const warnY = toY(-maxDrawdown * 0.7);
+    const zeroY = toY(0);
+
+    // Y-axis labels
+    const tickCount = 5;
+    const ticks = Array.from({ length: tickCount }, (_, i) => {
+      const pnl = pnlMin + (i / (tickCount - 1)) * (pnlMax - pnlMin);
+      return { y: toY(pnl), label: `${pnl >= 0 ? "+" : ""}${pnl.toFixed(0)}%` };
+    });
+
+    return { series, deathY, warnY, zeroY, baseY, ticks };
+  }, [snapshotsMap, currentRound, participants, maxDrawdown]);
+
+  // Sort for rendering: eliminated first (behind), then by pnl asc (losers behind winners)
+  const sorted = chart
+    ? [...chart.series].sort((a, b) => {
+        if (a.eliminated && !b.eliminated) return -1;
+        if (!a.eliminated && b.eliminated) return 1;
+        return a.lastPnl - b.lastPnl;
+      })
+    : [];
+
+  const leader = chart?.series.filter((s) => !s.eliminated).sort((a, b) => b.lastPnl - a.lastPnl)[0];
+
+  if (!chart) {
+    return (
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="px-5 py-3 border-b border-white/[0.05]">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+            Equity Race · Round {currentRound}
+          </span>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-2 py-16">
+          <div className="flex gap-2 mb-1">
+            {participants.slice(0, 6).map((p, i) => (
+              <span key={p.id} className="w-2 h-2 rounded-full inline-block opacity-40"
+                style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+            ))}
+          </div>
+          <p className="text-sm text-white/30">Chart fills in after ~15s of trading</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-surface rounded-2xl border border-border-light overflow-hidden">
-      {/* Header + legend */}
-      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border-light flex-wrap">
-        <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider flex-shrink-0">
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-white/[0.05] flex-wrap">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25 flex-shrink-0">
           Equity Race · Round {currentRound}
         </span>
         <div className="flex items-center gap-3 flex-wrap justify-end">
-          {legend.map((l) => (
-            <div
-              key={l.id}
-              className={`flex items-center gap-1.5 transition-opacity ${l.eliminated ? "opacity-25" : ""}`}
-            >
-              <span
-                className="w-3 h-0.5 rounded-full inline-block flex-shrink-0"
-                style={{ backgroundColor: l.color }}
-              />
-              <span className="text-[10px] font-medium text-text-secondary">{l.name}</span>
-              <span
-                className={`text-[10px] font-mono font-bold ${
-                  l.eliminated
-                    ? "text-text-tertiary"
-                    : l.pnl >= 0
-                    ? "text-success"
-                    : "text-danger"
-                }`}
-              >
-                {l.pnl >= 0 ? "+" : ""}
-                {l.pnl.toFixed(1)}%
+          {[...chart.series].sort((a, b) => b.lastPnl - a.lastPnl).map((s) => (
+            <div key={s.id} className={`flex items-center gap-1.5 transition-opacity ${s.eliminated ? "opacity-20" : ""}`}>
+              <span className="w-2.5 h-0.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
+              <span className="text-[10px] text-white/40">{s.name}</span>
+              <span className={`text-[10px] font-mono font-bold ${s.lastPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                {s.lastPnl >= 0 ? "+" : ""}{s.lastPnl.toFixed(1)}%
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chart area */}
-      <div className="relative">
-        <div ref={containerRef} className="w-full h-[220px]" />
-        {!hasData && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none">
-            <p className="text-xs text-text-tertiary">
-              Chart fills in after ~15s of trading
-            </p>
-            <p className="text-[10px] text-text-tertiary/50 font-mono">
-              snapshots every 15s
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Chart */}
+      <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full" style={{ height: VH, display: "block" }}>
+        <defs>
+          {sorted.map((s) => (
+            <linearGradient key={s.id} id={`g-${s.id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={s.color} stopOpacity={s.eliminated ? "0.02" : "0.12"} />
+              <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+            </linearGradient>
+          ))}
+          {/* Death zone gradient */}
+          <linearGradient id="death-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#EF4444" stopOpacity="0.18" />
+          </linearGradient>
+          {/* Leader glow filter */}
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
 
-      {/* Footer labels */}
-      <div className="flex items-center gap-5 px-5 py-2 border-t border-border-light">
+        {/* Y-axis ticks */}
+        {chart.ticks.map((tick, i) => (
+          <g key={i}>
+            <line x1={PAD.left - 4} y1={tick.y} x2={PAD.left} y2={tick.y}
+              stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <text x={PAD.left - 6} y={tick.y + 3} textAnchor="end"
+              fontSize="8" fill="rgba(255,255,255,0.25)" fontFamily="monospace">
+              {tick.label}
+            </text>
+          </g>
+        ))}
+
+        {/* Y-axis line */}
+        <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + IH}
+          stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+        {/* Death zone fill */}
+        {chart.deathY < chart.baseY && (
+          <rect x={PAD.left} y={chart.deathY}
+            width={IW} height={chart.baseY - chart.deathY}
+            fill="url(#death-bg)" />
+        )}
+
+        {/* Zero line */}
+        {chart.zeroY > PAD.top && chart.zeroY < PAD.top + IH && (
+          <line x1={PAD.left} y1={chart.zeroY} x2={PAD.left + IW} y2={chart.zeroY}
+            stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4 4" />
+        )}
+
+        {/* Warning line */}
+        {chart.warnY > PAD.top && chart.warnY < PAD.top + IH && (
+          <line x1={PAD.left} y1={chart.warnY} x2={PAD.left + IW} y2={chart.warnY}
+            stroke="rgba(251,191,36,0.25)" strokeWidth="1" strokeDasharray="3 5" />
+        )}
+
+        {/* Death line */}
+        {chart.deathY > PAD.top && chart.deathY < PAD.top + IH && (
+          <>
+            <line x1={PAD.left} y1={chart.deathY} x2={PAD.left + IW} y2={chart.deathY}
+              stroke="#EF4444" strokeWidth="1" opacity="0.5" />
+            <text x={PAD.left + 6} y={chart.deathY - 5}
+              fontSize="8" fill="rgba(239,68,68,0.6)" fontFamily="monospace">
+              DEATH −{maxDrawdown}%
+            </text>
+          </>
+        )}
+
+        {/* Gradient fills */}
+        {sorted.map((s) => (
+          s.svgPts.length >= 2 && (
+            <path key={`f-${s.id}`}
+              d={fillPath(s.svgPts, chart.baseY)}
+              fill={`url(#g-${s.id})`} />
+          )
+        ))}
+
+        {/* Lines */}
+        {sorted.map((s) => (
+          s.svgPts.length >= 2 && (
+            <motion.path
+              key={`l-${s.id}`}
+              d={polyline(s.svgPts)}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={leader?.id === s.id ? 2.5 : s.eliminated ? 1 : 1.8}
+              strokeOpacity={s.eliminated ? 0.2 : 1}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter={leader?.id === s.id ? "url(#glow)" : undefined}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+          )
+        ))}
+
+        {/* Leader endpoint dot */}
+        {leader && leader.svgPts.length > 0 && (() => {
+          const pt = leader.svgPts[leader.svgPts.length - 1];
+          return (
+            <motion.circle cx={pt[0]} cy={pt[1]} r="4.5" fill={leader.color}
+              initial={{ scale: 0 }} animate={{ scale: 1 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 400 }} />
+          );
+        })()}
+      </svg>
+
+      {/* Footer */}
+      <div className="flex items-center gap-4 px-5 py-2.5 border-t border-white/[0.05]">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-px bg-danger inline-block" />
-          <span className="text-[10px] text-danger/70 font-mono">
-            −{maxDrawdown}% death
-          </span>
+          <span className="w-3 h-1 rounded-sm inline-block opacity-50" style={{ background: "linear-gradient(to right, #EF444400, #EF4444)" }} />
+          <span className="text-[10px] font-mono text-red-400/50">death zone</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-px bg-warning inline-block opacity-70" />
-          <span className="text-[10px] text-warning/70 font-mono">warning</span>
+          <span className="w-3 h-px inline-block opacity-40 border-t border-dashed border-yellow-400" />
+          <span className="text-[10px] font-mono text-yellow-400/40">warning</span>
         </div>
-        <span className="text-[10px] text-text-tertiary/60 font-mono ml-auto">
-          % change from round start
-        </span>
+        <span className="text-[10px] font-mono text-white/15 ml-auto">% from round start</span>
       </div>
     </div>
   );
