@@ -11,6 +11,7 @@ import ActivityFeed from "@/components/spectator/ActivityFeed";
 import EliminationBanner from "@/components/spectator/EliminationBanner";
 import VotePanel from "@/components/spectator/VotePanel";
 import AvatarRow from "@/components/spectator/AvatarRow";
+import EquityRaceChart from "@/components/spectator/EquityRaceChart";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -137,6 +138,19 @@ export default function SpectatePage({
               maxDrawdown={currentRound.max_drawdown_percent}
               allowedPairs={currentRound.allowed_pairs}
               endsAt={currentRound.ends_at}
+            />
+          </div>
+        )}
+
+        {/* Equity Race Chart — shown only while arena is active */}
+        {!isCompleted && leaderboard.length > 0 && (
+          <div className="mb-6">
+            <EquityRaceChart
+              key={arena.current_round}
+              arenaId={arenaId}
+              participants={leaderboard as never[]}
+              maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
+              currentRound={arena.current_round ?? 1}
             />
           </div>
         )}
