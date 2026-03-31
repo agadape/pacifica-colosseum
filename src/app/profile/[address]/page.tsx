@@ -1,19 +1,12 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useCurrentUser, useUpdateUsername } from "@/hooks/use-arena";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-
-const rarityColors: Record<string, string> = {
-  legendary: "border-accent-gold text-accent-gold bg-accent-gold/5",
-  epic: "border-accent-primary text-accent-primary bg-accent-primary/5",
-  rare: "border-success text-success bg-success/5",
-  common: "border-border text-text-secondary bg-surface",
 };
 
 export default function ProfilePage({
@@ -22,14 +15,30 @@ export default function ProfilePage({
   params: Promise<{ address: string }>;
 }) {
   const { address } = use(params);
+  const { data: userData, isLoading } = useCurrentUser();
+  const updateUsername = useUpdateUsername();
 
-  // For now, show a placeholder profile
-  // Will be connected to real user data when auth flow is complete
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+
+  const user = userData?.data;
+
+  async function handleSave() {
+    setError("");
+    const result = await updateUsername.mutateAsync(draft).catch((e: Error) => ({ error: e.message }));
+    if ((result as { error?: string }).error) {
+      setError((result as { error: string }).error);
+    } else {
+      setEditing(false);
+    }
+  }
+
   const stats = [
-    { label: "Arenas", value: "0" },
-    { label: "Wins", value: "0" },
-    { label: "Survival Rate", value: "0%" },
-    { label: "Best PnL", value: "0%" },
+    { label: "Arenas", value: user?.total_arenas_entered ?? 0 },
+    { label: "Wins", value: user?.total_arenas_won ?? 0 },
+    { label: "Rounds survived", value: user?.total_rounds_survived ?? 0 },
+    { label: "Best PnL", value: user?.best_pnl_percent != null ? `${user.best_pnl_percent.toFixed(1)}%` : "—" },
   ];
 
   return (
@@ -39,9 +48,50 @@ export default function ProfilePage({
           <p className="text-xs uppercase tracking-[0.3em] text-text-tertiary mb-2">
             Profile
           </p>
-          <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary mb-1">
-            {address.slice(0, 4)}...{address.slice(-4)}
-          </h1>
+
+          {/* Username + edit */}
+          <div className="flex items-end gap-4 mb-2">
+            {editing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") setEditing(false); }}
+                  maxLength={20}
+                  placeholder="username (3-20 chars, a-z 0-9 _)"
+                  className="px-3 py-2 rounded-xl border border-accent-primary bg-surface font-display text-2xl font-800 text-text-primary outline-none w-72"
+                />
+                <button
+                  onClick={handleSave}
+                  disabled={updateUsername.isPending}
+                  className="px-4 py-2 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                >
+                  {updateUsername.isPending ? "Saving..." : "Save"}
+                </button>
+                <button onClick={() => { setEditing(false); setError(""); }} className="px-4 py-2 rounded-full border border-border text-text-secondary text-sm hover:text-text-primary transition-colors">
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
+                  {isLoading ? "Loading..." : user?.username ?? `${address.slice(0, 6)}...${address.slice(-4)}`}
+                </h1>
+                {user && (
+                  <button
+                    onClick={() => { setDraft(user.username ?? ""); setEditing(true); setError(""); }}
+                    className="text-xs text-text-tertiary hover:text-accent-primary transition-colors underline underline-offset-2"
+                  >
+                    {user.username ? "Edit" : "Set username"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {error && <p className="text-danger text-sm mb-3">{error}</p>}
+
           <p className="font-mono text-sm text-text-tertiary mb-10">{address}</p>
 
           {/* Stats */}
@@ -69,11 +119,11 @@ export default function ProfilePage({
             <div className="flex items-center gap-2">
               <input
                 readOnly
-                value={`${typeof window !== "undefined" ? window.location.origin : ""}?ref=${address.slice(0, 8)}`}
+                value={`${typeof window !== "undefined" ? window.location.origin : ""}?ref=${user?.referral_code ?? address.slice(0, 8)}`}
                 className="flex-1 px-3 py-2 rounded-lg bg-bg-primary border border-border-light font-mono text-xs text-text-secondary"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(`${window.location.origin}?ref=${address.slice(0, 8)}`)}
+                onClick={() => navigator.clipboard.writeText(`${window.location.origin}?ref=${user?.referral_code ?? address.slice(0, 8)}`)}
                 className="px-4 py-2 rounded-lg bg-accent-primary text-white text-xs font-semibold hover:bg-accent-hover transition-colors"
               >
                 Copy

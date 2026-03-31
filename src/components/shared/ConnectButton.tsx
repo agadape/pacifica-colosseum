@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { motion } from "framer-motion";
+import { useCurrentUser } from "@/hooks/use-arena";
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
@@ -9,6 +11,7 @@ function truncateAddress(address: string): string {
 
 export default function ConnectButton() {
   const { ready, authenticated, user, login, logout } = usePrivy();
+  const { data: userData } = useCurrentUser();
 
   if (!ready) {
     return (
@@ -19,16 +22,18 @@ export default function ConnectButton() {
   }
 
   if (authenticated && user) {
-    const displayName =
-      user.wallet?.address
-        ? truncateAddress(user.wallet.address)
-        : user.email?.address ?? "Connected";
+    const walletAddress = user.wallet?.address ?? "";
+    const dbUsername = userData?.data?.username;
+    const displayName = dbUsername ?? (walletAddress ? truncateAddress(walletAddress) : (user.email?.address ?? "Connected"));
 
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-text-secondary font-mono">
+        <Link
+          href={walletAddress ? `/profile/${walletAddress}` : "#"}
+          className="text-sm text-text-secondary font-mono hover:text-text-primary transition-colors"
+        >
           {displayName}
-        </span>
+        </Link>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

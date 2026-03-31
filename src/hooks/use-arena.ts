@@ -120,3 +120,22 @@ export function useCurrentUser() {
     enabled: authenticated,
   });
 }
+
+export function useUpdateUsername() {
+  const { getAccessToken } = usePrivy();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (username: string) => {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      return fetchWithToken("/api/users/me", token, {
+        method: "PATCH",
+        body: JSON.stringify({ username }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+    },
+  });
+}
