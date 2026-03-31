@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useEquitySnapshots, type EquitySnapshot } from "@/hooks/use-leaderboard";
 
 const STARTING_CAPITAL = 1000;
-const COLORS = ["#818CF8", "#34D399", "#FBBF24", "#F472B6", "#22D3EE", "#A78BFA"];
+const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EC4899", "#06B6D4", "#8B5CF6"];
 
 const VW = 1000;
 const VH = 260;
@@ -138,9 +138,9 @@ export default function EquityRaceChart({
 
   if (!chart) {
     return (
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="px-5 py-3 border-b border-white/[0.05]">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFAF8", border: "1px solid rgba(0,0,0,0.07)" }}>
+        <div className="px-5 py-3 border-b border-black/[0.05]">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-black/25">
             Equity Race · Round {currentRound}
           </span>
         </div>
@@ -151,25 +151,25 @@ export default function EquityRaceChart({
                 style={{ backgroundColor: COLORS[i % COLORS.length] }} />
             ))}
           </div>
-          <p className="text-sm text-white/30">Chart fills in after ~15s of trading</p>
+          <p className="text-sm text-black/30">Chart fills in after ~15s of trading</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFAF8", border: "1px solid rgba(0,0,0,0.07)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-white/[0.05] flex-wrap">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25 flex-shrink-0">
+      <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-black/[0.05] flex-wrap">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-black/25 flex-shrink-0">
           Equity Race · Round {currentRound}
         </span>
         <div className="flex items-center gap-3 flex-wrap justify-end">
           {[...chart.series].sort((a, b) => b.lastPnl - a.lastPnl).map((s) => (
             <div key={s.id} className={`flex items-center gap-1.5 transition-opacity ${s.eliminated ? "opacity-20" : ""}`}>
               <span className="w-2.5 h-0.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
-              <span className="text-[10px] text-white/40">{s.name}</span>
-              <span className={`text-[10px] font-mono font-bold ${s.lastPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <span className="text-[10px] text-black/40">{s.name}</span>
+              <span className={`text-[10px] font-mono font-bold ${s.lastPnl >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                 {s.lastPnl >= 0 ? "+" : ""}{s.lastPnl.toFixed(1)}%
               </span>
             </div>
@@ -182,7 +182,7 @@ export default function EquityRaceChart({
         <defs>
           {sorted.map((s) => (
             <linearGradient key={s.id} id={`g-${s.id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity={s.eliminated ? "0.02" : "0.12"} />
+              <stop offset="0%" stopColor={s.color} stopOpacity={s.eliminated ? "0.03" : "0.18"} />
               <stop offset="100%" stopColor={s.color} stopOpacity="0" />
             </linearGradient>
           ))}
@@ -202,9 +202,9 @@ export default function EquityRaceChart({
         {chart.ticks.map((tick, i) => (
           <g key={i}>
             <line x1={PAD.left - 4} y1={tick.y} x2={PAD.left} y2={tick.y}
-              stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
             <text x={PAD.left - 6} y={tick.y + 3} textAnchor="end"
-              fontSize="8" fill="rgba(255,255,255,0.25)" fontFamily="monospace">
+              fontSize="8" fill="rgba(0,0,0,0.35)" fontFamily="monospace">
               {tick.label}
             </text>
           </g>
@@ -212,7 +212,7 @@ export default function EquityRaceChart({
 
         {/* Y-axis line */}
         <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + IH}
-          stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
 
         {/* Death zone fill */}
         {chart.deathY < chart.baseY && (
@@ -224,7 +224,7 @@ export default function EquityRaceChart({
         {/* Zero line */}
         {chart.zeroY > PAD.top && chart.zeroY < PAD.top + IH && (
           <line x1={PAD.left} y1={chart.zeroY} x2={PAD.left + IW} y2={chart.zeroY}
-            stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4 4" />
+            stroke="rgba(0,0,0,0.12)" strokeWidth="1" strokeDasharray="4 4" />
         )}
 
         {/* Warning line */}
@@ -286,16 +286,16 @@ export default function EquityRaceChart({
       </svg>
 
       {/* Footer */}
-      <div className="flex items-center gap-4 px-5 py-2.5 border-t border-white/[0.05]">
+      <div className="flex items-center gap-4 px-5 py-2.5 border-t border-black/[0.05]">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-1 rounded-sm inline-block opacity-50" style={{ background: "linear-gradient(to right, #EF444400, #EF4444)" }} />
-          <span className="text-[10px] font-mono text-red-400/50">death zone</span>
+          <span className="text-[10px] font-mono text-red-500/50">death zone</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-px inline-block opacity-40 border-t border-dashed border-yellow-400" />
-          <span className="text-[10px] font-mono text-yellow-400/40">warning</span>
+          <span className="w-3 h-px inline-block opacity-40 border-t border-dashed border-yellow-500" />
+          <span className="text-[10px] font-mono text-yellow-600/50">warning</span>
         </div>
-        <span className="text-[10px] font-mono text-white/15 ml-auto">% from round start</span>
+        <span className="text-[10px] font-mono text-black/20 ml-auto">% from round start</span>
       </div>
     </div>
   );
