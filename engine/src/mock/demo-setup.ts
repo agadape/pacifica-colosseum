@@ -265,6 +265,12 @@ function scheduleDemoRounds(
     });
 
     console.log(`[Demo] Arena complete! Winner: ${winner.bot.name} ($${finalEquity.toFixed(2)})`);
+
+    // Auto-restart: start a fresh demo arena after 60s cooldown
+    console.log("[Demo] New arena starting in 60s...");
+    setTimeout(() => {
+      setupDemoArena().catch((err) => console.error("[Demo] Auto-restart failed:", err));
+    }, 60_000);
   }, endDelayMs);
 }
 

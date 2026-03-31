@@ -12,7 +12,7 @@ import ErrorState from "@/components/shared/ErrorState";
 const statusFilters = [
   { value: null, label: "All" },
   { value: "registration", label: "Open" },
-  { value: "round_1", label: "Active" },
+  { value: "active", label: "Active" },
   { value: "completed", label: "Completed" },
 ];
 

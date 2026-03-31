@@ -139,7 +139,9 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (status) query = query.eq("status", status);
+  const ACTIVE_STATUSES = ["round_1", "round_2", "round_3", "sudden_death"];
+  if (status === "active") query = query.in("status", ACTIVE_STATUSES);
+  else if (status) query = query.eq("status", status);
   if (preset) query = query.eq("preset", preset);
 
   const { data, error, count } = await query;
