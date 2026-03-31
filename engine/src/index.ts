@@ -29,6 +29,24 @@ function internalAuth(req: express.Request, res: express.Response, next: express
 
 app.get("/health", healthHandler);
 
+// ---- Debug endpoint (demo retrigger) ----
+app.get("/debug/demo", (_req, res) => {
+  res.json({ demoMode: DEMO_MODE });
+});
+
+app.post("/debug/demo/restart", async (_req, res) => {
+  if (!DEMO_MODE) {
+    res.status(400).json({ error: "DEMO_MODE is not enabled" });
+    return;
+  }
+  try {
+    await setupDemoArena();
+    res.json({ ok: true, message: "setupDemoArena() completed" });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // ---- Internal endpoints (called by Next.js API routes) ----
 
 app.post("/internal/trade", internalAuth, async (req, res) => {
@@ -87,7 +105,11 @@ server.listen(PORT, async () => {
 
   if (DEMO_MODE) {
     console.log("[Engine] DEMO_MODE enabled — using mock data");
-    await setupDemoArena();
+    try {
+      await setupDemoArena();
+    } catch (err) {
+      console.error("[Engine] setupDemoArena() threw:", err);
+    }
     // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
     // Start real price feed
