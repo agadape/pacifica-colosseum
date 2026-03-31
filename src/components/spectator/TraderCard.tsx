@@ -7,6 +7,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 interface TraderCardProps {
   rank: number;
   address: string;
+  displayName?: string;
   pnlPercent: number;
   drawdown: number;
   maxDrawdown: number;
@@ -20,6 +21,7 @@ interface TraderCardProps {
 export default function TraderCard({
   rank,
   address,
+  displayName,
   pnlPercent,
   drawdown,
   maxDrawdown,
@@ -62,8 +64,8 @@ export default function TraderCard({
             {rank}
           </div>
           <div>
-            <span className={`font-mono text-sm font-medium ${isEliminated ? "text-text-tertiary line-through" : "text-text-primary"}`}>
-              {address.slice(0, 6)}...{address.slice(-4)}
+            <span className={`text-sm font-semibold ${isEliminated ? "text-text-tertiary line-through" : "text-text-primary"}`}>
+              {displayName ?? `${address.slice(0, 6)}...${address.slice(-4)}`}
             </span>
             <p className="text-[10px] text-text-tertiary mt-0.5">{trades} trades</p>
           </div>

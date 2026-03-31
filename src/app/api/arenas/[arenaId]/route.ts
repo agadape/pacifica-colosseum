@@ -29,7 +29,7 @@ export async function GET(
   const [participantsRes, roundsRes] = await Promise.all([
     supabase
       .from("arena_participants")
-      .select(PARTICIPANT_PUBLIC_COLUMNS)
+      .select(`${PARTICIPANT_PUBLIC_COLUMNS}, users(username, wallet_address)`)
       .eq("arena_id", arenaId)
       .order("joined_at", { ascending: true }),
     supabase

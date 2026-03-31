@@ -14,6 +14,7 @@ interface ArenaCardProps {
     current_round: number;
     min_participants: number;
     max_participants: number;
+    starting_capital?: number;
     arena_participants?: Array<{ count: number }> | number;
   };
 }
@@ -49,24 +50,30 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
   const statusInfo = statusConfig[arena.status] ?? { label: arena.status, color: "text-text-secondary", pulse: false };
   const preset = presetStyles[arena.preset] ?? presetStyles.sprint;
   const isActive = ["round_1", "round_2", "round_3", "sudden_death"].includes(arena.status);
+  const isCompleted = arena.status === "completed" || arena.status === "cancelled";
+  const href = isActive ? `/arenas/${arena.id}/spectate` : `/arenas/${arena.id}`;
 
   return (
-    <Link href={`/arenas/${arena.id}`}>
+    <Link href={href}>
       <motion.div
-        whileHover={{ y: -6, scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={isCompleted ? {} : { y: -6, scale: 1.02 }}
+        whileTap={isCompleted ? {} : { scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={`group relative bg-surface rounded-2xl border overflow-hidden cursor-pointer transition-shadow hover:shadow-xl ${
-          isActive ? "border-accent-primary/20 shadow-md" : "border-border-light"
+        className={`group relative bg-surface rounded-2xl border overflow-hidden cursor-pointer transition-shadow ${
+          isActive
+            ? "border-accent-primary/30 shadow-lg hover:shadow-xl"
+            : isCompleted
+            ? "border-border-light opacity-50"
+            : "border-border-light hover:shadow-xl"
         }`}
       >
         {/* Top color accent bar */}
-        <div className={`h-1 ${isActive ? "bg-accent-primary" : preset.bg}`} />
+        <div className={`h-1 ${isActive ? "bg-accent-primary" : isCompleted ? "bg-border-light" : preset.bg}`} />
 
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="font-display text-lg font-700 text-text-primary group-hover:text-accent-primary transition-colors">
+              <h3 className={`font-display text-lg font-700 transition-colors ${isCompleted ? "text-text-tertiary" : "text-text-primary group-hover:text-accent-primary"}`}>
                 {arena.name}
               </h3>
               <span className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${preset.bg} ${preset.text} ${preset.border}`}>
@@ -83,6 +90,16 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
             </div>
           </div>
 
+          {/* Starting capital */}
+          {arena.starting_capital && (
+            <div className="flex items-center justify-between text-xs mb-3">
+              <span className="text-text-tertiary">Prize Pool</span>
+              <span className="font-mono font-semibold text-accent-gold">
+                ${(arena.starting_capital * (arena.max_participants ?? 8)).toLocaleString()}
+              </span>
+            </div>
+          )}
+
           {/* Progress bar for participants */}
           <div className="mb-3">
             <div className="flex items-center justify-between text-xs mb-1">
@@ -96,7 +113,7 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((count / arena.max_participants) * 100, 100)}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className="h-full bg-accent-primary rounded-full"
+                className={`h-full rounded-full ${isActive ? "bg-accent-primary" : "bg-accent-primary/60"}`}
               />
             </div>
           </div>
@@ -106,14 +123,18 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           )}
 
           {isActive && (
-            <div className="flex items-center gap-1 text-xs text-accent-primary font-medium">
-              <motion.span
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                ●
-              </motion.span>
-              Live
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs text-accent-primary font-semibold">
+                <motion.span
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                  className="w-2 h-2 rounded-full bg-accent-primary inline-block"
+                />
+                Live Now
+              </div>
+              <span className="text-[10px] text-accent-primary font-medium uppercase tracking-wider">
+                Watch →
+              </span>
             </div>
           )}
         </div>

@@ -13,6 +13,7 @@ interface Participant {
   has_wide_zone: boolean;
   has_second_life: boolean;
   second_life_used: boolean;
+  users?: { username: string | null; wallet_address: string } | null;
 }
 
 interface SurvivorGridProps {
@@ -44,6 +45,7 @@ export default function SurvivorGrid({ participants, maxDrawdown }: SurvivorGrid
               key={p.id}
               rank={i + 1}
               address={p.subaccount_address ?? "???"}
+              displayName={p.users?.username ?? undefined}
               pnlPercent={p.total_pnl_percent ?? 0}
               drawdown={p.max_drawdown_hit ?? 0}
               maxDrawdown={maxDrawdown}

@@ -81,22 +81,39 @@ export default function ArenaDetailPage({
           {/* Action buttons (active arena) */}
           {isActive && (
             <div className="flex gap-3 mb-8">
-              <Link href={`/arenas/${arenaId}/trade`}>
+              <Link href={`/arenas/${arenaId}/spectate`}>
                 <motion.span
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   className="inline-block px-6 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
                 >
-                  Trade
+                  Watch Live
                 </motion.span>
               </Link>
+              {isParticipant && (
+                <Link href={`/arenas/${arenaId}/trade`}>
+                  <motion.span
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="inline-block px-6 py-2.5 rounded-full border border-border text-text-secondary text-sm font-semibold hover:text-text-primary hover:border-text-secondary transition-colors"
+                  >
+                    Trade
+                  </motion.span>
+                </Link>
+              )}
+            </div>
+          )}
+
+          {/* See Results button for completed arenas */}
+          {arena.status === "completed" && (
+            <div className="flex gap-3 mb-8">
               <Link href={`/arenas/${arenaId}/spectate`}>
                 <motion.span
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-block px-6 py-2.5 rounded-full border border-border text-text-secondary text-sm font-semibold hover:text-text-primary hover:border-text-secondary transition-colors"
+                  className="inline-block px-6 py-2.5 rounded-full bg-surface border border-border text-text-secondary text-sm font-semibold hover:text-text-primary transition-colors"
                 >
-                  Spectate
+                  See Results
                 </motion.span>
               </Link>
             </div>
@@ -174,7 +191,8 @@ export default function ArenaDetailPage({
                         #{i + 1}
                       </span>
                       <span className="text-sm text-text-primary font-medium">
-                        {(p.subaccount_address as string)?.slice(0, 8) ?? "..."}
+                        {((p.users as { username?: string | null } | null)?.username) ??
+                          (p.subaccount_address as string)?.slice(0, 8) ?? "..."}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">

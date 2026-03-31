@@ -39,6 +39,14 @@ export default function SpectatePage({
 
   const dismissElimination = useCallback(() => setElimination(null), []);
 
+  const isCompleted = arena?.status === "completed";
+  const winner = isCompleted
+    ? (participants.data ?? []).find((p: Record<string, unknown>) => p.status === "winner") ??
+      [...(participants.data ?? [])].sort(
+        (a: Record<string, number>, b: Record<string, number>) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0)
+      )[0]
+    : null;
+
   if (!arena) {
     return (
       <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
@@ -72,12 +80,39 @@ export default function SpectatePage({
           />
         )}
 
+        {/* Winner Banner */}
+        {isCompleted && winner && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 rounded-2xl border border-accent-gold/30 bg-accent-gold/5 p-6 text-center"
+          >
+            <p className="text-xs uppercase tracking-[0.3em] text-accent-gold mb-1">Arena Complete</p>
+            <div className="text-4xl mb-2">👑</div>
+            <h2 className="font-display text-2xl font-800 text-text-primary">
+              {(winner as Record<string, unknown> & { users?: { username?: string | null } | null }).users?.username ??
+                `${((winner as Record<string, unknown>).subaccount_address as string)?.slice(0, 8) ?? "Winner"}`}
+            </h2>
+            <p className="text-accent-gold font-mono text-lg font-bold mt-1">
+              {((winner as Record<string, unknown>).total_pnl_percent as number) >= 0 ? "+" : ""}
+              {((winner as Record<string, unknown>).total_pnl_percent as number)?.toFixed(2)}% PnL
+            </p>
+          </motion.div>
+        )}
+
         {/* Header */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="mb-4">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.3em] text-text-tertiary">
-              Spectating
+              {isCompleted ? "Results" : "Live"}
             </span>
+            {!isCompleted && (
+              <motion.span
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+                className="w-2 h-2 rounded-full bg-accent-primary inline-block"
+              />
+            )}
           </div>
           <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
             {arena.name}
