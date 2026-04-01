@@ -453,7 +453,7 @@ function scheduleTraderDemoRounds(
       // Query ALL active participants from DB (bots + real users)
       const { data: active } = await supabase
         .from("arena_participants")
-        .select("id, subaccount_address, total_pnl_percent, users(username)")
+        .select("id, subaccount_address, total_pnl_percent")
         .eq("arena_id", arenaId)
         .eq("status", "active");
 
@@ -462,10 +462,7 @@ function scheduleTraderDemoRounds(
       const scored = active.map((p) => {
         const pnlPct = p.total_pnl_percent ?? 0;
         const botMatch = bots.find((b) => b.id === p.id);
-        const name =
-          (p.users as { username?: string | null } | null)?.username ??
-          botMatch?.name ??
-          (p.subaccount_address as string).slice(0, 8);
+        const name = botMatch?.name ?? p.subaccount_address.slice(0, 8);
         return { id: p.id, name, pnlPct };
       });
 
@@ -535,7 +532,7 @@ function scheduleTraderDemoRounds(
 
     const { data: survivors } = await supabase
       .from("arena_participants")
-      .select("id, subaccount_address, total_pnl_percent, users(username)")
+      .select("id, subaccount_address, total_pnl_percent")
       .eq("arena_id", arenaId)
       .eq("status", "active");
 
@@ -552,10 +549,7 @@ function scheduleTraderDemoRounds(
     const finalScores = survivors.map((p) => {
       const pnlPct = p.total_pnl_percent ?? 0;
       const botMatch = bots.find((b) => b.id === p.id);
-      const name =
-        (p.users as { username?: string | null } | null)?.username ??
-        botMatch?.name ??
-        (p.subaccount_address as string).slice(0, 8);
+      const name = botMatch?.name ?? p.subaccount_address.slice(0, 8);
       return { id: p.id, name, pnlPct };
     });
     finalScores.sort((a, b) => b.pnlPct - a.pnlPct);
