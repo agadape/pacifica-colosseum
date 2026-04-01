@@ -4,6 +4,25 @@ import { motion } from "framer-motion";
 import DrawdownMeter from "@/components/shared/DrawdownMeter";
 import StatusBadge from "@/components/shared/StatusBadge";
 
+function Sparkline({ data }: { data: number[] }) {
+  if (data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const w = 80, h = 24;
+  const points = data
+    .map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * (h - 2) - 1}`)
+    .join(" ");
+  const isUp = data[data.length - 1] >= data[0];
+  return (
+    <svg width={w} height={h} className="opacity-60" style={{ overflow: "visible" }}>
+      <polyline points={points} fill="none"
+        stroke={isUp ? "#10B981" : "#EF4444"} strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 interface TraderCardProps {
   rank: number;
   address: string;
@@ -16,6 +35,7 @@ interface TraderCardProps {
   hasWideZone: boolean;
   hasSecondLife: boolean;
   secondLifeUsed: boolean;
+  sparklineData?: number[];
 }
 
 export default function TraderCard({
@@ -30,6 +50,7 @@ export default function TraderCard({
   hasWideZone,
   hasSecondLife,
   secondLifeUsed,
+  sparklineData,
 }: TraderCardProps) {
   const isEliminated = status === "eliminated";
   const isWinner = status === "winner";
@@ -73,14 +94,17 @@ export default function TraderCard({
         <StatusBadge drawdown={drawdown} maxDrawdown={maxDrawdown} isEliminated={isEliminated} />
       </div>
 
-      {/* PnL */}
-      <div className="mb-4">
+      {/* PnL + sparkline */}
+      <div className="flex items-end justify-between mb-4">
         <span className={`font-mono text-3xl font-bold tracking-tight ${
           isEliminated ? "text-text-tertiary" :
           pnlPercent >= 0 ? "text-success" : "text-danger"
         }`}>
           {pnlPercent >= 0 ? "+" : ""}{pnlPercent.toFixed(2)}%
         </span>
+        {sparklineData && sparklineData.length >= 2 && (
+          <Sparkline data={sparklineData} />
+        )}
       </div>
 
       <DrawdownMeter current={drawdown} max={maxDrawdown} />

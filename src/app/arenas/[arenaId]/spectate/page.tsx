@@ -162,6 +162,8 @@ export default function SpectatePage({
             <SurvivorGrid
               participants={leaderboard as never[]}
               maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
+              arenaId={arenaId}
+              currentRound={arena.current_round ?? 1}
             />
           </div>
 

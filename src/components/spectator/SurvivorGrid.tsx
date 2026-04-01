@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import TraderCard from "./TraderCard";
+import { useEquitySnapshots, type EquitySnapshot } from "@/hooks/use-leaderboard";
 
 interface Participant {
   id: string;
@@ -19,12 +20,26 @@ interface Participant {
 interface SurvivorGridProps {
   participants: Participant[];
   maxDrawdown: number;
+  arenaId: string;
+  currentRound: number;
 }
 
-export default function SurvivorGrid({ participants, maxDrawdown }: SurvivorGridProps) {
+export default function SurvivorGrid({ participants, maxDrawdown, arenaId, currentRound }: SurvivorGridProps) {
+  const { data: snapshotsMap } = useEquitySnapshots(arenaId);
+
   const sorted = [...participants].sort(
     (a, b) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0)
   );
+
+  function getSparkline(participantId: string): number[] {
+    if (!snapshotsMap) return [];
+    const snaps = (snapshotsMap.get(participantId) ?? [])
+      .filter((s: EquitySnapshot) => s.round_number === currentRound);
+    if (snaps.length < 2) return [];
+    const base = snaps[0].equity;
+    // last 10 points, normalized as pnl%
+    return snaps.slice(-10).map((s: EquitySnapshot) => ((s.equity - base) / base) * 100);
+  }
 
   return (
     <div>
@@ -54,6 +69,7 @@ export default function SurvivorGrid({ participants, maxDrawdown }: SurvivorGrid
               hasWideZone={p.has_wide_zone}
               hasSecondLife={p.has_second_life}
               secondLifeUsed={p.second_life_used}
+              sparklineData={getSparkline(p.id)}
             />
           ))}
         </AnimatePresence>
