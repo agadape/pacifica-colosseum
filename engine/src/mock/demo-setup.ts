@@ -311,6 +311,576 @@ function scheduleDemoRounds(
   }, endDelayMs);
 }
 
+// ── Trader Demo (Open Arena) ─────────────────────────────────────────────────
+
+/** 4 bots, leaving 2 open slots for real users */
+const TRADER_BOT_NAMES = BOT_NAMES.slice(0, 4);
+
+/** Longer rounds so real users have time to trade */
+const TRADER_DURATIONS = { round1: 300, round2: 300, round3: 180, suddenDeath: 120 };
+
+/** 5-minute window for users to join before arena starts */
+const TRADER_REGISTRATION_MS = 5 * 60 * 1000;
+
+/**
+ * Like startMockLeaderboard but also captures snapshots for real user participants
+ * (reads their DB total_pnl_percent since we don't track their positions in-memory).
+ */
+function startTraderLeaderboard(
+  arenaId: string,
+  bots: BotParticipant[],
+  activeIds: Set<string>,
+  priceGenerator: MockPriceGenerator
+): { stop: () => void } {
+  const supabase = getSupabase();
+  const botIds = new Set(bots.map((b) => b.id));
+
+  // 3s: update PnL for bots from in-memory positions
+  const pnlTimer = setInterval(async () => {
+    for (const bot of bots) {
+      if (!activeIds.has(bot.id)) continue;
+      const equity = computeEquity(bot.subaccount_address, priceGenerator);
+      const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
+      const drawdown = Math.max(0, -pnlPercent);
+      await supabase
+        .from("arena_participants")
+        .update({
+          total_pnl: equity - STARTING_CAPITAL,
+          total_pnl_percent: Math.round(pnlPercent * 100) / 100,
+          max_drawdown_hit: Math.round(drawdown * 100) / 100,
+        })
+        .eq("id", bot.id);
+    }
+  }, 3000);
+
+  // 5s: write equity_snapshots — bots from in-memory, real users from DB
+  const snapshotTimer = setInterval(async () => {
+    const { data: arenaRow } = await supabase
+      .from("arenas")
+      .select("current_round")
+      .eq("id", arenaId)
+      .single();
+    const currentRound = arenaRow?.current_round ?? 1;
+
+    const inserts: {
+      arena_id: string;
+      participant_id: string;
+      round_number: number;
+      equity: number;
+      balance: number;
+      unrealized_pnl: number;
+      drawdown_percent: number;
+    }[] = [];
+
+    // Bots: in-memory equity
+    for (const bot of bots) {
+      if (!activeIds.has(bot.id)) continue;
+      const equity = computeEquity(bot.subaccount_address, priceGenerator);
+      const drawdownPct = Math.max(0, ((STARTING_CAPITAL - equity) / STARTING_CAPITAL) * 100);
+      inserts.push({
+        arena_id: arenaId,
+        participant_id: bot.id,
+        round_number: currentRound,
+        equity: Math.round(equity * 100) / 100,
+        balance: Math.round(equity * 100) / 100,
+        unrealized_pnl: 0,
+        drawdown_percent: Math.round(drawdownPct * 100) / 100,
+      });
+    }
+
+    // Real users: read PnL from DB
+    const { data: allActive } = await supabase
+      .from("arena_participants")
+      .select("id, total_pnl_percent")
+      .eq("arena_id", arenaId)
+      .eq("status", "active");
+
+    for (const p of (allActive ?? []).filter((p) => !botIds.has(p.id))) {
+      const pnlPct = p.total_pnl_percent ?? 0;
+      const equity = STARTING_CAPITAL * (1 + pnlPct / 100);
+      const drawdownPct = Math.max(0, -pnlPct);
+      inserts.push({
+        arena_id: arenaId,
+        participant_id: p.id,
+        round_number: currentRound,
+        equity: Math.round(equity * 100) / 100,
+        balance: Math.round(equity * 100) / 100,
+        unrealized_pnl: 0,
+        drawdown_percent: Math.round(drawdownPct * 100) / 100,
+      });
+    }
+
+    if (inserts.length > 0) {
+      await supabase.from("equity_snapshots").insert(inserts);
+    }
+  }, 5000);
+
+  return {
+    stop: () => {
+      clearInterval(pnlTimer);
+      clearInterval(snapshotTimer);
+    },
+  };
+}
+
+/**
+ * Schedule round progression for the Open Arena.
+ * Scores ALL active participants (bots + real users) using DB total_pnl_percent.
+ * Updates current_round_ends_at on each transition for zombie detection.
+ */
+function scheduleTraderDemoRounds(
+  arenaId: string,
+  bots: BotParticipant[],
+  activeIds: Set<string>,
+  priceGenerator: MockPriceGenerator,
+  leaderboard: { stop: () => void }
+): void {
+  const supabase = getSupabase();
+  const D = TRADER_DURATIONS;
+
+  const ROUND_SCHEDULE = [
+    { from: 1, to: 2, status: "round_2", name: "The Storm",    eliminatePct: 30, delayMs: D.round1 * 1000 },
+    { from: 2, to: 3, status: "round_3", name: "Final Circle", eliminatePct: 40, delayMs: (D.round1 + D.round2) * 1000 },
+    { from: 3, to: 4, status: "sudden_death", name: "Sudden Death", eliminatePct: 0, delayMs: (D.round1 + D.round2 + D.round3) * 1000 },
+  ];
+
+  const endDelayMs = (D.round1 + D.round2 + D.round3 + D.suddenDeath) * 1000;
+
+  const nextRoundDuration: Record<number, number> = { 2: D.round2, 3: D.round3, 4: D.suddenDeath };
+
+  for (const round of ROUND_SCHEDULE) {
+    setTimeout(async () => {
+      // Query ALL active participants from DB (bots + real users)
+      const { data: active } = await supabase
+        .from("arena_participants")
+        .select("id, subaccount_address, total_pnl_percent, users(username)")
+        .eq("arena_id", arenaId)
+        .eq("status", "active");
+
+      if (!active || active.length === 0) return;
+
+      const scored = active.map((p) => {
+        const pnlPct = p.total_pnl_percent ?? 0;
+        const botMatch = bots.find((b) => b.id === p.id);
+        const name =
+          (p.users as { username?: string | null } | null)?.username ??
+          botMatch?.name ??
+          (p.subaccount_address as string).slice(0, 8);
+        return { id: p.id, name, pnlPct };
+      });
+
+      scored.sort((a, b) => a.pnlPct - b.pnlPct);
+      const numEliminate =
+        round.eliminatePct > 0
+          ? Math.max(1, Math.ceil(scored.length * round.eliminatePct / 100))
+          : 0;
+
+      const toEliminate = scored.slice(0, numEliminate);
+      const toAdvance   = scored.slice(numEliminate);
+
+      for (const p of toEliminate) {
+        activeIds.delete(p.id);
+        const equity = Math.round(STARTING_CAPITAL * (1 + p.pnlPct / 100) * 100) / 100;
+        await supabase
+          .from("arena_participants")
+          .update({
+            status: "eliminated",
+            eliminated_at: new Date().toISOString(),
+            eliminated_in_round: round.from,
+            elimination_reason: "ranking",
+            elimination_equity: equity,
+            total_pnl_percent: Math.round(p.pnlPct * 100) / 100,
+          })
+          .eq("id", p.id);
+
+        await supabase.from("events").insert({
+          arena_id: arenaId,
+          round_number: round.from,
+          event_type: "elimination",
+          message: `${p.name} eliminated! PnL: ${p.pnlPct.toFixed(1)}%`,
+          data: { reason: "ranking", pnlPct: p.pnlPct, name: p.name },
+        });
+
+        console.log(`[Trader Demo] ${p.name} eliminated in round ${round.from} (PnL: ${p.pnlPct.toFixed(1)}%)`);
+      }
+
+      // Advance arena to next round with updated end time
+      const roundEndsAt = new Date(Date.now() + (nextRoundDuration[round.to] ?? D.round2) * 1000);
+      await supabase
+        .from("arenas")
+        .update({
+          status: round.status,
+          current_round: round.to,
+          current_round_ends_at: roundEndsAt.toISOString(),
+        })
+        .eq("id", arenaId);
+
+      await supabase.from("events").insert({
+        arena_id: arenaId,
+        round_number: round.to,
+        event_type: "round_start",
+        message: `${round.name} begins! ${toAdvance.length} traders remain.`,
+        data: { round: round.to, survivorCount: toAdvance.length },
+      });
+
+      console.log(`[Trader Demo] Round ${round.from} → ${round.to}. ${toAdvance.length} survivors.`);
+    }, round.delayMs);
+  }
+
+  // Final: declare winner
+  setTimeout(async () => {
+    leaderboard.stop();
+    stopBotTraders(arenaId);
+    priceGenerator.stop();
+
+    const { data: survivors } = await supabase
+      .from("arena_participants")
+      .select("id, subaccount_address, total_pnl_percent, users(username)")
+      .eq("arena_id", arenaId)
+      .eq("status", "active");
+
+    if (!survivors || survivors.length === 0) {
+      await supabase
+        .from("arenas")
+        .update({ status: "completed", ended_at: new Date().toISOString() })
+        .eq("id", arenaId);
+      console.log("[Trader Demo] No survivors — arena completed");
+      setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
+      return;
+    }
+
+    const finalScores = survivors.map((p) => {
+      const pnlPct = p.total_pnl_percent ?? 0;
+      const botMatch = bots.find((b) => b.id === p.id);
+      const name =
+        (p.users as { username?: string | null } | null)?.username ??
+        botMatch?.name ??
+        (p.subaccount_address as string).slice(0, 8);
+      return { id: p.id, name, pnlPct };
+    });
+    finalScores.sort((a, b) => b.pnlPct - a.pnlPct);
+
+    const winner = finalScores[0];
+    const losers = finalScores.slice(1);
+
+    for (const p of losers) {
+      activeIds.delete(p.id);
+      await supabase
+        .from("arena_participants")
+        .update({
+          status: "eliminated",
+          eliminated_at: new Date().toISOString(),
+          eliminated_in_round: 4,
+          elimination_reason: "ranking",
+          total_pnl_percent: Math.round(p.pnlPct * 100) / 100,
+        })
+        .eq("id", p.id);
+    }
+
+    const { data: winnerRow } = await supabase
+      .from("arena_participants")
+      .select("user_id")
+      .eq("id", winner.id)
+      .single();
+
+    const finalEquity = Math.round(STARTING_CAPITAL * (1 + winner.pnlPct / 100) * 100) / 100;
+    const finalPnl    = Math.round((finalEquity - STARTING_CAPITAL) * 100) / 100;
+
+    await supabase
+      .from("arena_participants")
+      .update({
+        status: "active",
+        total_pnl: finalPnl,
+        total_pnl_percent: Math.round(winner.pnlPct * 100) / 100,
+        equity_final: finalEquity,
+      })
+      .eq("id", winner.id);
+
+    await supabase
+      .from("arenas")
+      .update({
+        status: "completed",
+        ended_at: new Date().toISOString(),
+        winner_id: winnerRow?.user_id ?? null,
+      })
+      .eq("id", arenaId);
+
+    await supabase.from("events").insert({
+      arena_id: arenaId,
+      round_number: 4,
+      event_type: "arena_end",
+      message: `${winner.name} wins the Open Arena! Final PnL: ${winner.pnlPct.toFixed(1)}%`,
+      data: { winner: winner.name, pnlPct: winner.pnlPct },
+    });
+
+    console.log(`[Trader Demo] Arena complete! Winner: ${winner.name} (PnL: ${winner.pnlPct.toFixed(1)}%)`);
+    console.log("[Trader Demo] New Open Arena starting in 60s...");
+    setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
+  }, endDelayMs);
+}
+
+/**
+ * Set up the "Open Arena" — a joinable demo arena with a 5-min registration window.
+ * Registers 4 bots and leaves 2 open slots for real users.
+ * Loops automatically after completion.
+ */
+export async function setupTraderDemoArena(): Promise<void> {
+  const supabase = getSupabase();
+  const encryptionKey = process.env.ENCRYPTION_KEY;
+
+  if (!encryptionKey) {
+    console.error("[Trader Demo] ENCRYPTION_KEY required");
+    return;
+  }
+
+  console.log("[Trader Demo] Setting up Open Arena...");
+
+  // Zombie detection for existing Open Arena
+  const { data: existing } = await supabase
+    .from("arenas")
+    .select("id, status, current_round_ends_at, registration_deadline")
+    .eq("name", "Open Arena")
+    .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
+    .is("ended_at", null)
+    .single();
+
+  if (existing) {
+    if (existing.status === "registration") {
+      const regDeadline = existing.registration_deadline
+        ? new Date(existing.registration_deadline).getTime()
+        : null;
+      // Still within registration window — healthy
+      if (regDeadline !== null && regDeadline > Date.now()) {
+        console.log("[Trader Demo] Open Arena in active registration, skipping setup");
+        return;
+      }
+      // Registration window passed but arena never started — zombie
+      console.log("[Trader Demo] Registration expired without arena start — force-completing");
+    } else {
+      const roundEndsAt = existing.current_round_ends_at
+        ? new Date(existing.current_round_ends_at).getTime()
+        : null;
+      if (roundEndsAt === null || roundEndsAt > Date.now()) {
+        console.log("[Trader Demo] Open Arena is running, skipping setup");
+        return;
+      }
+      console.log("[Trader Demo] Detected dead Open Arena (round ended) — force-completing");
+    }
+    await supabase
+      .from("arenas")
+      .update({ status: "completed", ended_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  }
+
+  // Reuse the system user from Demo Arena
+  let systemUserId: string;
+  const { data: systemUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("wallet_address", "demo:system")
+    .single();
+
+  if (systemUser) {
+    systemUserId = systemUser.id;
+  } else {
+    const { data: newUser } = await supabase
+      .from("users")
+      .insert({
+        wallet_address: "demo:system",
+        referral_code: "DEMO0000",
+        username: "DemoHost",
+      })
+      .select("id")
+      .single();
+    if (!newUser) {
+      console.error("[Trader Demo] Failed to create system user");
+      return;
+    }
+    systemUserId = newUser.id;
+  }
+
+  const vault = generateKeypair();
+  const registrationEndsAt = new Date(Date.now() + TRADER_REGISTRATION_MS);
+  const startsAt = new Date(registrationEndsAt.getTime() + 5000); // 5s grace after registration
+  const D = TRADER_DURATIONS;
+
+  const { data: arena, error } = await supabase
+    .from("arenas")
+    .insert({
+      creator_id: systemUserId,
+      name: "Open Arena",
+      description: "Join and trade! Open registration, 5-minute rounds.",
+      preset: "blitz",
+      starting_capital: STARTING_CAPITAL,
+      min_participants: 1,
+      max_participants: 6,
+      registration_deadline: registrationEndsAt.toISOString(),
+      starts_at: startsAt.toISOString(),
+      round_1_duration: D.round1,
+      round_2_duration: D.round2,
+      round_3_duration: D.round3,
+      sudden_death_duration: D.suddenDeath,
+      master_wallet_address: publicKeyToString(vault.publicKey),
+      master_private_key_encrypted: encryptPrivateKey(secretKeyToString(vault.secretKey), encryptionKey),
+    })
+    .select("id")
+    .single();
+
+  if (error || !arena) {
+    console.error("[Trader Demo] Failed to create arena:", error?.message);
+    return;
+  }
+
+  // Create round records — use blitz rules for leverage/drawdown/pairs, override durations
+  const blitzTimings = calculateRoundTimings("blitz", startsAt);
+  const roundDurations = [D.round1, D.round2, D.round3, D.suddenDeath];
+  let roundCursor = startsAt.getTime();
+
+  for (const r of blitzTimings) {
+    const rDuration = roundDurations[r.roundNumber - 1] ?? D.suddenDeath;
+    const rStartsAt = new Date(roundCursor);
+    const rEndsAt   = new Date(roundCursor + rDuration * 1000);
+    roundCursor     = rEndsAt.getTime();
+
+    await supabase.from("rounds").insert({
+      arena_id: arena.id,
+      round_number: r.roundNumber,
+      name: r.name,
+      starts_at: rStartsAt.toISOString(),
+      ends_at: rEndsAt.toISOString(),
+      max_leverage: r.maxLeverage,
+      margin_mode: r.marginMode,
+      max_drawdown_percent: r.maxDrawdownPercent,
+      elimination_percent: r.eliminationPercent,
+      allowed_pairs: r.allowedPairs,
+    });
+  }
+
+  // Register 4 bots
+  const botParticipants: BotParticipant[] = [];
+
+  for (const botName of TRADER_BOT_NAMES) {
+    const botWallet = `demo:${botName.toLowerCase().replace(/\s/g, "-")}`;
+    let botUserId: string;
+
+    const { data: existingBot } = await supabase
+      .from("users")
+      .select("id")
+      .eq("wallet_address", botWallet)
+      .single();
+
+    if (existingBot) {
+      botUserId = existingBot.id;
+    } else {
+      const { data: botUser } = await supabase
+        .from("users")
+        .insert({
+          wallet_address: botWallet,
+          referral_code: `BOT${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+          username: botName,
+        })
+        .select("id")
+        .single();
+      if (!botUser) continue;
+      botUserId = botUser.id;
+    }
+
+    const subKeypair = generateKeypair();
+    const subAddress = publicKeyToString(subKeypair.publicKey);
+    const { data: participant } = await supabase
+      .from("arena_participants")
+      .insert({
+        arena_id: arena.id,
+        user_id: botUserId,
+        subaccount_address: subAddress,
+        subaccount_private_key_encrypted: encryptPrivateKey(
+          secretKeyToString(subKeypair.secretKey),
+          encryptionKey
+        ),
+        status: "registered",
+      })
+      .select("id, subaccount_address")
+      .single();
+
+    if (participant) {
+      mockCreateSubaccount(publicKeyToString(vault.publicKey), subAddress);
+      mockTransferFunds(publicKeyToString(vault.publicKey), subAddress, STARTING_CAPITAL);
+      botParticipants.push({
+        id: participant.id,
+        subaccount_address: subAddress,
+        name: botName,
+      });
+    }
+  }
+
+  console.log(`[Trader Demo] Open Arena "${arena.id}" created — 4 bots registered, 2 slots open`);
+  console.log(`[Trader Demo] Registration open until ${registrationEndsAt.toISOString()}`);
+
+  const priceGenerator = new MockPriceGenerator(0.002);
+  priceGenerator.start();
+
+  // Start after registration window closes
+  setTimeout(async () => {
+    console.log("[Trader Demo] Registration closed — starting Open Arena...");
+
+    // Query ALL registered participants (bots + any real users who joined)
+    const { data: allRegistered } = await supabase
+      .from("arena_participants")
+      .select("id, subaccount_address")
+      .eq("arena_id", arena.id)
+      .eq("status", "registered");
+
+    if (!allRegistered || allRegistered.length === 0) {
+      await supabase
+        .from("arenas")
+        .update({ status: "completed", ended_at: new Date().toISOString() })
+        .eq("id", arena.id);
+      console.log("[Trader Demo] No participants registered — skipping, restarting in 60s");
+      setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
+      return;
+    }
+
+    // Activate ALL registered participants
+    for (const p of allRegistered) {
+      await supabase
+        .from("arena_participants")
+        .update({ status: "active", equity_round_1_start: STARTING_CAPITAL })
+        .eq("id", p.id);
+    }
+
+    // Set round 1 end time on arena row (needed for zombie detection)
+    const round1EndsAt = new Date(Date.now() + D.round1 * 1000);
+    await supabase
+      .from("arenas")
+      .update({
+        status: "round_1",
+        current_round: 1,
+        current_round_ends_at: round1EndsAt.toISOString(),
+      })
+      .eq("id", arena.id);
+
+    await supabase.from("events").insert({
+      arena_id: arena.id,
+      round_number: 1,
+      event_type: "arena_start",
+      message: `Open Arena started with ${allRegistered.length} traders!`,
+      data: { participant_count: allRegistered.length },
+    });
+
+    const activeIds = new Set(allRegistered.map((p) => p.id));
+
+    startBotTraders(arena.id, botParticipants, priceGenerator, ["BTC", "ETH", "SOL"]);
+
+    const leaderboard = startTraderLeaderboard(arena.id, botParticipants, activeIds, priceGenerator);
+
+    scheduleTraderDemoRounds(arena.id, botParticipants, activeIds, priceGenerator, leaderboard);
+
+    console.log(`[Trader Demo] Arena running with ${allRegistered.length} participant(s)!`);
+  }, TRADER_REGISTRATION_MS + 5000);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Auto-setup a demo arena with bot traders.
  * Called on engine startup when DEMO_MODE=true.

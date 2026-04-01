@@ -6,7 +6,7 @@ import { healthHandler } from "./health";
 import { initArenaTimers, scheduleArenaStart } from "./timers/arena-timer";
 import { getPriceManager } from "./state/price-manager";
 import { DEMO_MODE } from "./config";
-import { setupDemoArena } from "./mock/demo-setup";
+import { setupDemoArena, setupTraderDemoArena } from "./mock/demo-setup";
 import { executeOrder, cancelOrder, getPositions, getAccountInfo } from "./services/order-relay";
 import type { OrderInput } from "./services/order-validator";
 
@@ -109,6 +109,11 @@ server.listen(PORT, async () => {
       await setupDemoArena();
     } catch (err) {
       console.error("[Engine] setupDemoArena() threw:", err);
+    }
+    try {
+      await setupTraderDemoArena();
+    } catch (err) {
+      console.error("[Engine] setupTraderDemoArena() threw:", err);
     }
     // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
