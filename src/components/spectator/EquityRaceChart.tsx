@@ -266,17 +266,17 @@ export default function EquityRaceChart({
         {/* Gradient fills */}
         {sorted.map((s) => (
           s.svgPts.length >= 2 && (
-            <path key={`f-${s.id}`}
+            <path key={`f-${s.id}-${s.svgPts.length}`}
               d={fillPath(s.svgPts, display.baseY)}
               fill={`url(#g-${s.id})`} />
           )
         ))}
 
-        {/* Lines */}
+        {/* Lines — key includes pt count so animation replays on each new data point */}
         {sorted.map((s) => (
           s.svgPts.length >= 2 && (
             <motion.path
-              key={`l-${s.id}`}
+              key={`l-${s.id}-${s.svgPts.length}`}
               d={polyline(s.svgPts)}
               fill="none"
               stroke={s.color}
@@ -287,20 +287,38 @@ export default function EquityRaceChart({
               filter={leader?.id === s.id ? "url(#glow)" : undefined}
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             />
           )
         ))}
 
-        {/* Leader endpoint dot */}
-        {leader && leader.svgPts.length > 0 && (() => {
-          const pt = leader.svgPts[leader.svgPts.length - 1];
+        {/* All active endpoint dots — pulse continuously to show live data */}
+        {sorted.filter((s) => !s.eliminated && s.svgPts.length > 0).map((s) => {
+          const pt = s.svgPts[s.svgPts.length - 1];
+          const isLeader = leader?.id === s.id;
           return (
-            <motion.circle cx={pt[0]} cy={pt[1]} r="4.5" fill={leader.color}
-              initial={{ scale: 0 }} animate={{ scale: 1 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 400 }} />
+            <g key={`dot-${s.id}`}>
+              {/* Pulse ring */}
+              <motion.circle
+                cx={pt[0]} cy={pt[1]}
+                r={isLeader ? 8 : 5}
+                fill="none" stroke={s.color} strokeWidth="1.5"
+                animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: Math.random() * 1 }}
+              />
+              {/* Solid dot */}
+              <motion.circle
+                cx={pt[0]} cy={pt[1]}
+                r={isLeader ? 4.5 : 3}
+                fill={s.color}
+                key={`${s.id}-${pt[0].toFixed(0)}-${pt[1].toFixed(0)}`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              />
+            </g>
           );
-        })()}
+        })}
       </svg>
 
       {/* Footer */}

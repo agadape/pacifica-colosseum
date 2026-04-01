@@ -61,5 +61,6 @@ export function useEquitySnapshots(arenaId: string) {
     },
     enabled: !!arenaId,
     refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 }
