@@ -462,7 +462,7 @@ function scheduleTraderDemoRounds(
       const scored = active.map((p) => {
         const pnlPct = p.total_pnl_percent ?? 0;
         const botMatch = bots.find((b) => b.id === p.id);
-        const name = botMatch?.name ?? p.subaccount_address.slice(0, 8);
+        const name = botMatch?.name ?? (p.subaccount_address ?? "").slice(0, 8);
         return { id: p.id, name, pnlPct };
       });
 
@@ -549,7 +549,7 @@ function scheduleTraderDemoRounds(
     const finalScores = survivors.map((p) => {
       const pnlPct = p.total_pnl_percent ?? 0;
       const botMatch = bots.find((b) => b.id === p.id);
-      const name = botMatch?.name ?? p.subaccount_address.slice(0, 8);
+      const name = botMatch?.name ?? (p.subaccount_address ?? "").slice(0, 8);
       return { id: p.id, name, pnlPct };
     });
     finalScores.sort((a, b) => b.pnlPct - a.pnlPct);
