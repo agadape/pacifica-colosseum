@@ -60,6 +60,6 @@ export function useEquitySnapshots(arenaId: string) {
       return byParticipant;
     },
     enabled: !!arenaId,
-    refetchInterval: 15000,
+    refetchInterval: 5000,
   });
 }

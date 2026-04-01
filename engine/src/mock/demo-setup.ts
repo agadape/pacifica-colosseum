@@ -77,7 +77,7 @@ function startMockLeaderboard(
     }
   }, 3000);
 
-  // 15s: write equity_snapshots for chart
+  // 5s: write equity_snapshots for chart
   const snapshotTimer = setInterval(async () => {
     const { data: arenaRow } = await supabase
       .from("arenas")
@@ -104,7 +104,7 @@ function startMockLeaderboard(
     if (inserts.length > 0) {
       await supabase.from("equity_snapshots").insert(inserts);
     }
-  }, 15000);
+  }, 5000);
 
   return {
     stop: () => {
