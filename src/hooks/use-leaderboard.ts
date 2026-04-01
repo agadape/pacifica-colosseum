@@ -44,6 +44,17 @@ export interface EquitySnapshot {
   recorded_at: string;
 }
 
+export function useVoteStatus(arenaId: string, roundNumber: number) {
+  return useQuery<{
+    data: { hasVoted: boolean; votedForId: string | null; tally: Record<string, number> };
+  }>({
+    queryKey: ["votes", arenaId, roundNumber],
+    queryFn: () => fetchJson(`/api/arenas/${arenaId}/vote?round_number=${roundNumber}`),
+    enabled: !!arenaId && roundNumber > 0,
+    refetchInterval: 5000,
+  });
+}
+
 export function useEquitySnapshots(arenaId: string) {
   return useQuery({
     queryKey: ["snapshots", arenaId],

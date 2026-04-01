@@ -10,6 +10,55 @@ const voteSchema = z.object({
 });
 
 /**
+ * GET /api/arenas/[arenaId]/vote?round_number=N
+ * Returns vote tally (public) + whether the current user has voted (auth optional).
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ arenaId: string }> }
+) {
+  const { arenaId } = await params;
+  const roundNumber = Number(request.nextUrl.searchParams.get("round_number") ?? 1);
+
+  const supabase = createServerClient();
+
+  // Vote tally per participant (public)
+  const { data: votes } = await supabase
+    .from("spectator_votes")
+    .select("voted_for_id")
+    .eq("arena_id", arenaId)
+    .eq("round_number", roundNumber);
+
+  const tally: Record<string, number> = {};
+  for (const v of votes ?? []) {
+    tally[v.voted_for_id] = (tally[v.voted_for_id] ?? 0) + 1;
+  }
+
+  // Check if current user has voted (optional auth)
+  let hasVoted = false;
+  let votedForId: string | null = null;
+
+  const authUser = await verifyAuth(request).catch(() => null);
+  if (authUser) {
+    const user = await findOrCreateUser(authUser);
+    if (user) {
+      const { data: myVote } = await supabase
+        .from("spectator_votes")
+        .select("voted_for_id")
+        .eq("arena_id", arenaId)
+        .eq("round_number", roundNumber)
+        .eq("voter_id", user.id)
+        .single();
+
+      hasVoted = !!myVote;
+      votedForId = myVote?.voted_for_id ?? null;
+    }
+  }
+
+  return Response.json({ data: { hasVoted, votedForId, tally } });
+}
+
+/**
  * POST /api/arenas/[arenaId]/vote — Cast a Second Life vote.
  */
 export async function POST(

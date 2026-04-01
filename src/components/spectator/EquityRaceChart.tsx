@@ -38,6 +38,7 @@ interface EquityRaceChartProps {
   participants: Participant[];
   maxDrawdown: number;
   currentRound: number;
+  eliminationPercent: number;
 }
 
 export default function EquityRaceChart({
@@ -45,6 +46,7 @@ export default function EquityRaceChart({
   participants,
   maxDrawdown,
   currentRound,
+  eliminationPercent,
 }: EquityRaceChartProps) {
   const { data: snapshotsMap } = useEquitySnapshots(arenaId);
 
@@ -114,6 +116,14 @@ export default function EquityRaceChart({
     const warnY = toY(-maxDrawdown * 0.7);
     const zeroY = toY(0);
 
+    // Ranking cutline: pnl of the trader at the elimination threshold
+    const activeSeries = series.filter((s) => !s.eliminated);
+    const sorted = [...activeSeries].sort((a, b) => a.lastPnl - b.lastPnl);
+    const cutIdx = Math.ceil(sorted.length * (eliminationPercent / 100)) - 1;
+    const cutPnl = sorted[cutIdx]?.lastPnl ?? null;
+    const cutlineY = cutPnl !== null ? toY(cutPnl) : null;
+    const cutlineName = sorted[cutIdx]?.name ?? null;
+
     // Y-axis labels
     const tickCount = 5;
     const ticks = Array.from({ length: tickCount }, (_, i) => {
@@ -121,8 +131,8 @@ export default function EquityRaceChart({
       return { y: toY(pnl), label: `${pnl >= 0 ? "+" : ""}${pnl.toFixed(0)}%` };
     });
 
-    return { series, deathY, warnY, zeroY, baseY, ticks };
-  }, [snapshotsMap, currentRound, participants, maxDrawdown]);
+    return { series, deathY, warnY, zeroY, baseY, ticks, cutlineY, cutlineName };
+  }, [snapshotsMap, currentRound, participants, maxDrawdown, eliminationPercent]);
 
   // Persist last valid chart so we can freeze it instead of blanking out
   const lastChartRef = useRef(chart);
@@ -251,6 +261,18 @@ export default function EquityRaceChart({
             stroke="rgba(251,191,36,0.25)" strokeWidth="1" strokeDasharray="3 5" />
         )}
 
+        {/* Ranking cutline — dynamic, moves with leaderboard */}
+        {display.cutlineY !== null && display.cutlineY > PAD.top && display.cutlineY < PAD.top + IH && (
+          <>
+            <line x1={PAD.left} y1={display.cutlineY} x2={PAD.left + IW} y2={display.cutlineY}
+              stroke="rgba(168,85,247,0.5)" strokeWidth="1.5" strokeDasharray="6 3" />
+            <text x={PAD.left + IW - 4} y={display.cutlineY - 4}
+              textAnchor="end" fontSize="7.5" fill="rgba(168,85,247,0.7)" fontFamily="monospace">
+              ELIM ZONE ▲{display.cutlineName ? ` · ${display.cutlineName}` : ""}
+            </text>
+          </>
+        )}
+
         {/* Death line */}
         {display.deathY > PAD.top && display.deathY < PAD.top + IH && (
           <>
@@ -330,6 +352,10 @@ export default function EquityRaceChart({
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-px inline-block opacity-40 border-t border-dashed border-yellow-500" />
           <span className="text-[10px] font-mono text-yellow-600/50">warning</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-px inline-block opacity-60 border-t border-dashed border-purple-500" />
+          <span className="text-[10px] font-mono text-purple-500/60">elim cutline</span>
         </div>
         <span className="text-[10px] font-mono text-black/20 ml-auto">% from round start</span>
       </div>

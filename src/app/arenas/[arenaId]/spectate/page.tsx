@@ -3,7 +3,7 @@
 import { use, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useArena } from "@/hooks/use-arena";
-import { useLeaderboard, useArenaEvents } from "@/hooks/use-leaderboard";
+import { useLeaderboard, useArenaEvents, useVoteStatus } from "@/hooks/use-leaderboard";
 import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
 import SurvivorGrid from "@/components/spectator/SurvivorGrid";
@@ -18,6 +18,13 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
+// Elimination % per round per PROTOCOL.md
+function getEliminationPercent(roundNumber: number): number {
+  if (roundNumber === 1) return 30;
+  if (roundNumber === 2) return 40;
+  return 50;
+}
+
 export default function SpectatePage({
   params,
 }: {
@@ -31,6 +38,13 @@ export default function SpectatePage({
 
   const arena = arenaData?.data;
   const events = eventsData?.data ?? [];
+  const currentRoundNumber = arena?.current_round ?? 1;
+
+  const { data: voteData } = useVoteStatus(arenaId, currentRoundNumber);
+  const hasVoted = voteData?.data?.hasVoted ?? false;
+  const votedForId = voteData?.data?.votedForId ?? null;
+  const tally = voteData?.data?.tally ?? {};
+  const totalVotes = Object.values(tally).reduce((s, n) => s + n, 0);
 
   // Elimination banner state
   const [elimination, setElimination] = useState<{
@@ -41,14 +55,6 @@ export default function SpectatePage({
 
   const dismissElimination = useCallback(() => setElimination(null), []);
 
-  const isCompleted = arena?.status === "completed";
-  const winner = isCompleted
-    ? (participants.data ?? []).find((p: Record<string, unknown>) => p.status === "winner") ??
-      [...(participants.data ?? [])].sort(
-        (a: Record<string, number>, b: Record<string, number>) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0)
-      )[0]
-    : null;
-
   if (!arena) {
     return (
       <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
@@ -57,17 +63,33 @@ export default function SpectatePage({
     );
   }
 
-  const rounds = arena.rounds ?? [];
-  const currentRound = rounds.find(
-    (r: Record<string, unknown>) => r.round_number === arena.current_round
-  );
+  const isCompleted = arena.status === "completed";
   const leaderboard = participants.data ?? [];
 
-  // Bottom 50% for voting eligibility
-  const activeTraders = leaderboard.filter(
-    (p: Record<string, unknown>) => p.status === "active"
+  const rounds = arena.rounds ?? [];
+  const currentRound = rounds.find(
+    (r: Record<string, unknown>) => r.round_number === currentRoundNumber
   );
+
+  const winner = isCompleted
+    ? leaderboard.find((p: Record<string, unknown>) => p.status === "winner") ??
+      [...leaderboard].sort(
+        (a: Record<string, number>, b: Record<string, number>) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0)
+      )[0]
+    : null;
+
+  // Bottom 50% active traders are eligible for Second Life vote
+  const activeTraders = leaderboard.filter((p: Record<string, unknown>) => p.status === "active");
   const bottom50 = activeTraders.slice(Math.floor(activeTraders.length / 2));
+
+  // Voting opens in last 5 minutes of the round
+  const roundEndsAt = currentRound?.ends_at ? new Date(currentRound.ends_at as string) : null;
+  const now = Date.now();
+  const votingOpen = !isCompleted && roundEndsAt !== null
+    && (roundEndsAt.getTime() - now) < 5 * 60 * 1000
+    && roundEndsAt.getTime() > now;
+
+  const eliminationPercent = getEliminationPercent(currentRoundNumber);
 
   return (
     <main className="min-h-screen pt-20 px-4 md:px-6 pb-8">
@@ -120,7 +142,6 @@ export default function SpectatePage({
             <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
               {arena.name}
             </h1>
-            {/* Avatar Row */}
             <AvatarRow
               participants={leaderboard as never[]}
               maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
@@ -142,39 +163,41 @@ export default function SpectatePage({
           </div>
         )}
 
-        {/* Equity Race Chart — shown only while arena is active */}
+        {/* Equity Race Chart */}
         {!isCompleted && leaderboard.length > 0 && (
           <div className="mb-6">
             <EquityRaceChart
-              key={arena.current_round}
+              key={currentRoundNumber}
               arenaId={arenaId}
               participants={leaderboard as never[]}
               maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
-              currentRound={arena.current_round ?? 1}
+              currentRound={currentRoundNumber}
+              eliminationPercent={eliminationPercent}
             />
           </div>
         )}
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Survivor Grid (2/3) */}
           <div className="lg:col-span-2">
             <SurvivorGrid
               participants={leaderboard as never[]}
               maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
               arenaId={arenaId}
-              currentRound={arena.current_round ?? 1}
+              currentRound={currentRoundNumber}
             />
           </div>
 
-          {/* Sidebar: Activity + Vote (1/3) */}
           <div className="space-y-4">
             <VotePanel
               arenaId={arenaId}
-              roundNumber={arena.current_round}
+              roundNumber={currentRoundNumber}
               candidates={bottom50 as never[]}
-              hasVoted={false}
-              votingOpen={false}
+              hasVoted={hasVoted}
+              votedForId={votedForId}
+              votingOpen={votingOpen}
+              tally={tally}
+              totalVotes={totalVotes}
             />
             <ActivityFeed events={events as never[]} />
           </div>
