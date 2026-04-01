@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useCallback } from "react";
+import { use, useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useArena } from "@/hooks/use-arena";
 import { useLeaderboard, useArenaEvents, useVoteStatus } from "@/hooks/use-leaderboard";
@@ -52,8 +52,17 @@ export default function SpectatePage({
     reason: string;
     equity: number;
   } | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
   const dismissElimination = useCallback(() => setElimination(null), []);
+
+  const handleReset = useCallback(async () => {
+    setIsResetting(true);
+    await fetch("/api/demo/reset", { method: "POST" });
+    setIsResetting(false);
+    setResetDone(true);
+  }, []);
 
   if (!arena) {
     return (
@@ -82,12 +91,11 @@ export default function SpectatePage({
   const activeTraders = leaderboard.filter((p: Record<string, unknown>) => p.status === "active");
   const bottom50 = activeTraders.slice(Math.floor(activeTraders.length / 2));
 
-  // Voting opens in last 5 minutes of the round
+  // Voting: open for the entire round (blitz rounds are 90s — no point limiting to last 5min)
   const roundEndsAt = currentRound?.ends_at ? new Date(currentRound.ends_at as string) : null;
   const now = Date.now();
-  const votingOpen = !isCompleted && roundEndsAt !== null
-    && (roundEndsAt.getTime() - now) < 5 * 60 * 1000
-    && roundEndsAt.getTime() > now;
+  const isZombieArena = !isCompleted && roundEndsAt !== null && roundEndsAt.getTime() < now;
+  const votingOpen = !isCompleted && !isZombieArena && roundEndsAt !== null && roundEndsAt.getTime() > now;
 
   const eliminationPercent = getEliminationPercent(currentRoundNumber);
 
@@ -102,6 +110,33 @@ export default function SpectatePage({
             equity={elimination.equity}
             onDismiss={dismissElimination}
           />
+        )}
+
+        {/* Zombie Arena Banner */}
+        {isZombieArena && !isCompleted && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-2xl border border-amber-300/40 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4"
+          >
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Demo engine is offline</p>
+              <p className="text-xs text-amber-700/70 mt-0.5">
+                {resetDone
+                  ? "Arena reset. Restart the Railway engine and a fresh arena will appear."
+                  : "The arena timer ended but no new round started. Reset the demo arena to continue."}
+              </p>
+            </div>
+            {!resetDone && (
+              <button
+                onClick={handleReset}
+                disabled={isResetting}
+                className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                {isResetting ? "Resetting…" : "Reset Demo →"}
+              </button>
+            )}
+          </motion.div>
         )}
 
         {/* Winner Banner */}

@@ -329,23 +329,30 @@ export async function setupDemoArena(): Promise<void> {
   // Check if there's already a demo arena actively running (not ended/broken)
   const { data: existing } = await supabase
     .from("arenas")
-    .select("id, updated_at")
+    .select("id, updated_at, current_round_ends_at")
     .eq("name", "Demo Arena")
     .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
     .is("ended_at", null)
     .single();
 
   if (existing) {
-    // Stale check: if arena hasn't updated in 10 minutes, it's a zombie (engine redeployed mid-run)
-    const lastUpdate = new Date(existing.updated_at).getTime();
-    const staleMs = Date.now() - lastUpdate;
-    if (staleMs < 10 * 60 * 1000) {
-      console.log("[Demo] Demo arena already exists and is fresh, skipping setup");
+    // Zombie detection: round end time is in the past = engine died mid-round
+    const roundEndsAt = existing.current_round_ends_at
+      ? new Date(existing.current_round_ends_at).getTime()
+      : null;
+    const isZombie = roundEndsAt !== null && roundEndsAt < Date.now();
+
+    // Also check updated_at as fallback (3 min threshold — much tighter than before)
+    const staleMs = Date.now() - new Date(existing.updated_at).getTime();
+    const isStale = staleMs > 3 * 60 * 1000;
+
+    if (!isZombie && !isStale) {
+      console.log("[Demo] Demo arena exists and is healthy, skipping setup");
       return;
     }
 
-    // Force-complete the stale zombie arena so we can start fresh
-    console.log(`[Demo] Stale arena detected (${Math.round(staleMs / 60000)}m old) — force-completing`);
+    const reason = isZombie ? "round end time passed (zombie)" : `stale for ${Math.round(staleMs / 60000)}m`;
+    console.log(`[Demo] Detected dead arena (${reason}) — force-completing`);
     await supabase
       .from("arenas")
       .update({ status: "completed", ended_at: new Date().toISOString() })
