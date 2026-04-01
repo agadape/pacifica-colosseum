@@ -64,6 +64,18 @@ export default function SpectatePage({
     setResetDone(true);
   }, []);
 
+  // Auto-reset zombie arena after 5s — browser becomes the watchdog
+  useEffect(() => {
+    if (!arena || arena.status === "completed" || resetDone) return;
+    const endsAt = arena.current_round_ends_at
+      ? new Date(arena.current_round_ends_at).getTime()
+      : null;
+    if (!endsAt || endsAt >= Date.now()) return;
+    const t = setTimeout(() => handleReset(), 5000);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arena?.id, arena?.current_round_ends_at, resetDone]);
+
   if (!arena) {
     return (
       <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
