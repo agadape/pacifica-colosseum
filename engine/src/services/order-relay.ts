@@ -5,6 +5,15 @@ import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { validateOrder, type OrderInput, type ValidationResult } from "./order-validator";
 import { onTradeExecuted } from "./risk-monitor";
+import { DEMO_MODE } from "../config";
+import {
+  mockCreateMarketOrder,
+  mockGetAccountInfo,
+  mockGetPositions,
+  getMockPrice,
+  computeMockEquity,
+} from "../mock/mock-pacifica";
+import { STARTING_CAPITAL } from "../../../src/lib/utils/constants";
 
 type TradeInsert = Database["public"]["Tables"]["trades"]["Insert"];
 
@@ -39,49 +48,71 @@ export async function executeOrder(
   const { participant, round } = validation as Required<ValidationResult>;
   const supabase = getSupabase();
   const encryptionKey = process.env.ENCRYPTION_KEY!;
+  const subAddress = participant.subaccount_address!;
 
-  // Step 2: Decrypt subaccount key and create Pacifica client
-  const subKeypair = keypairFromBase58(
-    decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
-  );
-
-  const pacifica = new PacificaClient({
-    secretKey: subKeypair.secretKey,
-    publicKey: subKeypair.publicKey,
-    testnet: true,
-  });
-
-  // Step 3: Send order to Pacifica
+  // Step 2: Execute order (mock in DEMO_MODE, real Pacifica otherwise)
   let pacificaResult: { data?: unknown; error?: string };
 
-  try {
+  if (DEMO_MODE) {
+    const price = getMockPrice(order.symbol);
     if (order.type === "market") {
-      pacificaResult = await pacifica.createMarketOrder({
-        symbol: order.symbol,
-        side: order.side,
-        amount: order.size,
-        reduce_only: order.reduce_only ?? false,
-        slippage_percent: order.slippage_percent ?? "1",
-      });
-    } else {
-      if (!order.price) {
-        return { success: false, error: "Limit orders require a price" };
-      }
-      pacificaResult = await pacifica.createLimitOrder({
-        symbol: order.symbol,
-        side: order.side,
-        amount: order.size,
-        price: order.price,
-        reduce_only: order.reduce_only ?? false,
-        tif: order.tif ?? "GTC",
-      });
+      mockCreateMarketOrder(subAddress, order.symbol, order.side as "bid" | "ask", parseFloat(order.size), price);
     }
-  } catch (err) {
-    return { success: false, error: `Pacifica API error: ${err}` };
-  }
+    // Limit orders in demo: treat as filled immediately at current price
+    pacificaResult = { data: { order_id: Math.floor(Math.random() * 100000) } };
 
-  if (pacificaResult.error) {
-    return { success: false, error: `Pacifica rejected order: ${pacificaResult.error}` };
+    // Update participant PnL immediately after trade
+    const startCap = participant.equity_round_1_start ?? STARTING_CAPITAL;
+    const equity = computeMockEquity(subAddress, getMockPrice, startCap);
+    const pnlPct = ((equity - startCap) / startCap) * 100;
+    await supabase
+      .from("arena_participants")
+      .update({
+        total_pnl: Math.round((equity - startCap) * 100) / 100,
+        total_pnl_percent: Math.round(pnlPct * 100) / 100,
+        max_drawdown_hit: Math.max(participant.max_drawdown_hit ?? 0, Math.max(0, -pnlPct)),
+      })
+      .eq("id", participant.id);
+  } else {
+    // Real Pacifica path
+    const subKeypair = keypairFromBase58(
+      decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
+    );
+    const pacifica = new PacificaClient({
+      secretKey: subKeypair.secretKey,
+      publicKey: subKeypair.publicKey,
+      testnet: true,
+    });
+
+    try {
+      if (order.type === "market") {
+        pacificaResult = await pacifica.createMarketOrder({
+          symbol: order.symbol,
+          side: order.side,
+          amount: order.size,
+          reduce_only: order.reduce_only ?? false,
+          slippage_percent: order.slippage_percent ?? "1",
+        });
+      } else {
+        if (!order.price) {
+          return { success: false, error: "Limit orders require a price" };
+        }
+        pacificaResult = await pacifica.createLimitOrder({
+          symbol: order.symbol,
+          side: order.side,
+          amount: order.size,
+          price: order.price,
+          reduce_only: order.reduce_only ?? false,
+          tif: order.tif ?? "GTC",
+        });
+      }
+    } catch (err) {
+      return { success: false, error: `Pacifica API error: ${err}` };
+    }
+
+    if (pacificaResult.error) {
+      return { success: false, error: `Pacifica rejected order: ${pacificaResult.error}` };
+    }
   }
 
   // Step 4: Record trade in DB
@@ -206,6 +237,10 @@ export async function getPositions(
     return { success: false, error: "Not a participant" };
   }
 
+  if (DEMO_MODE) {
+    return { success: true, data: mockGetPositions(participant.subaccount_address!).data };
+  }
+
   const subKeypair = keypairFromBase58(
     decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
   );
@@ -243,6 +278,10 @@ export async function getAccountInfo(
 
   if (!participant) {
     return { success: false, error: "Not a participant" };
+  }
+
+  if (DEMO_MODE) {
+    return { success: true, data: mockGetAccountInfo(participant.subaccount_address!).data };
   }
 
   const subKeypair = keypairFromBase58(

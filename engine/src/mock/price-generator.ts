@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { updateMockPrice } from "./mock-pacifica";
 
 interface MockPrice {
   symbol: string;
@@ -42,6 +43,7 @@ export class MockPriceGenerator extends EventEmitter {
         const change = price * this.volatility * (Math.random() * 2 - 1);
         const newPrice = Math.max(price * 0.5, price + change); // floor at 50% of current
         this.prices.set(symbol, newPrice);
+        updateMockPrice(symbol, newPrice);
 
         updates.push({
           symbol,

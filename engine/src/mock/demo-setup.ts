@@ -835,11 +835,19 @@ export async function setupTraderDemoArena(): Promise<void> {
     }
 
     // Activate ALL registered participants
+    const botParticipantIds = new Set(botParticipants.map((b) => b.id));
     for (const p of allRegistered) {
       await supabase
         .from("arena_participants")
         .update({ status: "active", equity_round_1_start: STARTING_CAPITAL })
         .eq("id", p.id);
+
+      // Set up mock subaccount for real users (bots are already set up at registration time)
+      if (!botParticipantIds.has(p.id) && p.subaccount_address) {
+        mockCreateSubaccount(publicKeyToString(vault.publicKey), p.subaccount_address);
+        mockTransferFunds(publicKeyToString(vault.publicKey), p.subaccount_address, STARTING_CAPITAL);
+        console.log(`[Trader Demo] Mock subaccount created for real user ${p.subaccount_address.slice(0, 8)}`);
+      }
     }
 
     // Set round 1 end time on arena row (needed for zombie detection)

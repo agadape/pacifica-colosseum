@@ -2,7 +2,8 @@
 
 import { use, useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useArena } from "@/hooks/use-arena";
+import Link from "next/link";
+import { useArena, useCurrentUser } from "@/hooks/use-arena";
 import { useLeaderboard, useArenaEvents, useVoteStatus } from "@/hooks/use-leaderboard";
 import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
@@ -32,6 +33,7 @@ export default function SpectatePage({
 }) {
   const { arenaId } = use(params);
   const { data: arenaData } = useArena(arenaId);
+  const { data: userData } = useCurrentUser();
   const participants = useLeaderboard(arenaId);
   const { data: eventsData } = useArenaEvents(arenaId);
   useArenaRealtime(arenaId);
@@ -86,6 +88,12 @@ export default function SpectatePage({
 
   const isCompleted = arena.status === "completed";
   const leaderboard = participants.data ?? [];
+
+  const currentUserId = userData?.data?.id;
+  const isParticipant = !isCompleted && currentUserId != null &&
+    leaderboard.some((p: Record<string, unknown>) =>
+      p.user_id === currentUserId && p.status === "active"
+    );
 
   const rounds = arena.rounds ?? [];
   const currentRound = rounds.find(
@@ -189,10 +197,23 @@ export default function SpectatePage({
             <h1 className="font-display text-3xl font-800 tracking-tight text-text-primary">
               {arena.name}
             </h1>
-            <AvatarRow
-              participants={leaderboard as never[]}
-              maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
-            />
+            <div className="flex items-center gap-4">
+              {isParticipant && (
+                <Link href={`/arenas/${arenaId}/trade`}>
+                  <motion.span
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="inline-block px-5 py-2 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
+                  >
+                    Trade →
+                  </motion.span>
+                </Link>
+              )}
+              <AvatarRow
+                participants={leaderboard as never[]}
+                maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
+              />
+            </div>
           </div>
         </motion.div>
 

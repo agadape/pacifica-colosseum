@@ -120,3 +120,38 @@ export function getAccount(address: string): MockAccount | undefined {
 export function resetMockState(): void {
   accounts.clear();
 }
+
+// ── Global price tracking (updated by MockPriceGenerator, read by order-relay) ──
+const mockPrices = new Map<string, number>([
+  ["BTC", 87000],
+  ["ETH", 2100],
+  ["SOL", 148],
+]);
+
+export function updateMockPrice(symbol: string, price: number): void {
+  mockPrices.set(symbol, price);
+}
+
+export function getMockPrice(symbol: string): number {
+  return mockPrices.get(symbol) ?? 1;
+}
+
+/**
+ * Compute total equity (balance + unrealized PnL) for a mock account.
+ */
+export function computeMockEquity(
+  address: string,
+  getPrice: (symbol: string) => number,
+  startingCapital: number
+): number {
+  const account = accounts.get(address);
+  if (!account) return startingCapital;
+
+  let unrealizedPnL = 0;
+  for (const [symbol, pos] of account.positions) {
+    const currentPrice = getPrice(symbol) ?? pos.entryPrice;
+    const direction = pos.side === "bid" ? 1 : -1;
+    unrealizedPnL += (currentPrice - pos.entryPrice) * pos.size * direction;
+  }
+  return account.balance + unrealizedPnL;
+}

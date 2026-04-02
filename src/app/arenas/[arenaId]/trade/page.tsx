@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { motion } from "framer-motion";
-import { useArena } from "@/hooks/use-arena";
+import { useArena, useCurrentUser } from "@/hooks/use-arena";
 import { usePacificaWS } from "@/hooks/use-websocket";
 import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
@@ -19,7 +19,20 @@ export default function TradePage({
 }) {
   const { arenaId } = use(params);
   const { data } = useArena(arenaId);
+  const { data: userData } = useCurrentUser();
   const arena = data?.data;
+
+  const currentUserId = userData?.data?.id;
+  const myParticipant = currentUserId
+    ? (arena?.participants ?? []).find(
+        (p: Record<string, unknown>) => p.user_id === currentUserId
+      ) as Record<string, unknown> | undefined
+    : undefined;
+
+  const STARTING = 1000;
+  const myPnlPct = (myParticipant?.total_pnl_percent as number | undefined) ?? 0;
+  const myEquity  = Math.round(STARTING * (1 + myPnlPct / 100) * 100) / 100;
+  const myDrawdown = (myParticipant?.max_drawdown_hit as number | undefined) ?? 0;
 
   // Connect to WS prices + Supabase Realtime
   usePacificaWS();
@@ -89,14 +102,14 @@ export default function TradePage({
               maxLeverage={currentRound?.max_leverage ?? 20}
             />
             <AccountPanel
-              equity={1000}
-              balance={1000}
-              unrealizedPnl={0}
-              drawdown={0}
+              equity={myEquity}
+              balance={myEquity}
+              unrealizedPnl={myEquity - STARTING}
+              drawdown={myDrawdown}
               maxDrawdown={currentRound?.max_drawdown_percent ?? 20}
-              hasWideZone={false}
-              hasSecondLife={false}
-              secondLifeUsed={false}
+              hasWideZone={(myParticipant?.has_wide_zone as boolean | undefined) ?? false}
+              hasSecondLife={(myParticipant?.has_second_life as boolean | undefined) ?? false}
+              secondLifeUsed={(myParticipant?.second_life_used as boolean | undefined) ?? false}
             />
           </div>
         </div>
