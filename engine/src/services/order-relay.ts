@@ -55,10 +55,11 @@ export async function executeOrder(
 
   if (DEMO_MODE) {
     const price = getMockPrice(order.symbol);
+    // Interpret size as USD notional → convert to contracts
+    const contracts = parseFloat(order.size) / price;
     if (order.type === "market") {
-      mockCreateMarketOrder(subAddress, order.symbol, order.side as "bid" | "ask", parseFloat(order.size), price);
+      mockCreateMarketOrder(subAddress, order.symbol, order.side as "bid" | "ask", contracts, price);
     }
-    // Limit orders in demo: treat as filled immediately at current price
     pacificaResult = { data: { order_id: Math.floor(Math.random() * 100000) } };
 
     // Update participant PnL immediately after trade
@@ -116,6 +117,11 @@ export async function executeOrder(
   }
 
   // Step 4: Record trade in DB
+  // In DEMO_MODE size was converted to contracts (USD / price); use actual contract size
+  const tradeSize = DEMO_MODE
+    ? parseFloat(order.size) / getMockPrice(order.symbol)
+    : parseFloat(order.size);
+
   const tradeData: TradeInsert = {
     arena_id: arenaId,
     participant_id: participant.id,
@@ -123,7 +129,7 @@ export async function executeOrder(
     symbol: order.symbol,
     side: order.side === "bid" ? "buy" : "sell",
     order_type: order.type,
-    size: parseFloat(order.size),
+    size: tradeSize,
     price: order.price ? parseFloat(order.price) : 0,
     leverage: order.leverage ?? null,
   };

@@ -60,13 +60,17 @@ export default function PositionList({ arenaId }: PositionListProps) {
               {positions.map((pos: Record<string, unknown>, i: number) => {
                 const symbol = pos.symbol as string;
                 const sideStr = pos.side as string;
-                const markPrice = prices.get(symbol)?.markPrice;
                 const entryPrice = parseFloat(pos.entry_price as string || "0");
                 const size = parseFloat(pos.size as string || "0");
                 const direction = sideStr === "bid" ? 1 : -1;
-                const unrealizedPnl = markPrice
-                  ? (markPrice - entryPrice) * size * direction
-                  : parseFloat(pos.unrealized_pnl as string || "0");
+                // Prefer engine-provided mark_price (accurate for mock/real)
+                // Fall back to WS price only if engine didn't provide one
+                const engineMark = parseFloat(pos.mark_price as string || "0");
+                const wsMark = prices.get(symbol)?.markPrice;
+                const markPrice = engineMark > 0 ? engineMark : wsMark;
+                const unrealizedPnl = engineMark > 0
+                  ? parseFloat(pos.unrealized_pnl as string || "0")
+                  : (markPrice ? (markPrice - entryPrice) * size * direction : 0);
 
                 return (
                   <motion.tr
