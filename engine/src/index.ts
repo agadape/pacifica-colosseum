@@ -128,6 +128,14 @@ server.listen(PORT, async () => {
     } catch (err) {
       console.error("[Engine] setupTraderDemoArena() threw:", err);
     }
+
+    // Watchdog: re-check both arenas every 30s.
+    // Both setup functions are idempotent — they no-op if healthy, recover if zombie.
+    setInterval(async () => {
+      try { await setupDemoArena(); } catch (e) { console.error("[Watchdog] Demo Arena:", e); }
+      try { await setupTraderDemoArena(); } catch (e) { console.error("[Watchdog] Open Arena:", e); }
+    }, 30_000);
+
     // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
     // Start real price feed
