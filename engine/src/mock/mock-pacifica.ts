@@ -98,14 +98,20 @@ export function mockGetPositions(address: string): { data: unknown[] } {
   const account = accounts.get(address);
   if (!account) return { data: [] };
   return {
-    data: Array.from(account.positions.values()).map((p) => ({
-      symbol: p.symbol,
-      side: p.side,
-      size: String(p.size),
-      entry_price: String(p.entryPrice),
-      mark_price: String(p.entryPrice), // will be overridden by caller
-      leverage: p.leverage,
-    })),
+    data: Array.from(account.positions.values()).map((p) => {
+      const markPrice = getMockPrice(p.symbol);
+      const direction = p.side === "bid" ? 1 : -1;
+      const unrealizedPnl = (markPrice - p.entryPrice) * p.size * direction;
+      return {
+        symbol: p.symbol,
+        side: p.side,
+        size: String(p.size),
+        entry_price: String(p.entryPrice),
+        mark_price: String(markPrice),
+        leverage: p.leverage,
+        unrealized_pnl: String(Math.round(unrealizedPnl * 100) / 100),
+      };
+    }),
   };
 }
 

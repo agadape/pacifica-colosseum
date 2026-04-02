@@ -1,12 +1,10 @@
 import { NextRequest } from "next/server";
 import { verifyAuth, unauthorized } from "@/lib/auth/middleware";
 import { findOrCreateUser } from "@/lib/auth/register";
-
-const ENGINE_URL = process.env.ENGINE_URL || "http://localhost:4000";
-const INTERNAL_KEY = process.env.INTERNAL_API_KEY || "dev-internal-key";
+import { createServerClient } from "@/lib/supabase/server";
 
 /**
- * GET /api/arenas/[arenaId]/orders — Get own open orders from Pacifica.
+ * GET /api/arenas/[arenaId]/orders — Get own trade history for this arena.
  */
 export async function GET(
   request: NextRequest,
@@ -19,21 +17,27 @@ export async function GET(
   if (!user) return Response.json({ error: "Failed to load user" }, { status: 500 });
 
   const { arenaId } = await params;
+  const supabase = createServerClient();
 
-  const res = await fetch(`${ENGINE_URL}/internal/account-info`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-internal-key": INTERNAL_KEY,
-    },
-    body: JSON.stringify({ arenaId, userId: user.id }),
-  });
+  // Get participant record to find participant_id
+  const { data: participant } = await supabase
+    .from("arena_participants")
+    .select("id")
+    .eq("arena_id", arenaId)
+    .eq("user_id", user.id)
+    .single();
 
-  const result = await res.json();
-
-  if (!result.success) {
-    return Response.json({ error: result.error }, { status: 400 });
+  if (!participant) {
+    return Response.json({ data: [] });
   }
 
-  return Response.json({ data: result.data });
+  const { data: trades } = await supabase
+    .from("trades")
+    .select("id, symbol, side, order_type, size, price, leverage, created_at, round_number")
+    .eq("arena_id", arenaId)
+    .eq("participant_id", participant.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  return Response.json({ data: trades ?? [] });
 }
