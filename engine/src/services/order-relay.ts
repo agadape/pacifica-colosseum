@@ -130,15 +130,21 @@ export async function executeOrder(
     side: order.side === "bid" ? "buy" : "sell",
     order_type: order.type,
     size: tradeSize,
-    price: order.price ? parseFloat(order.price) : 0,
+    price: DEMO_MODE
+      ? getMockPrice(order.symbol)                          // use mock mark price for market orders
+      : (order.price ? parseFloat(order.price) : 0),
     leverage: order.leverage ?? null,
   };
 
-  const { data: trade } = await supabase
+  const { data: trade, error: tradeError } = await supabase
     .from("trades")
     .insert(tradeData)
     .select("id")
     .single();
+
+  if (tradeError) {
+    console.error("[OrderRelay] Failed to insert trade:", tradeError.message);
+  }
 
   // Step 5: Update participant activity counters
   await supabase

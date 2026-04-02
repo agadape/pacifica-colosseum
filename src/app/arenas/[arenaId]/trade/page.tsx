@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { motion } from "framer-motion";
 import { useArena, useCurrentUser } from "@/hooks/use-arena";
+import { useLeaderboard } from "@/hooks/use-leaderboard";
 import { usePacificaWS } from "@/hooks/use-websocket";
 import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
@@ -20,7 +21,9 @@ export default function TradePage({
   const { arenaId } = use(params);
   const { data } = useArena(arenaId);
   const { data: userData } = useCurrentUser();
+  const leaderboardData = useLeaderboard(arenaId);
   const arena = data?.data;
+  const leaderboard = (leaderboardData.data ?? []) as Record<string, unknown>[];
 
   const currentUserId = userData?.data?.id;
   const myParticipant = currentUserId
@@ -111,6 +114,26 @@ export default function TradePage({
               hasSecondLife={(myParticipant?.has_second_life as boolean | undefined) ?? false}
               secondLifeUsed={(myParticipant?.second_life_used as boolean | undefined) ?? false}
             />
+            {leaderboard.length > 0 && (
+              <div className="bg-surface rounded-2xl border border-border-light p-4">
+                <h3 className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3">Standings</h3>
+                <div className="space-y-1.5">
+                  {leaderboard.slice(0, 6).map((p, i) => (
+                    <div key={p.id as string} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-tertiary w-4">{i + 1}</span>
+                        <span className={`font-medium truncate max-w-[80px] ${p.user_id === currentUserId ? "text-accent-primary" : "text-text-primary"}`}>
+                          {(p.users as { username?: string | null } | null)?.username ?? (p.subaccount_address as string)?.slice(0, 6) ?? "..."}
+                        </span>
+                      </div>
+                      <span className={`font-mono font-semibold ${((p.total_pnl_percent as number) ?? 0) >= 0 ? "text-success" : "text-danger"}`}>
+                        {((p.total_pnl_percent as number) ?? 0) >= 0 ? "+" : ""}{((p.total_pnl_percent as number) ?? 0).toFixed(1)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

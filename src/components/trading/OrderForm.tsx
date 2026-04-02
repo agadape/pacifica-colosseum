@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTradingStore } from "@/stores/trading-store";
 import { useSubmitOrder } from "@/hooks/use-trading";
+import { useWSStore } from "@/stores/ws-store";
 
 interface OrderFormProps {
   arenaId: string;
@@ -18,7 +19,12 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
   } = useTradingStore();
 
   const submitOrder = useSubmitOrder(arenaId);
+  const { prices } = useWSStore();
   const [error, setError] = useState<string | null>(null);
+
+  const markPrice = prices.get(symbol)?.markPrice ?? 0;
+  const sizeUSD = parseFloat(size) || 0;
+  const contracts = markPrice > 0 ? sizeUSD / markPrice : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,12 +103,19 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
 
       {/* Size */}
       <div className="mb-3">
-        <label className="block text-xs text-text-tertiary mb-1">Size</label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs text-text-tertiary">Size (USD)</label>
+          {contracts > 0 && (
+            <span className="text-xs font-mono text-text-tertiary">
+              ≈ {contracts.toFixed(4)} {symbol}
+            </span>
+          )}
+        </div>
         <input
           type="text"
           value={size}
           onChange={(e) => setSize(e.target.value)}
-          placeholder="0.00"
+          placeholder="100"
           className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-light text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary"
         />
       </div>
@@ -124,7 +137,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
       {/* Leverage slider */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
-          <label className="text-xs text-text-tertiary">Leverage</label>
+          <label className="text-xs text-text-tertiary">Leverage <span className="text-text-tertiary/50">(max {maxLeverage}x)</span></label>
           <span className="font-mono text-xs font-semibold text-text-primary">{leverage}x</span>
         </div>
         <input
@@ -136,6 +149,11 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           className="w-full accent-accent-primary"
         />
       </div>
+
+      {/* Net position hint */}
+      <p className="text-[10px] text-text-tertiary/60 mb-2">
+        Opposite side closes existing position (net mode)
+      </p>
 
       {/* Reduce only */}
       <label className="flex items-center gap-2 mb-4 cursor-pointer">
