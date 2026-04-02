@@ -47,6 +47,19 @@ app.post("/debug/demo/restart", async (_req, res) => {
   }
 });
 
+app.post("/debug/demo/restart-trader", async (_req, res) => {
+  if (!DEMO_MODE) {
+    res.status(400).json({ error: "DEMO_MODE is not enabled" });
+    return;
+  }
+  try {
+    await setupTraderDemoArena();
+    res.json({ ok: true, message: "setupTraderDemoArena() completed" });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // ---- Internal endpoints (called by Next.js API routes) ----
 
 app.post("/internal/trade", internalAuth, async (req, res) => {

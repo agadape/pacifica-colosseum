@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useArena, useJoinArena, useLeaveArena, useCurrentUser } from "@/hooks/use-arena";
@@ -25,6 +25,15 @@ export default function ArenaDetailPage({
 
   const arena = data?.data;
   const currentUser = userData?.data;
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
+
+  const handleResetOpenArena = useCallback(async () => {
+    setIsResetting(true);
+    await fetch("/api/demo/reset-open-arena", { method: "POST" });
+    setIsResetting(false);
+    setResetDone(true);
+  }, []);
 
   if (isLoading) {
     return (
@@ -131,6 +140,33 @@ export default function ArenaDetailPage({
                 endsAt={currentRound.ends_at}
               />
             </div>
+          )}
+
+          {/* Registration zombie banner */}
+          {isRegistration && arena.starts_at && new Date(arena.starts_at as string) < new Date() && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 rounded-2xl border border-amber-300/40 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4"
+            >
+              <div>
+                <p className="text-sm font-semibold text-amber-800">Arena start missed</p>
+                <p className="text-xs text-amber-700/70 mt-0.5">
+                  {resetDone
+                    ? "Resetting — a fresh arena will appear in ~60 seconds."
+                    : "Registration window expired but the engine missed the start. Reset to create a fresh arena."}
+                </p>
+              </div>
+              {!resetDone && (
+                <button
+                  onClick={handleResetOpenArena}
+                  disabled={isResetting}
+                  className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                >
+                  {isResetting ? "Resetting…" : "Reset →"}
+                </button>
+              )}
+            </motion.div>
           )}
 
           {/* Registration phase */}
