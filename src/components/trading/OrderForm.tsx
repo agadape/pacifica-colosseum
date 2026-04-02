@@ -21,6 +21,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
   const submitOrder = useSubmitOrder(arenaId);
   const { prices } = useWSStore();
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const markPrice = prices.get(symbol)?.markPrice ?? 0;
   const sizeUSD = parseFloat(size) || 0;
@@ -29,6 +30,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShowSuccess(false);
 
     if (!size || parseFloat(size) <= 0) {
       setError("Enter a valid size");
@@ -50,6 +52,8 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
       setError(typeof result.error === "string" ? result.error : JSON.stringify(result.error));
     } else {
       reset();
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2500);
     }
   };
 
@@ -102,7 +106,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
       </div>
 
       {/* Size */}
-      <div className="mb-3">
+      <div className="mb-1">
         <div className="flex items-center justify-between mb-1">
           <label className="text-xs text-text-tertiary">Size (USD)</label>
           {contracts > 0 && (
@@ -118,6 +122,20 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           placeholder="100"
           className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-light text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary"
         />
+      </div>
+
+      {/* Quick size presets */}
+      <div className="flex gap-1 mb-3">
+        {["25", "50", "100", "250"].map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setSize(v)}
+            className="flex-1 py-1 rounded-md text-[10px] font-semibold text-text-tertiary hover:text-accent-primary bg-bg-primary border border-border-light transition-colors"
+          >
+            ${v}
+          </button>
+        ))}
       </div>
 
       {/* Price (limit only) */}
@@ -183,7 +201,16 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           : `${side === "bid" ? "Long" : "Short"} ${symbol}`}
       </motion.button>
 
-      {error && (
+      {showSuccess && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 text-xs text-success text-center"
+        >
+          Order placed ✓
+        </motion.p>
+      )}
+      {error && !showSuccess && (
         <p className="mt-3 text-xs text-danger text-center">{error}</p>
       )}
     </form>

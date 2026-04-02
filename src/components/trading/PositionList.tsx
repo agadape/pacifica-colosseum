@@ -27,6 +27,17 @@ export default function PositionList({ arenaId }: PositionListProps) {
     });
   };
 
+  const handleCloseAll = () => {
+    if (!Array.isArray(positions)) return;
+    for (const pos of positions as Record<string, unknown>[]) {
+      handleClose({
+        symbol: pos.symbol as string,
+        side: pos.side as string,
+        size: pos.size as string,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="bg-surface rounded-2xl border border-border-light p-5">
@@ -38,7 +49,17 @@ export default function PositionList({ arenaId }: PositionListProps) {
 
   return (
     <div className="bg-surface rounded-2xl border border-border-light p-5">
-      <h3 className="font-display text-sm font-700 text-text-primary mb-3">Positions</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-display text-sm font-700 text-text-primary">Positions</h3>
+        {Array.isArray(positions) && positions.length > 0 && (
+          <button
+            onClick={handleCloseAll}
+            className="text-xs text-text-tertiary hover:text-danger transition-colors"
+          >
+            Close All
+          </button>
+        )}
+      </div>
 
       {!Array.isArray(positions) || positions.length === 0 ? (
         <p className="text-sm text-text-tertiary">No open positions</p>
@@ -63,8 +84,6 @@ export default function PositionList({ arenaId }: PositionListProps) {
                 const entryPrice = parseFloat(pos.entry_price as string || "0");
                 const size = parseFloat(pos.size as string || "0");
                 const direction = sideStr === "bid" ? 1 : -1;
-                // Prefer engine-provided mark_price (accurate for mock/real)
-                // Fall back to WS price only if engine didn't provide one
                 const engineMark = parseFloat(pos.mark_price as string || "0");
                 const wsMark = prices.get(symbol)?.markPrice;
                 const markPrice = engineMark > 0 ? engineMark : wsMark;

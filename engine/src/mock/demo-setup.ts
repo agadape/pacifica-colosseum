@@ -335,8 +335,13 @@ function startTraderLeaderboard(
   const supabase = getSupabase();
   const botIds = new Set(bots.map((b) => b.id));
 
-  // 3s: update PnL for bots from in-memory positions
+  // Cached round state for drawdown check (refreshed each tick)
+  let cachedRound = 1;
+  let cachedMaxDrawdown = 20;
+
+  // 3s: update PnL for bots + check drawdown elimination for real users
   const pnlTimer = setInterval(async () => {
+    // Update bots
     for (const bot of bots) {
       if (!activeIds.has(bot.id)) continue;
       const equity = computeEquity(bot.subaccount_address, priceGenerator);
@@ -350,6 +355,59 @@ function startTraderLeaderboard(
           max_drawdown_hit: Math.round(drawdown * 100) / 100,
         })
         .eq("id", bot.id);
+    }
+
+    // Refresh current round + max drawdown
+    const { data: arenaRow } = await supabase
+      .from("arenas")
+      .select("current_round")
+      .eq("id", arenaId)
+      .single();
+    if (arenaRow?.current_round) cachedRound = arenaRow.current_round;
+
+    const { data: roundRow } = await supabase
+      .from("rounds")
+      .select("max_drawdown_percent")
+      .eq("arena_id", arenaId)
+      .eq("round_number", cachedRound)
+      .single();
+    if (roundRow?.max_drawdown_percent) cachedMaxDrawdown = roundRow.max_drawdown_percent;
+
+    // Check drawdown breach for real users (bots use ranking-based elimination)
+    const { data: realUsers } = await supabase
+      .from("arena_participants")
+      .select("id, total_pnl_percent, max_drawdown_hit, user_id")
+      .eq("arena_id", arenaId)
+      .eq("status", "active");
+
+    for (const p of (realUsers ?? [])) {
+      if (botIds.has(p.id)) continue;
+      const drawdown = p.max_drawdown_hit ?? Math.max(0, -(p.total_pnl_percent ?? 0));
+      if (drawdown >= cachedMaxDrawdown) {
+        activeIds.delete(p.id);
+        const pnlPct = p.total_pnl_percent ?? 0;
+        const equity = Math.round(STARTING_CAPITAL * (1 + pnlPct / 100) * 100) / 100;
+        await supabase
+          .from("arena_participants")
+          .update({
+            status: "eliminated",
+            eliminated_at: new Date().toISOString(),
+            eliminated_in_round: cachedRound,
+            elimination_reason: "drawdown_breach",
+            elimination_equity: equity,
+            max_drawdown_hit: Math.round(drawdown * 100) / 100,
+          })
+          .eq("id", p.id);
+        await supabase.from("events").insert({
+          arena_id: arenaId,
+          round_number: cachedRound,
+          event_type: "elimination",
+          actor_id: p.user_id,
+          message: `Trader eliminated! Drawdown: ${drawdown.toFixed(1)}% (limit: ${cachedMaxDrawdown}%)`,
+          data: { reason: "drawdown_breach", drawdown, maxDrawdown: cachedMaxDrawdown },
+        });
+        console.log(`[Trader Demo] User ${p.id} eliminated: drawdown ${drawdown.toFixed(1)}% >= ${cachedMaxDrawdown}%`);
+      }
     }
   }, 3000);
 
