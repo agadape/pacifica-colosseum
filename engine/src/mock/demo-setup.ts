@@ -1048,18 +1048,18 @@ export async function setupTraderDemoArena(): Promise<void> {
     }
   }
 
-  // Reuse the system user from Demo Arena
+  // Reuse the system user from Demo Arena (or create if missing)
   let systemUserId: string;
   const { data: systemUser } = await supabase
     .from("users")
     .select("id")
     .eq("wallet_address", "demo:system")
-    .single();
+    .maybeSingle();
 
   if (systemUser) {
     systemUserId = systemUser.id;
   } else {
-    const { data: newUser } = await supabase
+    const { data: newUser, error: insertErr } = await supabase
       .from("users")
       .insert({
         wallet_address: "demo:system",
@@ -1068,11 +1068,21 @@ export async function setupTraderDemoArena(): Promise<void> {
       })
       .select("id")
       .single();
-    if (!newUser) {
-      console.error("[Trader Demo] Failed to create system user");
-      return;
+    if (newUser) {
+      systemUserId = newUser.id;
+    } else {
+      console.error("[Trader Demo] System user insert failed:", insertErr?.message ?? "unknown");
+      const { data: retried } = await supabase
+        .from("users")
+        .select("id")
+        .eq("wallet_address", "demo:system")
+        .maybeSingle();
+      if (!retried) {
+        console.error("[Trader Demo] Cannot find or create system user — check DB constraints and env vars");
+        return;
+      }
+      systemUserId = retried.id;
     }
-    systemUserId = newUser.id;
   }
 
   const vault = generateKeypair();
@@ -1320,12 +1330,12 @@ export async function setupDemoArena(): Promise<void> {
     .from("users")
     .select("id")
     .eq("wallet_address", "demo:system")
-    .single();
+    .maybeSingle();
 
   if (systemUser) {
     systemUserId = systemUser.id;
   } else {
-    const { data: newUser } = await supabase
+    const { data: newUser, error: insertErr } = await supabase
       .from("users")
       .insert({
         wallet_address: "demo:system",
@@ -1334,11 +1344,23 @@ export async function setupDemoArena(): Promise<void> {
       })
       .select("id")
       .single();
-    if (!newUser) {
-      console.error("[Demo] Failed to create system user");
-      return;
+    if (newUser) {
+      systemUserId = newUser.id;
+    } else {
+      // Insert failed (likely unique constraint on referral_code/username from a previous run).
+      // Log the real error and try one more SELECT — the user may already exist.
+      console.error("[Demo] System user insert failed:", insertErr?.message ?? "unknown");
+      const { data: retried } = await supabase
+        .from("users")
+        .select("id")
+        .eq("wallet_address", "demo:system")
+        .maybeSingle();
+      if (!retried) {
+        console.error("[Demo] Cannot find or create system user — check DB constraints and env vars");
+        return;
+      }
+      systemUserId = retried.id;
     }
-    systemUserId = newUser.id;
   }
 
   // Generate vault keypair
