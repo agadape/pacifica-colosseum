@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyAuth, unauthorized } from "@/lib/auth/middleware";
 import { findOrCreateUser } from "@/lib/auth/register";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerClient, createPublicClient } from "@/lib/supabase/server";
 import { generateKeypair, publicKeyToString, secretKeyToString } from "@/lib/utils/keypair";
 import { encryptPrivateKey } from "@/lib/utils/encryption";
 import { PRESETS, STARTING_CAPITAL, MIN_PARTICIPANTS, MAX_PARTICIPANTS, calculateRoundTimings } from "@/lib/utils/constants";
@@ -131,7 +131,11 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 50);
   const offset = (page - 1) * limit;
 
-  const supabase = createServerClient();
+  // Public list endpoint — anon key is sufficient if RLS allows it;
+  // service role bypasses RLS (preferred when available).
+  const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createServerClient()
+    : createPublicClient();
 
   let query = supabase
     .from("arenas")
