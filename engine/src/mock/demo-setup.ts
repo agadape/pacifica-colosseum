@@ -1072,16 +1072,32 @@ export async function setupTraderDemoArena(): Promise<void> {
       systemUserId = newUser.id;
     } else {
       console.error("[Trader Demo] System user insert failed:", insertErr?.message ?? "unknown");
+
       const { data: retried } = await supabase
         .from("users")
         .select("id")
         .eq("wallet_address", "demo:system")
         .maybeSingle();
-      if (!retried) {
-        console.error("[Trader Demo] Cannot find or create system user — check DB constraints and env vars");
-        return;
+
+      if (retried) {
+        systemUserId = retried.id;
+      } else {
+        const tag = Date.now().toString(36).slice(-5).toUpperCase();
+        const { data: retried2, error: err2 } = await supabase
+          .from("users")
+          .insert({
+            wallet_address: "demo:system",
+            referral_code: `SYS${tag}`,
+            username: `DemoHost`,
+          })
+          .select("id")
+          .single();
+        if (!retried2) {
+          console.error("[Trader Demo] Cannot create system user:", err2?.message ?? "unknown");
+          return;
+        }
+        systemUserId = retried2.id;
       }
-      systemUserId = retried.id;
     }
   }
 
@@ -1347,19 +1363,36 @@ export async function setupDemoArena(): Promise<void> {
     if (newUser) {
       systemUserId = newUser.id;
     } else {
-      // Insert failed (likely unique constraint on referral_code/username from a previous run).
-      // Log the real error and try one more SELECT — the user may already exist.
+      // Insert failed — log the real error so we can diagnose
       console.error("[Demo] System user insert failed:", insertErr?.message ?? "unknown");
+
+      // Try SELECT again (handles race condition where another process just created it)
       const { data: retried } = await supabase
         .from("users")
         .select("id")
         .eq("wallet_address", "demo:system")
         .maybeSingle();
-      if (!retried) {
-        console.error("[Demo] Cannot find or create system user — check DB constraints and env vars");
-        return;
+
+      if (retried) {
+        systemUserId = retried.id;
+      } else {
+        // referral_code / username constraint conflict — retry with unique values
+        const tag = Date.now().toString(36).slice(-5).toUpperCase();
+        const { data: retried2, error: err2 } = await supabase
+          .from("users")
+          .insert({
+            wallet_address: "demo:system",
+            referral_code: `SYS${tag}`,
+            username: `DemoHost`,
+          })
+          .select("id")
+          .single();
+        if (!retried2) {
+          console.error("[Demo] Cannot create system user:", err2?.message ?? "unknown");
+          return;
+        }
+        systemUserId = retried2.id;
       }
-      systemUserId = retried.id;
     }
   }
 
