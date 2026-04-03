@@ -285,7 +285,7 @@ function scheduleDemoRounds(
     await supabase
       .from("arena_participants")
       .update({
-        status: "active",
+        status: "winner",
         total_pnl: Math.round(finalPnl * 100) / 100,
         total_pnl_percent: Math.round(finalPct * 100) / 100,
         equity_final: Math.round(finalEquity * 100) / 100,
@@ -381,16 +381,33 @@ function startTraderLeaderboard(
       .single();
     if (roundRow?.max_drawdown_percent) cachedMaxDrawdown = roundRow.max_drawdown_percent;
 
-    // Check drawdown breach for real users (bots use ranking-based elimination)
+    // Live PnL update + drawdown check for real users
     const { data: realUsers } = await supabase
       .from("arena_participants")
-      .select("id, total_pnl_percent, max_drawdown_hit, user_id")
+      .select("id, subaccount_address, total_pnl_percent, max_drawdown_hit, user_id")
       .eq("arena_id", arenaId)
       .eq("status", "active");
 
     for (const p of (realUsers ?? [])) {
       if (botIds.has(p.id)) continue;
-      const drawdown = p.max_drawdown_hit ?? Math.max(0, -(p.total_pnl_percent ?? 0));
+
+      // Mirror bot logic: compute live equity from in-memory account
+      let drawdown: number;
+      const acct = getAccount(p.subaccount_address!);
+      if (acct) {
+        const equity = computeEquity(p.subaccount_address!, priceGenerator);
+        const pnlPct = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
+        drawdown = Math.max(0, -pnlPct);
+        await supabase.from("arena_participants").update({
+          total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
+          total_pnl_percent: Math.round(pnlPct * 100) / 100,
+          max_drawdown_hit: Math.max(p.max_drawdown_hit ?? 0, drawdown),
+        }).eq("id", p.id);
+      } else {
+        // No in-memory account yet (user hasn't traded) — use DB value
+        drawdown = p.max_drawdown_hit ?? Math.max(0, -(p.total_pnl_percent ?? 0));
+      }
+
       if (drawdown >= cachedMaxDrawdown) {
         activeIds.delete(p.id);
         const pnlPct = p.total_pnl_percent ?? 0;
@@ -489,12 +506,7 @@ function startTraderLeaderboard(
   };
 }
 
-/**
- * Schedule round progression for the Open Arena.
- * Scores ALL active participants (bots + real users) using DB total_pnl_percent.
- * Updates current_round_ends_at on each transition for zombie detection.
- */
-function scheduleTraderDemoRounds(
+function scheduleTraderDemoRounds_DEAD(
   arenaId: string,
   bots: BotParticipant[],
   activeIds: Set<string>,
@@ -817,7 +829,7 @@ function scheduleTraderRoundsFrom(
     const finalEquity = Math.round(STARTING_CAPITAL * (1 + winner.pnlPct / 100) * 100) / 100;
 
     await supabase.from("arena_participants").update({
-      status: "active",
+      status: "winner",
       total_pnl: Math.round((finalEquity - STARTING_CAPITAL) * 100) / 100,
       total_pnl_percent: Math.round(winner.pnlPct * 100) / 100,
       equity_final: finalEquity,

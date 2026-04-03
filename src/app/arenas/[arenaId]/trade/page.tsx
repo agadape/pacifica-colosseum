@@ -58,6 +58,7 @@ export default function TradePage({
 
   // Notification states
   const [showEliminated, setShowEliminated] = useState(false);
+  const [showWinner, setShowWinner] = useState(false);
   const [roundEndMsg, setRoundEndMsg] = useState<string | null>(null);
   const prevRound = useRef<number | null>(null);
   const prevStatus = useRef<string | null>(null);
@@ -80,10 +81,12 @@ export default function TradePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arena?.current_round]);
 
-  // Detect elimination → show overlay
+  // Detect status transitions → show overlays
   useEffect(() => {
     if (prevStatus.current === "active" && myStatus === "eliminated") {
       setShowEliminated(true);
+    } else if (prevStatus.current === "active" && myStatus === "winner") {
+      setShowWinner(true);
     }
     prevStatus.current = myStatus;
   }, [myStatus]);
@@ -132,6 +135,41 @@ export default function TradePage({
                   className="inline-block px-6 py-3 rounded-full bg-white text-black font-semibold text-sm"
                 >
                   Watch the arena →
+                </motion.span>
+              </Link>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Winner overlay — fullscreen */}
+      <AnimatePresence>
+        {showWinner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/92 flex flex-col items-center justify-center p-8"
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: "spring", damping: 14 }}
+              className="text-center max-w-xs"
+            >
+              <div className="text-7xl mb-5">🏆</div>
+              <h1 className="font-display text-4xl font-800 text-white mb-2">You Win!</h1>
+              <p className="text-white/50 text-sm mb-1">You outlasted every trader.</p>
+              <p className="font-mono text-yellow-400 text-xl font-bold mb-8">
+                {myPnlPct >= 0 ? "+" : ""}{myPnlPct.toFixed(1)}% final PnL
+              </p>
+              <Link href={`/arenas/${arenaId}/spectate`}>
+                <motion.span
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-block px-6 py-3 rounded-full bg-white text-black font-semibold text-sm"
+                >
+                  See Results →
                 </motion.span>
               </Link>
             </motion.div>
