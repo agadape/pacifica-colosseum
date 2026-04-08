@@ -118,23 +118,26 @@ server.listen(PORT, async () => {
 
   if (DEMO_MODE) {
     console.log("[Engine] DEMO_MODE enabled — using mock data");
+    // Stagger startup: Demo Arena first, then Open Arena 5s later.
+    // Spreads the ~40 DB calls each setup makes, avoiding a startup burst.
     try {
       await setupDemoArena();
     } catch (err) {
       console.error("[Engine] setupDemoArena() threw:", err);
     }
+    await new Promise(r => setTimeout(r, 5_000));
     try {
       await setupTraderDemoArena();
     } catch (err) {
       console.error("[Engine] setupTraderDemoArena() threw:", err);
     }
 
-    // Watchdog: re-check both arenas every 30s.
+    // Watchdog: re-check both arenas every 60s (was 30s).
     // Both setup functions are idempotent — they no-op if healthy, recover if zombie.
     setInterval(async () => {
       try { await setupDemoArena(); } catch (e) { console.error("[Watchdog] Demo Arena:", e); }
       try { await setupTraderDemoArena(); } catch (e) { console.error("[Watchdog] Open Arena:", e); }
-    }, 30_000);
+    }, 60_000);
 
     // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
