@@ -998,14 +998,17 @@ export async function setupTraderDemoArena(): Promise<void> {
 
   console.log("[Trader Demo] Setting up Open Arena...");
 
-  // State detection for existing Open Arena
+  // State detection for existing Open Arena — order by newest first so multiple
+  // zombie rows (from engine restart flooding) don't cause .single() to fail
   const { data: existing } = await supabase
     .from("arenas")
     .select("id, status, current_round, current_round_ends_at, registration_deadline")
     .eq("name", "Open Arena")
     .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
     .is("ended_at", null)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (existing) {
     if (existing.status === "registration") {
@@ -1305,14 +1308,17 @@ export async function setupDemoArena(): Promise<void> {
 
   console.log("[Demo] Setting up demo arena...");
 
-  // Check if there's already a demo arena actively running (not ended/broken)
+  // Check if there's already a demo arena actively running — order by newest first
+  // so multiple zombie rows don't cause .single() to fail and spawn another arena
   const { data: existing } = await supabase
     .from("arenas")
     .select("id, updated_at, current_round_ends_at")
     .eq("name", "Demo Arena")
     .in("status", ["registration", "round_1", "round_2", "round_3", "sudden_death"])
     .is("ended_at", null)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (existing) {
     // Zombie detection: round end time is in the past = engine died mid-round
