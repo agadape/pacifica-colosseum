@@ -144,8 +144,11 @@ export async function GET(request: NextRequest) {
     .range(offset, offset + limit - 1);
 
   const ACTIVE_STATUSES = ["round_1", "round_2", "round_3", "sudden_death"];
+  const ALL_LIVE_STATUSES = ["registration", "starting", "round_1", "round_2", "round_3", "sudden_death"];
   if (status === "active") query = query.in("status", ACTIVE_STATUSES);
+  else if (status === "completed") query = query.eq("status", "completed");
   else if (status) query = query.eq("status", status);
+  else query = query.in("status", ALL_LIVE_STATUSES); // default: hide completed
   if (preset) query = query.eq("preset", preset);
 
   const { data, error, count } = await query;
