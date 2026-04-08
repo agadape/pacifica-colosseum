@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from("arenas")
-    .select(`${ARENA_PUBLIC_COLUMNS}, arena_participants(count)`, { count: "exact" })
+    .select(ARENA_PUBLIC_COLUMNS, { count: "exact" })
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -151,6 +151,7 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await query;
 
   if (error) {
+    console.error("[GET /api/arenas] Supabase error:", error.message, error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 
