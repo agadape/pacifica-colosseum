@@ -1,19 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
+import { getSupabase } from "../db";
 import { updateArenaRound, getArenaState } from "./risk-monitor";
 import { startGracePeriod } from "./grace-period";
 import { processInactivityElimination, processRankingElimination } from "./elimination-engine";
 import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * Advance to the next round. Called when current round timer expires.

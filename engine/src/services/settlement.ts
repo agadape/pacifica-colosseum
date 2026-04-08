@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import { PacificaClient } from "../../../src/lib/pacifica/client";
+import { getSupabase } from "../db";
 import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { getArenaState, removeArena } from "./risk-monitor";
@@ -9,13 +8,6 @@ import { stopLeaderboardUpdater } from "./leaderboard-updater";
 import { cancelRoundTimer } from "../timers/round-timer";
 import { getPriceManager } from "../state/price-manager";
 import { calcEquity } from "../state/types";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * End an arena — determine winner, close positions, return funds, award badges.

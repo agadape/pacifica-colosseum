@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import { PacificaClient } from "../../../src/lib/pacifica/client";
+import { getSupabase } from "../db";
 import { keypairFromBase58, publicKeyToString } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { STARTING_CAPITAL, ROUND_PARAMS } from "../../../src/lib/utils/constants";
@@ -8,13 +7,6 @@ import { initArena } from "./risk-monitor";
 import { startPeriodicSync } from "./periodic-sync";
 import { startLeaderboardUpdater } from "./leaderboard-updater";
 import { scheduleRoundEnd } from "../timers/round-timer";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * Start an arena: verify participants, create subaccounts on Pacifica,

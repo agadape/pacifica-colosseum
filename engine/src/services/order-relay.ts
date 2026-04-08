@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../src/lib/supabase/types";
+import { getSupabase } from "../db";
 import { PacificaClient } from "../../../src/lib/pacifica/client";
 import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
@@ -16,13 +16,6 @@ import {
 import { STARTING_CAPITAL } from "../../../src/lib/utils/constants";
 
 type TradeInsert = Database["public"]["Tables"]["trades"]["Insert"];
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 export interface OrderResult {
   success: boolean;

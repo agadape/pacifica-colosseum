@@ -1,17 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../src/lib/supabase/types";
 import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
+import { getSupabase } from "../db";
 
 type ArenaRow = Database["public"]["Tables"]["arenas"]["Row"];
 type ParticipantRow = Database["public"]["Tables"]["arena_participants"]["Row"];
 type RoundRow = Database["public"]["Tables"]["rounds"]["Row"];
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 export interface OrderInput {
   type: "market" | "limit";

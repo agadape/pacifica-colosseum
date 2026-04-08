@@ -1,16 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import { getArenaState } from "./risk-monitor";
+import { getSupabase } from "../db";
 import { eliminateTrader } from "./elimination-engine";
 import { getPriceManager } from "../state/price-manager";
 import { calcEquity } from "../state/types";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 // Track violations per participant: participantId → count
 const violationCounts = new Map<string, number>();

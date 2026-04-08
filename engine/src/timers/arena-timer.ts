@@ -1,13 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import { startArena } from "../services/arena-manager";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { getSupabase } from "../db";
 
 const scheduledTimers = new Map<string, NodeJS.Timeout>();
 

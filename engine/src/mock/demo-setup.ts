@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { getSupabase } from "../db";
 import type { Database } from "../../../src/lib/supabase/types";
 import { generateKeypair, publicKeyToString, secretKeyToString } from "../../../src/lib/utils/keypair";
 import { encryptPrivateKey } from "../../../src/lib/utils/encryption";
@@ -13,12 +13,6 @@ import { startBotTraders, stopBotTraders } from "./bot-traders";
  */
 const runningArenas = new Set<string>();
 
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 const BOT_NAMES = [
   "Conservative Carl",

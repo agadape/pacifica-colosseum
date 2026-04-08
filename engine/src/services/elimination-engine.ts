@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/lib/supabase/types";
 import type { Json } from "../../../src/lib/supabase/types";
+import { getSupabase } from "../db";
 import { PacificaClient } from "../../../src/lib/pacifica/client";
 import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
@@ -9,13 +8,6 @@ import { stopPeriodicSync } from "./periodic-sync";
 import { stopLeaderboardUpdater } from "./leaderboard-updater";
 import { getPriceManager } from "../state/price-manager";
 import { calcEquity } from "../state/types";
-
-function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
 
 /**
  * Eliminate a single trader — close positions, return funds, update DB.
