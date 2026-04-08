@@ -12,7 +12,8 @@ export function useLeaderboard(arenaId: string) {
     queryKey: ["leaderboard", arenaId],
     queryFn: () => fetchJson(`/api/arenas/${arenaId}`),
     enabled: !!arenaId,
-    refetchInterval: 3000,
+    staleTime: 10000,
+    refetchInterval: 60000, // realtime handles live updates; this is a safety fallback only
     select: (data) => {
       const participants = data?.data?.participants ?? [];
       return [...participants].sort(
@@ -31,7 +32,8 @@ export function useArenaEvents(arenaId: string) {
       return res.json();
     },
     enabled: !!arenaId,
-    refetchInterval: 3000,
+    staleTime: 10000,
+    refetchInterval: 60000, // realtime handles live updates; this is a safety fallback only
   });
 }
 
@@ -51,7 +53,8 @@ export function useVoteStatus(arenaId: string, roundNumber: number) {
     queryKey: ["votes", arenaId, roundNumber],
     queryFn: () => fetchJson(`/api/arenas/${arenaId}/vote?round_number=${roundNumber}`),
     enabled: !!arenaId && roundNumber > 0,
-    refetchInterval: 5000,
+    staleTime: 10000,
+    refetchInterval: 60000, // realtime handles live updates; this is a safety fallback only
   });
 }
 
@@ -71,7 +74,8 @@ export function useEquitySnapshots(arenaId: string) {
       return byParticipant;
     },
     enabled: !!arenaId,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+    staleTime: 10000,
+    refetchInterval: 60000, // realtime handles live updates; this is a safety fallback only
+    refetchIntervalInBackground: false,
   });
 }

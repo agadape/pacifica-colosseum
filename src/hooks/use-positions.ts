@@ -23,7 +23,8 @@ export function usePositions(arenaId: string) {
       return fetchWithToken(`/api/arenas/${arenaId}/positions`, token);
     },
     enabled: authenticated && !!arenaId,
-    refetchInterval: 5000,
+    staleTime: 8000,
+    refetchInterval: 15000,
   });
 }
 
@@ -38,6 +39,7 @@ export function useOpenOrders(arenaId: string) {
       return fetchWithToken(`/api/arenas/${arenaId}/orders`, token);
     },
     enabled: authenticated && !!arenaId,
-    refetchInterval: 5000,
+    staleTime: 8000,
+    refetchInterval: 15000,
   });
 }
