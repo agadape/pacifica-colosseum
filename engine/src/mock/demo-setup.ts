@@ -57,27 +57,27 @@ function startMockLeaderboard(
 ): { stop: () => void } {
   const supabase = getSupabase();
 
-  // 3s: update PnL on arena_participants
+  // 10s: batch-update PnL for all bots in one query
   const pnlTimer = setInterval(async () => {
-    for (const bot of bots) {
-      if (!activeIds.has(bot.id)) continue;
+    const activeBots = bots.filter(b => activeIds.has(b.id));
+    if (activeBots.length === 0) return;
 
+    await Promise.all(activeBots.map(bot => {
       const equity = computeEquity(bot.subaccount_address, priceGenerator);
       const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
       const drawdown = Math.max(0, -pnlPercent);
-
-      await supabase
+      return supabase
         .from("arena_participants")
         .update({
-          total_pnl: equity - STARTING_CAPITAL,
+          total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
           total_pnl_percent: Math.round(pnlPercent * 100) / 100,
           max_drawdown_hit: Math.round(drawdown * 100) / 100,
         })
         .eq("id", bot.id);
-    }
-  }, 3000);
+    }));
+  }, 10_000);
 
-  // 5s: write equity_snapshots for chart
+  // 30s: write equity_snapshots for chart (chart resolution doesn't need 5s)
   const snapshotTimer = setInterval(async () => {
     const { data: arenaRow } = await supabase
       .from("arenas")
@@ -104,7 +104,7 @@ function startMockLeaderboard(
     if (inserts.length > 0) {
       await supabase.from("equity_snapshots").insert(inserts);
     }
-  }, 5000);
+  }, 30_000);
 
   return {
     stop: () => {
@@ -341,23 +341,23 @@ function startTraderLeaderboard(
   let cachedRound = 1;
   let cachedMaxDrawdown = 20;
 
-  // 3s: update PnL for bots + check drawdown elimination for real users
+  // 10s: update PnL for bots (parallel) + check drawdown for real users
   const pnlTimer = setInterval(async () => {
-    // Update bots
-    for (const bot of bots) {
-      if (!activeIds.has(bot.id)) continue;
+    // Batch-update all active bots in parallel
+    const activeBots = bots.filter(b => activeIds.has(b.id));
+    await Promise.all(activeBots.map(bot => {
       const equity = computeEquity(bot.subaccount_address, priceGenerator);
       const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
       const drawdown = Math.max(0, -pnlPercent);
-      await supabase
+      return supabase
         .from("arena_participants")
         .update({
-          total_pnl: equity - STARTING_CAPITAL,
+          total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
           total_pnl_percent: Math.round(pnlPercent * 100) / 100,
           max_drawdown_hit: Math.round(drawdown * 100) / 100,
         })
         .eq("id", bot.id);
-    }
+    }));
 
     // Refresh current round + max drawdown
     const { data: arenaRow } = await supabase
@@ -428,9 +428,9 @@ function startTraderLeaderboard(
         console.log(`[Trader Demo] User ${p.id} eliminated: drawdown ${drawdown.toFixed(1)}% >= ${cachedMaxDrawdown}%`);
       }
     }
-  }, 3000);
+  }, 10_000);
 
-  // 5s: write equity_snapshots — bots from in-memory, real users from DB
+  // 30s: write equity_snapshots — bots from in-memory, real users from DB
   const snapshotTimer = setInterval(async () => {
     const { data: arenaRow } = await supabase
       .from("arenas")
