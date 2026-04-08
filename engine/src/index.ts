@@ -8,7 +8,30 @@ import { getPriceManager } from "./state/price-manager";
 import { DEMO_MODE } from "./config";
 import { setupDemoArena, setupTraderDemoArena } from "./mock/demo-setup";
 import { executeOrder, cancelOrder, getPositions, getAccountInfo } from "./services/order-relay";
+import { getSupabase } from "./db";
 import type { OrderInput } from "./services/order-validator";
+
+/**
+ * Wait until Supabase responds to a simple ping before starting heavy setup.
+ * Retries every 5s up to maxRetries times.
+ */
+async function waitForSupabase(maxRetries = 24): Promise<void> {
+  const supabase = getSupabase();
+  for (let i = 1; i <= maxRetries; i++) {
+    try {
+      const { error } = await supabase.from("arenas").select("id").limit(1).maybeSingle();
+      if (!error) {
+        console.log(`[Engine] Supabase ready (attempt ${i})`);
+        return;
+      }
+      console.warn(`[Engine] Supabase not ready (attempt ${i}/${maxRetries}): ${error.message}`);
+    } catch (e) {
+      console.warn(`[Engine] Supabase ping failed (attempt ${i}/${maxRetries})`);
+    }
+    await new Promise(r => setTimeout(r, 5_000));
+  }
+  console.error("[Engine] Supabase never responded — proceeding anyway");
+}
 
 const PORT = parseInt(process.env.ENGINE_PORT || "4000", 10);
 const INTERNAL_KEY = process.env.INTERNAL_API_KEY || "dev-internal-key";
@@ -118,8 +141,9 @@ server.listen(PORT, async () => {
 
   if (DEMO_MODE) {
     console.log("[Engine] DEMO_MODE enabled — using mock data");
+    // Wait for Supabase to be ready before any setup (avoids overwhelming it on restart)
+    await waitForSupabase();
     // Stagger startup: Demo Arena first, then Open Arena 5s later.
-    // Spreads the ~40 DB calls each setup makes, avoiding a startup burst.
     try {
       await setupDemoArena();
     } catch (err) {
