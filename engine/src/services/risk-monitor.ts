@@ -5,6 +5,7 @@ import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { getPriceManager, type PriceUpdate } from "../state/price-manager";
 import type { Json } from "../../../src/lib/supabase/types";
 import { reloadAbilityEffects } from "./ability-manager";
+import { reloadProgressionState } from "./progression-manager";
 import {
   type ArenaState,
   type TraderState,
@@ -113,9 +114,11 @@ export async function initArena(arenaId: string): Promise<void> {
       secondLifeUsed: p.second_life_used,
       isInGracePeriod: false,
       status: "active",
-      territoryDrawdownBuffer: 0, // populated by executeTerritoryDraft(); reloaded from DB on engine restart (Step 3.6)
-      abilityDrawdownBuffer: 0,   // populated by Fortress ability activation; reloaded on restart
-      abilityShieldUntil: null,   // ms timestamp for Shield expiry; reloaded on restart
+      territoryDrawdownBuffer: 0,    // populated by executeTerritoryDraft(); reloaded from DB on engine restart
+      abilityDrawdownBuffer: 0,      // populated by Fortress ability; reloaded on restart
+      abilityShieldUntil: null,      // ms timestamp for Shield expiry; reloaded on restart
+      progressionLeverageBonus: 0,   // from Aggressive path unlock; reloaded by reloadProgressionState
+      progressionDrawdownBuffer: 0,  // from Defensive path unlock; reloaded by reloadProgressionState
     });
   }
 
@@ -160,6 +163,9 @@ export async function initArena(arenaId: string): Promise<void> {
   // Reload ability effects (shield/fortress) from DB — restores in-memory state after Railway restart
   await reloadAbilityEffects(arenaId);
 
+  // Reload progression bonuses (leverage/drawdown) from DB — restores Aggressive/Defensive path effects
+  await reloadProgressionState(arenaId);
+
   // Listen for price updates
   const priceManager = getPriceManager();
   priceManager.on("price", (update: PriceUpdate) => {
@@ -197,11 +203,12 @@ function onPriceUpdate(arenaId: string, symbol: string): void {
       trader.maxDrawdownHit = drawdown;
     }
 
-    // Apply Wide Zone bonus (+5%), territory buffer, ability buffer, minus hazard reduction — all cached, no DB query
+    // Apply Wide Zone bonus (+5%), territory buffer, ability buffer, progression buffer, minus hazard reduction — all cached, no DB query
     const effectiveMax = state.maxDrawdownPercent
       + (trader.hasWideZone ? 5 : 0)
       + (trader.territoryDrawdownBuffer ?? 0)
       + (trader.abilityDrawdownBuffer ?? 0)
+      + (trader.progressionDrawdownBuffer ?? 0)
       - (state.activeHazardDrawdownReduction ?? 0);
 
     // Check drawdown breach — skip if Shield is active

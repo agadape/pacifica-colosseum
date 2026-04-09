@@ -16,6 +16,7 @@ import AccountPanel from "@/components/trading/AccountPanel";
 import TerritoryInfoCard from "@/components/TerritoryInfoCard";
 import { AbilityPanel } from "@/components/AbilityPanel";
 import { HazardBanner } from "@/components/HazardBanner";
+import { ProgressionModal } from "@/components/ProgressionModal";
 
 const KNOWN_BOT_NAMES = new Set([
   "Conservative Carl", "Aggressive Alice", "Scalper Sam",
@@ -112,6 +113,9 @@ export default function TradePage({
     <>
       {/* Hazard Banner — fixed top, shows warning/active hazards */}
       <HazardBanner arenaId={arenaId} />
+
+      {/* Progression Modal — shown to active participants after round ends */}
+      {myStatus === "active" && <ProgressionModal arenaId={arenaId} />}
 
       {/* Elimination overlay — fullscreen */}
       <AnimatePresence>

@@ -893,6 +893,38 @@ export interface Database {
         };
         Relationships: [];
       };
+      unlock_nodes: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          round_available: number;
+          effect_type: string;
+          effect_value: number;
+          requires_node_id: string | null;
+          display_order: number;
+          created_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["unlock_nodes"]["Row"], "created_at">;
+        Update: Partial<Database["public"]["Tables"]["unlock_nodes"]["Insert"]>;
+        Relationships: [];
+      };
+      participant_unlocks: {
+        Row: {
+          id: string;
+          arena_id: string;
+          participant_id: string;
+          node_id: string | null;
+          round_number: number;
+          status: string;
+          chosen_at: string | null;
+        };
+        Insert: Omit<Database["public"]["Tables"]["participant_unlocks"]["Row"], "id">;
+        Update: Partial<Database["public"]["Tables"]["participant_unlocks"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -115,9 +115,14 @@ export async function validateOrder(
     const territoryLevCap = (activeTerritory as unknown as TerritoryOverride | null)
       ?.territories?.leverage_override ?? null;
 
+    // Progression Aggressive path adds a personal leverage bonus on top of the round cap
+    const arenaStateLev = getArenaState(arenaId);
+    const progressionBonus = arenaStateLev?.traders.get(participant.id)?.progressionLeverageBonus ?? 0;
+    const baseMaxLeverage = round.max_leverage + progressionBonus;
+
     const effectiveMaxLeverage = territoryLevCap !== null
-      ? Math.min(round.max_leverage, territoryLevCap)
-      : round.max_leverage;
+      ? Math.min(baseMaxLeverage, territoryLevCap)
+      : baseMaxLeverage;
 
     if (order.leverage > effectiveMaxLeverage) {
       return {

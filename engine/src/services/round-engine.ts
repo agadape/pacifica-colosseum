@@ -6,6 +6,7 @@ import { processInactivityElimination } from "./elimination-engine";
 import { executeTerritoryDraft, processTerritoryElimination } from "./territory-manager";
 import { awardAbilitiesForRound } from "./ability-manager";
 import { scheduleHazardsForRound } from "./hazard-manager";
+import { awardProgression, reloadProgressionState } from "./progression-manager";
 import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
@@ -44,6 +45,9 @@ export async function advanceRound(arenaId: string): Promise<void> {
 
   // Step 3: Award abilities to top performers before grace period
   await awardAbilitiesForRound(arenaId, currentRound);
+
+  // Step 3b: Award progression choice to survivors (bots auto-pick after 3s)
+  await awardProgression(arenaId, currentRound);
 
   // Step 4: Loot calculation (Wide Zone + Second Life)
   await calculateLoot(arenaId, currentRound);

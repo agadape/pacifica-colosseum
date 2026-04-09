@@ -30,6 +30,8 @@ export interface TraderState {
   territoryDrawdownBuffer: number; // cached from territory draft, read in hot path (no DB query)
   abilityDrawdownBuffer: number;   // DD buffer from Fortress ability, cached in hot path
   abilityShieldUntil: number | null; // ms timestamp when Shield expires, null if not active
+  progressionLeverageBonus: number;  // extra leverage from Aggressive path unlock (0 = none)
+  progressionDrawdownBuffer: number; // extra DD buffer from Defensive path unlock (0 = none)
 }
 
 export interface ArenaState {

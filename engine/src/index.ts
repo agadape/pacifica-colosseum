@@ -14,6 +14,7 @@ import { startSkirmishScheduler, declareAttack, getSkirmishPhase } from "./servi
 import { getTerritoryBoardState } from "./services/territory-manager";
 import { activateAbility, getParticipantAbilities, getArenaActiveEffects } from "./services/ability-manager";
 import { getActiveHazards } from "./services/hazard-manager";
+import { getParticipantProgression, chooseUnlock } from "./services/progression-manager";
 
 /**
  * Wait until Supabase responds to a simple ping before starting heavy setup.
@@ -198,6 +199,24 @@ app.post("/internal/abilities/activate", internalAuth, async (req, res) => {
     targetParticipantId?: string;
   };
   const result = await activateAbility(arenaId, participantId, abilityId, targetParticipantId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+// Progression Tree (M-5) — register BEFORE any dynamic /:param routes
+app.get("/internal/progression/:arenaId/:participantId", internalAuth, async (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const participantId = req.params.participantId as string;
+  const data = await getParticipantProgression(arenaId, participantId);
+  res.json({ data });
+});
+
+app.post("/internal/progression/choose", internalAuth, async (req, res) => {
+  const { arenaId, participantId, nodeId } = req.body as {
+    arenaId: string;
+    participantId: string;
+    nodeId: string;
+  };
+  const result = await chooseUnlock(arenaId, participantId, nodeId);
   res.status(result.success ? 200 : 400).json(result);
 });
 

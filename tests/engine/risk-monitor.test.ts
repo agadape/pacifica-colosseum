@@ -136,5 +136,7 @@ function makeTrader(balance: number, positions: PositionState[]): TraderState {
     territoryDrawdownBuffer: 0,
     abilityDrawdownBuffer: 0,
     abilityShieldUntil: null,
+    progressionLeverageBonus: 0,
+    progressionDrawdownBuffer: 0,
   };
 }
