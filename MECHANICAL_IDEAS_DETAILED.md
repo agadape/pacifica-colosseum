@@ -13,8 +13,9 @@
 | 1 — Territorial Trading | ✅ Done | All 4 phases complete (DB, engine, frontend) |
 | 2 — Ability System | ✅ Done | DB migration, engine wiring, API routes, AbilityCard/AbilityPanel, trade page |
 | 3 — Alliance System | 🔴 Not Started | — |
-| 4 — Hazard Events | 🟡 In Progress | Plan written, see HAZARD_EVENTS_PROGRESS.md |
-| 5+ | 🔴 Not Started | — |
+| 4 — Hazard Events | ✅ Done | DB migration, engine scheduling, HazardBanner on trade+spectate |
+| 5 — Progression Tree | ✅ Done | DB migration, progression-manager, ProgressionModal, bots auto-pick |
+| 6 — Sabotage & Betting | 🔴 Not Started | — |
 
 ---
 
