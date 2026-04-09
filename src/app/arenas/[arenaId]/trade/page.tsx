@@ -13,6 +13,7 @@ import OrderForm from "@/components/trading/OrderForm";
 import PositionList from "@/components/trading/PositionList";
 import OrderList from "@/components/trading/OrderList";
 import AccountPanel from "@/components/trading/AccountPanel";
+import TerritoryInfoCard from "@/components/TerritoryInfoCard";
 
 const KNOWN_BOT_NAMES = new Set([
   "Conservative Carl", "Aggressive Alice", "Scalper Sam",
@@ -287,6 +288,14 @@ export default function TradePage({
                 hasSecondLife={(myParticipant?.has_second_life as boolean | undefined) ?? false}
                 secondLifeUsed={(myParticipant?.second_life_used as boolean | undefined) ?? false}
               />
+
+              {/* Territory info — shows cell modifiers for current round */}
+              {!!myParticipant?.id && myStatus === "active" && (
+                <TerritoryInfoCard
+                  arenaId={arenaId}
+                  myParticipantId={myParticipant.id as string}
+                />
+              )}
 
               {leaderboard.length > 0 && (
                 <div className="bg-surface rounded-2xl border border-border-light p-4">

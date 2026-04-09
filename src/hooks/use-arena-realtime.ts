@@ -54,6 +54,13 @@ export function useArenaRealtime(arenaId: string) {
       })
     );
 
+    // Territory changes (swaps from skirmish, new drafts)
+    channels.push(
+      subscribeToTable(`territories-${arenaId}`, "participant_territories", arenaId, () => {
+        queryClient.invalidateQueries({ queryKey: ["territories", arenaId] });
+      })
+    );
+
     channelsRef.current = channels;
 
     return () => {

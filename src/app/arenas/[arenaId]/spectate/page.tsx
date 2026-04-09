@@ -13,6 +13,8 @@ import EliminationBanner from "@/components/spectator/EliminationBanner";
 import VotePanel from "@/components/spectator/VotePanel";
 import AvatarRow from "@/components/spectator/AvatarRow";
 import EquityRaceChart from "@/components/spectator/EquityRaceChart";
+import TerritoryBoard from "@/components/TerritoryBoard";
+import TerritoryDraftModal from "@/components/TerritoryDraftModal";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -95,6 +97,20 @@ export default function SpectatePage({
       p.user_id === currentUserId && p.status === "active"
     );
 
+  // Territory board data
+  const myParticipant = currentUserId
+    ? (leaderboard.find((p: Record<string, unknown>) => p.user_id === currentUserId) as Record<string, unknown> | undefined)
+    : undefined;
+  const myParticipantId = isParticipant ? (myParticipant?.id as string | undefined) ?? null : null;
+
+  // Build nameMap for draft modal: participantId → display name
+  const nameMap = Object.fromEntries(
+    leaderboard.map((p: Record<string, unknown>) => [
+      p.id as string,
+      ((p.users as { username?: string | null } | null)?.username ?? (p.subaccount_address as string | undefined)?.slice(0, 8) ?? "?"),
+    ])
+  );
+
   const rounds = arena.rounds ?? [];
   const currentRound = rounds.find(
     (r: Record<string, unknown>) => r.round_number === currentRoundNumber
@@ -120,6 +136,15 @@ export default function SpectatePage({
   const eliminationPercent = getEliminationPercent(currentRoundNumber);
 
   return (
+    <>
+      {/* Territory Draft Modal — floating, auto-shows when draft events arrive */}
+      {!isCompleted && (
+        <TerritoryDraftModal
+          events={events as Parameters<typeof TerritoryDraftModal>[0]["events"]}
+          currentRound={currentRoundNumber}
+          nameMap={nameMap}
+        />
+      )}
     <main className="min-h-screen pt-20 px-4 md:px-6 pb-8">
       <div className="max-w-7xl mx-auto">
         {/* Elimination Banner */}
@@ -268,9 +293,17 @@ export default function SpectatePage({
               totalVotes={totalVotes}
             />
             <ActivityFeed events={events as never[]} />
+            {/* Territory Board */}
+            {!isCompleted && (
+              <TerritoryBoard
+                arenaId={arenaId}
+                myParticipantId={myParticipantId}
+              />
+            )}
           </div>
         </div>
       </div>
     </main>
+    </>
   );
 }

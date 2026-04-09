@@ -38,9 +38,9 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 | 1 | Foundation | ✅ Done | 4/4 |
 | 2 | Engine Integration | ✅ Done | 8/8 |
 | 3 | Skirmish System | ✅ Done | 3/3 |
-| 4 | Frontend | 🔴 Not Started | 0/6 |
+| 4 | Frontend | ✅ Done | 6/6 |
 
-**Total tasks: 21 | Done: 15 | Remaining: 6**
+**Total tasks: 21 | Done: 21 | Remaining: 0**
 
 ---
 
@@ -167,35 +167,36 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 
 ### Tasks
 
-- [ ] **Step 10** — Frontend API Routes (3 files):
-  - `GET /api/arenas/[id]/territories` — board state (calls engine internal API)
-  - `POST /api/arenas/[id]/skirmish` — declare attack (proxied to engine)
-  - `GET /api/arenas/[id]/skirmish-log` — recent skirmishes for activity feed
+- [x] **Step 10** — Frontend API Routes (3 files):
+  - `GET /api/arenas/[id]/territories` — board state (proxies to engine `/internal/territory/board/:id`)
+  - `POST /api/arenas/[id]/territories/attack` — declare attack (resolves participant ID from auth, proxies to engine)
+  - `GET /api/arenas/[id]/territories/skirmish-log` — recent skirmishes (Supabase `territory_skirmishes`)
 
-- [ ] **Step 10.5** — Realtime Subscription for Territories (`src/hooks/use-arena-realtime.ts`):
-  - Read existing hook first to understand current subscription setup
-  - Add `participant_territories` table to the Supabase Realtime channel alongside existing subscriptions
-  - On INSERT/UPDATE: invalidate the territories board state query (TanStack Query `queryClient.invalidateQueries`)
-  - ⚠️ `participant_territories` must be enabled for Realtime in Supabase dashboard (Table Editor → Realtime toggle)
-  - ⚠️ Without this: board only updates on 60s polling fallback — territory swaps look instant to attacker but delayed to spectators
-  - Verify: declare skirmish in demo → board updates within 2s for all spectators
+- [x] **Step 10.5** — Realtime Subscription for Territories (`src/hooks/use-arena-realtime.ts`):
+  - Added `participant_territories` channel — invalidates `["territories", arenaId]` on any change
+  - `participant_territories` Realtime was enabled in Supabase dashboard in Phase 1
 
-- [ ] **Step 11** — `TerritoryBoard` component (`src/components/TerritoryBoard.tsx`):
-  - NxM grid of cells, each showing holder's username, PnL%, danger level
-  - Elimination zone cells highlighted in red
-  - Responsive, animated with Framer Motion
+- [x] **Step 11** — `TerritoryBoard` component (`src/components/TerritoryBoard.tsx`):
+  - NxM grid using CSS Grid, staggered Framer Motion entrance
+  - Elimination zones: red left border + rose-tinted background
+  - Cells show: label, username, live PnL%, PnL bonus indicator
+  - Click to attack: clicking another holder's cell opens inline attack confirmation
+  - Attack sends POST to `/api/arenas/[id]/territories/attack` with Privy JWT
 
-- [ ] **Step 12** — `TerritoryInfoCard` component (`src/components/TerritoryInfoCard.tsx`):
-  - Shows current trader's territory modifiers (PnL bonus, DD buffer, leverage cap)
-  - Appears in Trade page sidebar
+- [x] **Step 12** — `TerritoryInfoCard` component (`src/components/TerritoryInfoCard.tsx`):
+  - Reuses `["territories", arenaId]` query (shared cache with TerritoryBoard)
+  - Finds user's cell from board grid, shows PnL bonus, DD buffer, leverage cap
+  - Warning badge when in elimination zone
 
-- [ ] **Step 13** — `TerritoryDraftModal` component (`src/components/TerritoryDraftModal.tsx`):
-  - Shows draft order and current pick at round start
-  - Auto-dismiss when draft completes
+- [x] **Step 13** — `TerritoryDraftModal` component (`src/components/TerritoryDraftModal.tsx`):
+  - Filters events for `territory_draft` type within last 45s
+  - Floating overlay (top-center, z-40), auto-shows when draft events arrive
+  - Auto-hides when no recent draft events; dismissable by user
+  - Resets on round change
 
-- [ ] **Step 14** — Page Integration:
-  - **Spectate page** (`src/app/arenas/[arenaId]/spectate/page.tsx`): add `TerritoryBoard` + skirmish button
-  - **Trade page** (`src/app/arenas/[arenaId]/trade/page.tsx`): add `TerritoryInfoCard`
+- [x] **Step 14** — Page Integration:
+  - **Spectate page**: TerritoryBoard added in right sidebar below ActivityFeed; TerritoryDraftModal floating
+  - **Trade page**: TerritoryInfoCard in the sidebar space-y-4 column, below AccountPanel
 
 ---
 
@@ -220,14 +221,10 @@ The feature is complete when:
 
 *(Update this section whenever you stop. Include: last step completed, what's in progress, any blockers, Railway/Vercel deploy status.)*
 
-**Session Apr 9 2026 — Phase 1 DONE:**
-- Phase 1 complete (4/4 tasks). Committed and pushed.
-- DB migration run in Supabase dashboard — 3 tables, 8 indexes, RLS confirmed.
-- `participant_territories` Realtime toggled ON in Supabase dashboard.
-- `src/lib/supabase/types.ts` — 3 new table types added (Relationships: [] to match codebase pattern).
-- `engine/src/services/territory-manager.ts` — full service created (6 exported functions).
-- `engine/src/state/types.ts` — `territoryDrawdownBuffer: number` added to TraderState.
-- `engine/src/services/risk-monitor.ts` — `territoryDrawdownBuffer: 0` initialized in initArena().
-- `tests/engine/risk-monitor.test.ts` — field added to test helper.
-- tsc: 0 errors in new code. Pre-existing errors in bot-traders.ts/demo-setup.ts unchanged.
-- **Next: Phase 2 Step 3.6** — engine restart buffer reload in initArena().
+**Session Apr 9 2026 — ALL 4 PHASES DONE (21/21 tasks):**
+- Phase 1 complete: DB migration, types, territory-manager, TraderState cache
+- Phase 2 complete: Engine wiring (risk-monitor, arena-manager, round-engine, order-validator, demo-setup, bot-traders)
+- Phase 3 complete: Skirmish scheduler (preset-aware), skirmish API endpoints in engine/src/index.ts
+- Phase 4 complete: 3 Next.js API routes, Realtime hook update, TerritoryBoard, TerritoryInfoCard, TerritoryDraftModal, spectate+trade page integration
+- tsc: 0 errors (front + engine)
+- **Next: commit and push. Then verify on Railway: board visible, skirmish fires, bots attack.**
