@@ -134,5 +134,7 @@ function makeTrader(balance: number, positions: PositionState[]): TraderState {
     isInGracePeriod: false,
     status: "active",
     territoryDrawdownBuffer: 0,
+    abilityDrawdownBuffer: 0,
+    abilityShieldUntil: null,
   };
 }

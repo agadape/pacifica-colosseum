@@ -2,6 +2,7 @@ import { MockPriceGenerator } from "./price-generator";
 import { getSupabase } from "../db";
 import { mockCreateMarketOrder } from "./mock-pacifica";
 import { resolveSkirmish } from "../services/territory-manager";
+import { activateAbility } from "../services/ability-manager";
 
 interface BotPersonality {
   name: string;
@@ -66,6 +67,9 @@ export function startBotTraders(
 
   // Start skirmish scheduler so bots auto-attack when they have ≥15% PnL lead
   startBotSkirmishScheduler(arenaId);
+
+  // Start ability scheduler so bots use shield/sabotage appropriately
+  setInterval(() => runBotAbilityChecks(arenaId), 90_000);
 }
 
 /**
@@ -240,6 +244,88 @@ async function runBotSkirmishChecks(arenaId: string): Promise<void> {
         }
         break; // One attack per bot per interval
       }
+    }
+  }
+}
+
+/**
+ * Bot ability activation — runs every 90s.
+ * - Shield: activate if drawdown > 70% of max (defensive)
+ * - Sabotage: activate against PnL leader if bot has a top-2 position
+ * Each bot only uses each ability once (is_used guard in ability-manager handles idempotency).
+ */
+export async function runBotAbilityChecks(arenaId: string): Promise<void> {
+  const supabase = getSupabase();
+  const bots = activeBots.get(arenaId);
+  if (!bots?.length) return;
+
+  const { data: arena } = await supabase
+    .from("arenas")
+    .select("current_round")
+    .eq("id", arenaId)
+    .maybeSingle();
+
+  if (!arena) return;
+
+  const { data: round } = await supabase
+    .from("rounds")
+    .select("max_drawdown_percent")
+    .eq("arena_id", arenaId)
+    .eq("round_number", arena.current_round)
+    .maybeSingle();
+
+  const { data: participants } = await supabase
+    .from("arena_participants")
+    .select("id, total_pnl_percent, max_drawdown_hit, status")
+    .eq("arena_id", arenaId)
+    .eq("status", "active");
+
+  if (!participants?.length) return;
+
+  const maxDrawdown = round?.max_drawdown_percent ?? 20;
+
+  // Sort by PnL to identify leader
+  const sorted = [...participants].sort((a, b) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0));
+  const leader = sorted[0];
+
+  for (const bot of bots) {
+    const botData = participants.find(p => p.id === bot.participantId);
+    if (!botData) continue;
+
+    // Check unused abilities
+    const { data: abilities } = await supabase
+      .from("participant_abilities")
+      .select("ability_id")
+      .eq("arena_id", arenaId)
+      .eq("participant_id", bot.participantId)
+      .eq("is_used", false);
+
+    if (!abilities?.length) continue;
+
+    for (const ab of abilities) {
+      if (ab.ability_id === "shield") {
+        // Activate shield if drawdown exceeds 70% of max
+        const drawdownRatio = (botData.max_drawdown_hit ?? 0) / maxDrawdown;
+        if (drawdownRatio >= 0.7) {
+          try {
+            await activateAbility(arenaId, bot.participantId, "shield");
+            console.log(`[Bot Ability] ${bot.personality.name} activated Shield (drawdown at ${(drawdownRatio * 100).toFixed(0)}% of max)`);
+          } catch (err) {
+            console.error(`[Bot Ability] shield activation failed:`, err);
+          }
+        }
+      } else if (ab.ability_id === "sabotage") {
+        // Sabotage the leader if bot is not the leader
+        if (leader && leader.id !== bot.participantId) {
+          try {
+            await activateAbility(arenaId, bot.participantId, "sabotage", leader.id);
+            console.log(`[Bot Ability] ${bot.personality.name} sabotaged leader ${leader.id}`);
+          } catch (err) {
+            console.error(`[Bot Ability] sabotage activation failed:`, err);
+          }
+        }
+      }
+      // fortress and second_wind: bots don't auto-use these to avoid trivializing the demo
     }
   }
 }

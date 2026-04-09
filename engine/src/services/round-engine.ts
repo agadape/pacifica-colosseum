@@ -4,6 +4,8 @@ import { updateArenaRound, getArenaState } from "./risk-monitor";
 import { startGracePeriod } from "./grace-period";
 import { processInactivityElimination } from "./elimination-engine";
 import { executeTerritoryDraft, processTerritoryElimination } from "./territory-manager";
+import { awardAbilitiesForRound } from "./ability-manager";
+import { scheduleHazardsForRound } from "./hazard-manager";
 import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
@@ -40,10 +42,13 @@ export async function advanceRound(arenaId: string): Promise<void> {
   // then remaining bottom X% by PnL — DO NOT call processRankingElimination after this.
   await processTerritoryElimination(arenaId, currentRound);
 
-  // Step 3: Loot calculation (Wide Zone + Second Life)
+  // Step 3: Award abilities to top performers before grace period
+  await awardAbilitiesForRound(arenaId, currentRound);
+
+  // Step 4: Loot calculation (Wide Zone + Second Life)
   await calculateLoot(arenaId, currentRound);
 
-  // Step 4: Count remaining active traders
+  // Step 5: Count remaining active traders
   const state = getArenaState(arenaId);
   let activeCount = 0;
   if (state) {
@@ -52,13 +57,13 @@ export async function advanceRound(arenaId: string): Promise<void> {
     }
   }
 
-  // Step 5: Check if arena should end
+  // Step 6: Check if arena should end
   if (currentRound >= 4 || activeCount <= 1) {
     await endArena(arenaId);
     return;
   }
 
-  // Step 6: Update round status to completed
+  // Step 7: Update round status to completed
   await supabase
     .from("rounds")
     .update({
@@ -79,7 +84,7 @@ export async function advanceRound(arenaId: string): Promise<void> {
     data: { active_count: activeCount },
   });
 
-  // Step 7: Start grace period, then begin next round
+  // Step 8: Start grace period, then begin next round
   const nextRound = currentRound + 1;
   startGracePeriod(arenaId, nextRound, async () => {
     await beginNextRound(arenaId, nextRound);
@@ -186,6 +191,11 @@ async function beginNextRound(arenaId: string, roundNumber: number): Promise<voi
 
   // Run territory draft for this round (Round 1 draft is called by startArena(), not here)
   await executeTerritoryDraft(arenaId, roundNumber);
+
+  // Schedule hazard events for this round (fire-and-forget via setTimeout — do NOT await)
+  if (round?.ends_at) {
+    void scheduleHazardsForRound(arenaId, roundNumber, new Date(round.ends_at));
+  }
 
   // Schedule next round end
   if (round?.ends_at) {

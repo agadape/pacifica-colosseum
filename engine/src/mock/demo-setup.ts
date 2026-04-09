@@ -7,6 +7,7 @@ import { MockPriceGenerator } from "./price-generator";
 import { mockTransferFunds, mockCreateSubaccount, getAccount } from "./mock-pacifica";
 import { startBotTraders, stopBotTraders } from "./bot-traders";
 import { generateTerritories, executeTerritoryDraft } from "../services/territory-manager";
+import { registerArenaGenerator, unregisterArenaGenerator } from "../services/hazard-manager";
 
 /**
  * Tracks arenas that have been fully initialized by THIS process run.
@@ -602,6 +603,7 @@ function scheduleTraderDemoRounds_DEAD(
     leaderboard.stop();
     stopBotTraders(arenaId);
     priceGenerator.stop();
+    unregisterArenaGenerator(arenaId);
 
     const { data: survivors } = await supabase
       .from("arena_participants")
@@ -786,6 +788,7 @@ function scheduleTraderRoundsFrom(
     leaderboard.stop();
     stopBotTraders(arenaId);
     priceGenerator.stop();
+    unregisterArenaGenerator(arenaId);
 
     const { data: survivors } = await supabase
       .from("arena_participants")
@@ -912,6 +915,7 @@ async function startTraderArenaFromRegistration(arenaId: string): Promise<void> 
   const activeIds = new Set(registered.map(p => p.id));
   const priceGenerator = new MockPriceGenerator(0.002);
   priceGenerator.start();
+  registerArenaGenerator(arenaId, priceGenerator);
 
   startBotTraders(arenaId, bots, priceGenerator, ["BTC", "ETH", "SOL"]);
   const leaderboard = startTraderLeaderboard(arenaId, bots, activeIds, priceGenerator);
@@ -970,6 +974,7 @@ async function resumeTraderArena(
 
   const priceGenerator = new MockPriceGenerator(0.002);
   priceGenerator.start();
+  registerArenaGenerator(arenaId, priceGenerator);
 
   startBotTraders(arenaId, bots, priceGenerator, ["BTC", "ETH", "SOL"]);
   const leaderboard = startTraderLeaderboard(arenaId, bots, activeIds, priceGenerator);
@@ -1228,6 +1233,7 @@ async function _setupTraderDemoArena(): Promise<void> {
 
   const priceGenerator = new MockPriceGenerator(0.002);
   priceGenerator.start();
+  registerArenaGenerator(arena.id, priceGenerator);
 
   // Start after registration window closes
   setTimeout(async () => {
@@ -1540,6 +1546,7 @@ async function _setupDemoArena(): Promise<void> {
   // Start price generator
   const priceGenerator = new MockPriceGenerator(0.002);
   priceGenerator.start();
+  registerArenaGenerator(arena.id, priceGenerator);
 
   // Schedule arena start in 30s
   setTimeout(async () => {

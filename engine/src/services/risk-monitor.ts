@@ -4,6 +4,7 @@ import { keypairFromBase58 } from "../../../src/lib/utils/keypair";
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { getPriceManager, type PriceUpdate } from "../state/price-manager";
 import type { Json } from "../../../src/lib/supabase/types";
+import { reloadAbilityEffects } from "./ability-manager";
 import {
   type ArenaState,
   type TraderState,
@@ -113,6 +114,8 @@ export async function initArena(arenaId: string): Promise<void> {
       isInGracePeriod: false,
       status: "active",
       territoryDrawdownBuffer: 0, // populated by executeTerritoryDraft(); reloaded from DB on engine restart (Step 3.6)
+      abilityDrawdownBuffer: 0,   // populated by Fortress ability activation; reloaded on restart
+      abilityShieldUntil: null,   // ms timestamp for Shield expiry; reloaded on restart
     });
   }
 
@@ -124,6 +127,9 @@ export async function initArena(arenaId: string): Promise<void> {
     maxLeverage: round.max_leverage,
     allowedPairs: round.allowed_pairs,
     status: arena.status,
+    activeHazardLeverageCap: null,
+    activeHazardDrawdownReduction: 0,
+    activeHazardSideRestriction: null,
   };
 
   arenaStates.set(arenaId, arenaState);
@@ -150,6 +156,9 @@ export async function initArena(arenaId: string): Promise<void> {
   } catch (err) {
     console.error(`[RiskMonitor] Failed to restore territory buffers:`, err);
   }
+
+  // Reload ability effects (shield/fortress) from DB — restores in-memory state after Railway restart
+  await reloadAbilityEffects(arenaId);
 
   // Listen for price updates
   const priceManager = getPriceManager();
@@ -188,14 +197,20 @@ function onPriceUpdate(arenaId: string, symbol: string): void {
       trader.maxDrawdownHit = drawdown;
     }
 
-    // Apply Wide Zone bonus (+5%) and territory drawdown buffer (cached, no DB query)
+    // Apply Wide Zone bonus (+5%), territory buffer, ability buffer, minus hazard reduction — all cached, no DB query
     const effectiveMax = state.maxDrawdownPercent
       + (trader.hasWideZone ? 5 : 0)
-      + (trader.territoryDrawdownBuffer ?? 0);
+      + (trader.territoryDrawdownBuffer ?? 0)
+      + (trader.abilityDrawdownBuffer ?? 0)
+      - (state.activeHazardDrawdownReduction ?? 0);
 
-    // Check drawdown breach
+    // Check drawdown breach — skip if Shield is active
     if (drawdown >= effectiveMax) {
-      handleDrawdownBreach(state, trader);
+      if (trader.abilityShieldUntil && Date.now() < trader.abilityShieldUntil) {
+        // Shield active — immunity, do not eliminate
+      } else {
+        handleDrawdownBreach(state, trader);
+      }
     }
   }
 }
@@ -369,6 +384,10 @@ export function updateArenaRound(
   state.maxDrawdownPercent = maxDrawdownPercent;
   state.maxLeverage = maxLeverage;
   state.allowedPairs = allowedPairs;
+  // Clear all hazard overrides — new round starts clean
+  state.activeHazardLeverageCap = null;
+  state.activeHazardDrawdownReduction = 0;
+  state.activeHazardSideRestriction = null;
 
   // Reset drawdown baselines for surviving traders
   for (const [, trader] of state.traders) {
@@ -379,6 +398,8 @@ export function updateArenaRound(
       trader.hasSecondLife = false;
       trader.secondLifeUsed = false;
       trader.isInGracePeriod = false;
+      trader.abilityDrawdownBuffer = 0; // Fortress resets per round
+      trader.abilityShieldUntil = null; // Shield resets per round
     }
   }
 }

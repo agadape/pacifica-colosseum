@@ -61,6 +61,13 @@ export function useArenaRealtime(arenaId: string) {
       })
     );
 
+    // Hazard events (warning → active → expired transitions)
+    channels.push(
+      subscribeToTable(`hazards-${arenaId}`, "active_hazard_events", arenaId, () => {
+        queryClient.invalidateQueries({ queryKey: ["hazards", arenaId] });
+      })
+    );
+
     channelsRef.current = channels;
 
     return () => {

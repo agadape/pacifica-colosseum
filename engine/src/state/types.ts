@@ -28,6 +28,8 @@ export interface TraderState {
   isInGracePeriod: boolean;
   status: "active" | "eliminated";
   territoryDrawdownBuffer: number; // cached from territory draft, read in hot path (no DB query)
+  abilityDrawdownBuffer: number;   // DD buffer from Fortress ability, cached in hot path
+  abilityShieldUntil: number | null; // ms timestamp when Shield expires, null if not active
 }
 
 export interface ArenaState {
@@ -38,6 +40,10 @@ export interface ArenaState {
   maxLeverage: number;
   allowedPairs: string[];
   status: string;
+  // Active hazard overrides — set by hazard-manager, cleared on round transition
+  activeHazardLeverageCap: number | null;   // null = no hazard cap; overrides round max leverage
+  activeHazardDrawdownReduction: number;    // subtracted from effectiveMax (0 = no reduction)
+  activeHazardSideRestriction: "ask" | null; // "ask" = short orders blocked
 }
 
 export type DrawdownLevel = "safe" | "caution" | "danger" | "critical";

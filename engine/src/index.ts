@@ -12,6 +12,8 @@ import { getSupabase } from "./db";
 import type { OrderInput } from "./services/order-validator";
 import { startSkirmishScheduler, declareAttack, getSkirmishPhase } from "./services/skirmish-scheduler";
 import { getTerritoryBoardState } from "./services/territory-manager";
+import { activateAbility, getParticipantAbilities, getArenaActiveEffects } from "./services/ability-manager";
+import { getActiveHazards } from "./services/hazard-manager";
 
 /**
  * Wait until Supabase responds to a simple ping before starting heavy setup.
@@ -162,6 +164,41 @@ app.get("/internal/territory/phase/:arenaId", internalAuth, (req, res) => {
   } else {
     res.json({ active: false });
   }
+});
+
+// ---- Hazard endpoints ----
+
+app.get("/internal/hazards/active/:arenaId", internalAuth, async (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const data = await getActiveHazards(arenaId);
+  res.json({ data: data ?? [] });
+});
+
+// ---- Ability endpoints ----
+// NOTE: specific static segments must be registered BEFORE dynamic :param routes
+// or Express will match e.g. /internal/abilities/effects/X as arenaId="effects", participantId="X"
+
+app.get("/internal/abilities/effects/:arenaId", internalAuth, async (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const data = await getArenaActiveEffects(arenaId);
+  res.json({ data: data ?? [] });
+});
+
+app.get("/internal/abilities/:arenaId/:participantId", internalAuth, async (req, res) => {
+  const { arenaId, participantId } = req.params as { arenaId: string; participantId: string };
+  const data = await getParticipantAbilities(arenaId, participantId);
+  res.json({ data: data ?? [] });
+});
+
+app.post("/internal/abilities/activate", internalAuth, async (req, res) => {
+  const { arenaId, participantId, abilityId, targetParticipantId } = req.body as {
+    arenaId: string;
+    participantId: string;
+    abilityId: string;
+    targetParticipantId?: string;
+  };
+  const result = await activateAbility(arenaId, participantId, abilityId, targetParticipantId);
+  res.status(result.success ? 200 : 400).json(result);
 });
 
 const server = createServer(app);

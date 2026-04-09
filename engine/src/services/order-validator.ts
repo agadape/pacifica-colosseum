@@ -1,6 +1,7 @@
 import type { Database } from "../../../src/lib/supabase/types";
 import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
 import { getSupabase } from "../db";
+import { getArenaState } from "./risk-monitor";
 
 type ArenaRow = Database["public"]["Tables"]["arenas"]["Row"];
 type ParticipantRow = Database["public"]["Tables"]["arena_participants"]["Row"];
@@ -123,6 +124,50 @@ export async function validateOrder(
         valid: false,
         error: `Leverage ${order.leverage}x exceeds effective max of ${effectiveMaxLeverage}x (territory cap)`,
       };
+    }
+
+    // Check for active Sabotage effect targeting this participant
+    const nowIso = new Date().toISOString();
+    const { data: sabotageEffect } = await supabase
+      .from("active_ability_effects")
+      .select("effect_value")
+      .eq("arena_id", arenaId)
+      .eq("target_participant_id", participant.id)
+      .eq("effect_type", "target_leverage_reduction")
+      .eq("is_active", true)
+      .gt("expires_at", nowIso)
+      .maybeSingle();
+
+    if (sabotageEffect) {
+      const sabotageMax = Math.floor(effectiveMaxLeverage * (sabotageEffect.effect_value ?? 0.5));
+      if (order.leverage > sabotageMax) {
+        return {
+          valid: false,
+          error: `Leverage ${order.leverage}x exceeds sabotaged max of ${sabotageMax}x`,
+        };
+      }
+    }
+  }
+
+  // Check active hazard overrides (read from ArenaState — no DB query)
+  const arenaState = getArenaState(arenaId);
+  if (arenaState) {
+    // Hazard: Short Ban — block ask (short) orders
+    if (arenaState.activeHazardSideRestriction === order.side) {
+      return {
+        valid: false,
+        error: `Short orders are currently banned — Short Ban hazard active`,
+      };
+    }
+
+    // Hazard: Leverage Emergency — cap at hazard override (only if tighter than current effective max)
+    if (order.leverage && arenaState.activeHazardLeverageCap !== null) {
+      if (order.leverage > arenaState.activeHazardLeverageCap) {
+        return {
+          valid: false,
+          error: `Leverage ${order.leverage}x blocked — Leverage Emergency active (max ${arenaState.activeHazardLeverageCap}x)`,
+        };
+      }
     }
   }
 

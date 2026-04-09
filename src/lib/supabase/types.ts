@@ -686,6 +686,213 @@ export interface Database {
         };
         Relationships: [];
       };
+      abilities: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          rarity: string;
+          effect_type: string;
+          effect_value: number;
+          effect_duration_seconds: number;
+          min_round: number;
+          requires_target: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          rarity: string;
+          effect_type: string;
+          effect_value: number;
+          effect_duration_seconds?: number;
+          min_round?: number;
+          requires_target?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          icon?: string;
+          category?: string;
+          rarity?: string;
+          effect_type?: string;
+          effect_value?: number;
+          effect_duration_seconds?: number;
+          min_round?: number;
+          requires_target?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      participant_abilities: {
+        Row: {
+          id: string;
+          arena_id: string;
+          participant_id: string;
+          ability_id: string;
+          acquired_at: string;
+          acquired_in_round: number;
+          awarded_for: string;
+          is_used: boolean;
+          used_at: string | null;
+          target_participant_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          participant_id: string;
+          ability_id: string;
+          acquired_at?: string;
+          acquired_in_round: number;
+          awarded_for: string;
+          is_used?: boolean;
+          used_at?: string | null;
+          target_participant_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          participant_id?: string;
+          ability_id?: string;
+          acquired_at?: string;
+          acquired_in_round?: number;
+          awarded_for?: string;
+          is_used?: boolean;
+          used_at?: string | null;
+          target_participant_id?: string | null;
+        };
+        Relationships: [];
+      };
+      active_ability_effects: {
+        Row: {
+          id: string;
+          arena_id: string;
+          target_participant_id: string;
+          ability_id: string;
+          applied_by_participant_id: string | null;
+          effect_type: string;
+          effect_value: number;
+          applied_at: string;
+          expires_at: string;
+          is_active: boolean;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          target_participant_id: string;
+          ability_id: string;
+          applied_by_participant_id?: string | null;
+          effect_type: string;
+          effect_value: number;
+          applied_at?: string;
+          expires_at: string;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          target_participant_id?: string;
+          ability_id?: string;
+          applied_by_participant_id?: string | null;
+          effect_type?: string;
+          effect_value?: number;
+          applied_at?: string;
+          expires_at?: string;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+      hazard_events: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          severity: string;
+          warning_seconds: number;
+          duration_seconds: number;
+          effect_config: Json;
+          min_round: number;
+          max_occurrences_per_round: number;
+          weight: number;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: string;
+          severity: string;
+          warning_seconds?: number;
+          duration_seconds?: number;
+          effect_config: Json;
+          min_round?: number;
+          max_occurrences_per_round?: number;
+          weight?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string;
+          icon?: string;
+          category?: string;
+          severity?: string;
+          warning_seconds?: number;
+          duration_seconds?: number;
+          effect_config?: Json;
+          min_round?: number;
+          max_occurrences_per_round?: number;
+          weight?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      active_hazard_events: {
+        Row: {
+          id: string;
+          arena_id: string;
+          round_number: number;
+          hazard_id: string;
+          warned_at: string;
+          started_at: string | null;
+          expires_at: string | null;
+          status: string;
+          effect_state: Json | null;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          round_number: number;
+          hazard_id: string;
+          warned_at?: string;
+          started_at?: string | null;
+          expires_at?: string | null;
+          status?: string;
+          effect_state?: Json | null;
+        };
+        Update: {
+          id?: string;
+          arena_id?: string;
+          round_number?: number;
+          hazard_id?: string;
+          warned_at?: string;
+          started_at?: string | null;
+          expires_at?: string | null;
+          status?: string;
+          effect_state?: Json | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

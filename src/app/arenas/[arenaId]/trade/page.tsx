@@ -14,6 +14,8 @@ import PositionList from "@/components/trading/PositionList";
 import OrderList from "@/components/trading/OrderList";
 import AccountPanel from "@/components/trading/AccountPanel";
 import TerritoryInfoCard from "@/components/TerritoryInfoCard";
+import { AbilityPanel } from "@/components/AbilityPanel";
+import { HazardBanner } from "@/components/HazardBanner";
 
 const KNOWN_BOT_NAMES = new Set([
   "Conservative Carl", "Aggressive Alice", "Scalper Sam",
@@ -108,6 +110,9 @@ export default function TradePage({
 
   return (
     <>
+      {/* Hazard Banner — fixed top, shows warning/active hazards */}
+      <HazardBanner arenaId={arenaId} />
+
       {/* Elimination overlay — fullscreen */}
       <AnimatePresence>
         {showEliminated && (
@@ -294,6 +299,20 @@ export default function TradePage({
                 <TerritoryInfoCard
                   arenaId={arenaId}
                   myParticipantId={myParticipant.id as string}
+                />
+              )}
+
+              {/* Ability panel — shows owned abilities and active effects */}
+              {!!myParticipant?.id && myStatus === "active" && (
+                <AbilityPanel
+                  arenaId={arenaId}
+                  myParticipantId={myParticipant.id as string}
+                  targets={leaderboard
+                    .filter(p => p.id !== myParticipant?.id && p.status === "active")
+                    .map(p => ({
+                      participantId: p.id as string,
+                      username: (p.users as { username?: string | null } | null)?.username ?? (p.subaccount_address as string)?.slice(0, 6) ?? "?",
+                    }))}
                 />
               )}
 

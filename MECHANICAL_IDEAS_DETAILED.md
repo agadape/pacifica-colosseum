@@ -2,7 +2,19 @@
 
 **Purpose:** Deep-dive implementation specs for each mechanical idea. Every idea includes exact database schemas, algorithm pseudocode, API endpoints, edge cases, and integration points with existing code.
 
-**Last Updated:** April 8, 2026
+**Last Updated:** April 9, 2026
+
+---
+
+## Implementation Status
+
+| Idea | Status | Notes |
+|------|--------|-------|
+| 1 — Territorial Trading | ✅ Done | All 4 phases complete (DB, engine, frontend) |
+| 2 — Ability System | ✅ Done | DB migration, engine wiring, API routes, AbilityCard/AbilityPanel, trade page |
+| 3 — Alliance System | 🔴 Not Started | — |
+| 4 — Hazard Events | 🟡 In Progress | Plan written, see HAZARD_EVENTS_PROGRESS.md |
+| 5+ | 🔴 Not Started | — |
 
 ---
 
@@ -867,13 +879,15 @@ CREATE POLICY "Anyone can view skirmishes" ON territory_skirmishes FOR SELECT US
 
 ---
 
-# MECHANICAL IDEA 2: ABILITY SYSTEM
+# MECHANICAL IDEA 2: ABILITY SYSTEM ✅ IMPLEMENTED
 
 ## Overview
 
 Traders earn ability cards through achievements. Abilities provide temporary gameplay advantages. Creates strategic layer beyond pure trading skill.
 
 **Chess Parallel:** Like different piece types — each has unique power and usage.
+
+**Implementation:** `supabase/migrations/006_create_abilities.sql`, `engine/src/services/ability-manager.ts`, wired into risk-monitor/round-engine/order-validator/index.ts. Frontend: `AbilityCard.tsx`, `AbilityPanel.tsx`, trade page integration.
 
 ---
 

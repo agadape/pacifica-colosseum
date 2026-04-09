@@ -15,6 +15,7 @@ import AvatarRow from "@/components/spectator/AvatarRow";
 import EquityRaceChart from "@/components/spectator/EquityRaceChart";
 import TerritoryBoard from "@/components/TerritoryBoard";
 import TerritoryDraftModal from "@/components/TerritoryDraftModal";
+import { HazardBanner } from "@/components/HazardBanner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -137,6 +138,9 @@ export default function SpectatePage({
 
   return (
     <>
+      {/* Hazard Banner — fixed top, shows warning/active hazards */}
+      {!isCompleted && <HazardBanner arenaId={arenaId} />}
+
       {/* Territory Draft Modal — floating, auto-shows when draft events arrive */}
       {!isCompleted && (
         <TerritoryDraftModal
