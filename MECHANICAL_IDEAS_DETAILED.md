@@ -78,12 +78,19 @@ CREATE TABLE participant_territories (
   skirmishes_won INT DEFAULT 0,              -- Times successfully defended against attackers
   skirmishes_lost INT DEFAULT 0,             -- Times territory was stolen
   
-  UNIQUE(arena_id, participant_id, round_acquired) -- One territory per participant per round
+  -- NOTE: No plain UNIQUE constraint. Use partial unique index below instead.
+  -- A plain UNIQUE(arena_id, participant_id, round_acquired) crashes in swapTerritories:
+  -- that function sets is_active=false then INSERTs a new row with the same composite key,
+  -- which violates a plain UNIQUE. The partial index (WHERE is_active=true) allows this.
 );
 
 CREATE INDEX idx_pt_arena ON participant_territories(arena_id);
 CREATE INDEX idx_pt_participant ON participant_territories(participant_id);
 CREATE INDEX idx_pt_territory ON participant_territories(territory_id);
+-- Partial unique index: one ACTIVE territory per participant per round (not a plain UNIQUE).
+CREATE UNIQUE INDEX idx_pt_one_active_per_round
+  ON participant_territories(arena_id, participant_id, round_acquired)
+  WHERE is_active = true;
 CREATE INDEX idx_pt_active ON participant_territories(arena_id, is_active) WHERE is_active = true;
 ```
 

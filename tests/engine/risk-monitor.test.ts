@@ -133,5 +133,6 @@ function makeTrader(balance: number, positions: PositionState[]): TraderState {
     secondLifeUsed: false,
     isInGracePeriod: false,
     status: "active",
+    territoryDrawdownBuffer: 0,
   };
 }

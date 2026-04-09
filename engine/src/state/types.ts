@@ -27,6 +27,7 @@ export interface TraderState {
   secondLifeUsed: boolean;
   isInGracePeriod: boolean;
   status: "active" | "eliminated";
+  territoryDrawdownBuffer: number; // cached from territory draft, read in hot path (no DB query)
 }
 
 export interface ArenaState {

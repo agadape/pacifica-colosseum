@@ -112,6 +112,7 @@ export async function initArena(arenaId: string): Promise<void> {
       secondLifeUsed: p.second_life_used,
       isInGracePeriod: false,
       status: "active",
+      territoryDrawdownBuffer: 0, // populated by executeTerritoryDraft(); reloaded from DB on engine restart (Step 3.6)
     });
   }
 

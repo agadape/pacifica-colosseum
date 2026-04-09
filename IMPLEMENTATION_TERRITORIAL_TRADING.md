@@ -124,8 +124,12 @@ CREATE TABLE participant_territories (
   skirmishes_won INT DEFAULT 0,               -- Times successfully defended against attackers
   skirmishes_lost INT DEFAULT 0,              -- Times territory was stolen
 
-  -- PREVENT DUPLICATES: One territory per participant per round
-  UNIQUE(arena_id, participant_id, round_acquired)
+  -- NOTE: No UNIQUE constraint here — uniqueness is enforced via partial index below.
+  -- A plain UNIQUE(arena_id, participant_id, round_acquired) would crash in swapTerritories:
+  -- swapTerritories sets the old row is_active=false then INSERTs a new row with the same
+  -- composite key. Both old and new rows share (arena_id, participant_id, round_acquired),
+  -- which would violate a plain UNIQUE. The partial index (WHERE is_active = true) allows
+  -- this because only ONE row with is_active=true can exist per key combination.
 );
 
 COMMENT ON TABLE participant_territories IS 'Who owns which territory + movement history';
@@ -167,7 +171,10 @@ COMMENT ON COLUMN territory_skirmishes.skirmish_won_by IS 'attacker = territory 
 -- - idx_pt_arena: All participant_territories for one arena (for draft validation)
 -- - idx_pt_participant: All territories owned by one participant (for trader view)
 -- - idx_pt_territory: Who owns a specific territory cell (for skirmish validation)
--- - idx_pt_active: Fast lookup of only active territories (partial index for performance)
+-- - idx_pt_one_active_per_round: PARTIAL UNIQUE — enforces one active territory per participant per round
+--   Uses WHERE is_active = true so swapTerritories can deactivate old row + insert new row
+--   with same (arena_id, participant_id, round_acquired) without constraint violation.
+-- - idx_pt_active: Fast lookup of only active territories for an arena (separate from uniqueness)
 -- - idx_skirmishes_arena_round: All skirmishes in a round (for replay/audit)
 
 CREATE INDEX idx_territories_arena ON territories(arena_id);
@@ -175,6 +182,11 @@ CREATE INDEX idx_territories_row ON territories(arena_id, row_index);
 CREATE INDEX idx_pt_arena ON participant_territories(arena_id);
 CREATE INDEX idx_pt_participant ON participant_territories(participant_id);
 CREATE INDEX idx_pt_territory ON participant_territories(territory_id);
+-- CRITICAL: This partial unique index replaces a plain UNIQUE constraint.
+-- See comment on participant_territories table above for full explanation.
+CREATE UNIQUE INDEX idx_pt_one_active_per_round
+  ON participant_territories(arena_id, participant_id, round_acquired)
+  WHERE is_active = true;
 CREATE INDEX idx_pt_active ON participant_territories(arena_id, is_active) WHERE is_active = true;
 CREATE INDEX idx_skirmishes_arena_round ON territory_skirmishes(arena_id, round_number);
 
@@ -229,7 +241,10 @@ WHERE schemaname = 'public'
   AND tablename IN ('territories', 'participant_territories', 'territory_skirmishes')
   AND indexname LIKE 'idx_%'
 ORDER BY indexname;
--- EXPECTED: 7 rows (idx_pt_active, idx_pt_arena, idx_pt_participant, idx_pt_territory, idx_skirmishes_arena_round, idx_territories_arena, idx_territories_row)
+-- EXPECTED: 8 rows:
+--   idx_pt_active, idx_pt_arena, idx_pt_one_active_per_round (UNIQUE partial),
+--   idx_pt_participant, idx_pt_territory,
+--   idx_skirmishes_arena_round, idx_territories_arena, idx_territories_row
 
 -- 4. Check foreign key relationships
 SELECT tc.table_name, tc.constraint_name, kcu.column_name, ccu.table_name AS foreign_table_name
@@ -794,25 +809,38 @@ interface DraftPick {
  *
  * ALGORITHM:
  * 1. Forward pass: participants in original order (1st to last)
- * 2. Reverse pass: participants in reverse order (last to 2nd-to-first)
- * 3. Trim to exact participant count (snake produces 2n-1 picks, we need n)
+ * 2. Reverse pass: participants in reverse order (last to 1st)
+ * 3. Trim to n picks (we need exactly one pick per participant)
+ *
+ * EXAMPLE with 4 traders sorted by PnL DESC [A(best), B, C, D(worst)]:
+ * Forward: [A, B, C, D]
+ * Reverse: [D, C, B, A]
+ * Combined: [A, B, C, D, D, C, B, A]
+ * Slice to 4: [A, B, C, D]   ← A picks first (best territory), D picks last
+ *
+ * WHY SNAKE: In future if grid has more cells than participants (it does — e.g., 4
+ * traders on a 2x3 = 6-cell grid), a second round of picks would give D first pick
+ * of the remaining cells, balancing fairness. For now, slice(0, n) gives one pick each.
+ *
+ * ⚠️ BUG IN ORIGINAL ALGORITHM: The old code interleaved forward[i] and reverse[i]
+ * in the same loop iteration, producing [A, D, B, C] instead of [A, B, C, D].
+ * The correct approach is a full forward pass, then a full reverse pass, then slice.
  */
 function generateSnakeOrder(participants: Array<{ id: string }>): DraftPick[] {
   const order: DraftPick[] = [];
-  const forward = [...participants];
-  const reverse = [...participants].reverse();
-
   let pickNumber = 1;
-  for (let i = 0; i < forward.length; i++) {
-    // Forward pick
-    order.push({ pick: pickNumber++, participantId: forward[i].id });
-    // Reverse pick (skip last one to avoid duplicate at end)
-    if (i < reverse.length - 1) {
-      order.push({ pick: pickNumber++, participantId: reverse[i].id });
-    }
+
+  // Forward pass: 1st place → last place
+  for (const p of participants) {
+    order.push({ pick: pickNumber++, participantId: p.id });
   }
 
-  // Snake draft produces 2n-1 picks, but we only need n (one per participant)
+  // Reverse pass: last place → 1st place (snake turn-around)
+  for (const p of [...participants].reverse()) {
+    order.push({ pick: pickNumber++, participantId: p.id });
+  }
+
+  // One pick per participant — slice to n
   return order.slice(0, participants.length);
 }
 
@@ -1188,6 +1216,20 @@ export async function processTerritoryElimination(
       equity,
       drawdown: trader?.maxDrawdownHit ?? 0,
     });
+
+    // Deactivate the eliminated trader's territory.
+    // WHY: eliminateTrader() does NOT clean up participant_territories.
+    // Without this, the board shows an eliminated trader as still holding a cell,
+    // and getTerritoryBoardState() would display a ghost territory holder forever.
+    await supabase
+      .from("participant_territories")
+      .update({
+        is_active: false,
+        pnl_at_release: entry.pnl * 100, // store as percent
+      })
+      .eq("arena_id", arenaId)
+      .eq("participant_id", entry.participantId)
+      .eq("is_active", true);
   }
 
   console.log(
@@ -1340,7 +1382,118 @@ npx tsc --noEmit
 
 ---
 
-*(Document continues with Steps 4-14 below — each with the same level of detail: what you're doing, exact file location, exact code with comments explaining WHY and HOW it connects to existing code, and verification steps)*
+## Step 3.5: Add `territoryDrawdownBuffer` to TraderState (in-memory cache)
+
+### What you're doing
+Adding a `territoryDrawdownBuffer` field to the in-memory `TraderState` so that the drawdown
+buffer from a trader's territory can be applied **synchronously** in the price-tick hot path
+(`onPriceUpdate` in risk-monitor.ts), without making any Supabase queries.
+
+### WHY THIS IS REQUIRED — Supabase Stability
+
+**This project suffered a Supabase flooding crisis (Apr 8–9 2026) from too many DB calls.**
+The resuming notes in `DEVELOPMENT_LAYERS.md` explicitly state:
+- pnlTimer ≥ 15s — no new high-frequency DB polling
+- Never add async Supabase calls to the real-time price path
+
+`onPriceUpdate` runs ~1/second per price symbol. If we queried `participant_territories`
+there, 10 traders × 1/sec = 600+ queries/minute — recreating the flooding crisis.
+
+The fix: cache the territory buffer in `TraderState` (loaded once at draft time, not per tick).
+
+### File to modify
+`engine/src/state/types.ts`
+
+### CHANGE: Add `territoryDrawdownBuffer` to `TraderState`
+
+**FIND THIS CODE:**
+```typescript
+export interface TraderState {
+  participantId: string;
+  userId: string;
+  subaccountAddress: string;
+  balance: number;
+  positions: Map<string, PositionState>;
+  equityBaseline: number;
+  currentEquity: number;
+  currentDrawdownPercent: number;
+  maxDrawdownHit: number;
+  hasWideZone: boolean;
+  hasSecondLife: boolean;
+  secondLifeUsed: boolean;
+  isInGracePeriod: boolean;
+  status: "active" | "eliminated";
+}
+```
+
+**REPLACE WITH:**
+```typescript
+export interface TraderState {
+  participantId: string;
+  userId: string;
+  subaccountAddress: string;
+  balance: number;
+  positions: Map<string, PositionState>;
+  equityBaseline: number;
+  currentEquity: number;
+  currentDrawdownPercent: number;
+  maxDrawdownHit: number;
+  hasWideZone: boolean;
+  hasSecondLife: boolean;
+  secondLifeUsed: boolean;
+  isInGracePeriod: boolean;
+  status: "active" | "eliminated";
+  // Territory drawdown buffer — cached from participant_territories at draft time.
+  // Avoids DB queries in the hot price-update path. Updated by executeTerritoryDraft().
+  // Default 0 (no buffer) for arenas without territories (e.g., demo arenas).
+  territoryDrawdownBuffer: number;
+}
+```
+
+### ALSO: Update `initArena` in risk-monitor.ts to initialize this field
+
+When traders are loaded into memory in `initArena()`, the new field must be initialized.
+Find the `traders.set(p.id, { ... })` block in `initArena` and add the field:
+
+```typescript
+traders.set(p.id, {
+  participantId: p.id,
+  // ... all existing fields ...
+  isInGracePeriod: false,
+  status: "active",
+  territoryDrawdownBuffer: 0,   // ← ADD THIS LINE
+});
+```
+
+### ALSO: Update `executeTerritoryDraft` in territory-manager.ts to populate it
+
+After the `await supabase.from("participant_territories").insert(...)` call for each pick,
+add the following to update in-memory state:
+
+```typescript
+    // Cache territory buffer in in-memory TraderState.
+    // CRITICAL: risk-monitor.ts reads this synchronously on every price tick.
+    // If we don't update it here, traders get no territory drawdown benefit until restart.
+    const arenaState = getArenaState(arenaId);
+    if (arenaState) {
+      const traderState = arenaState.traders.get(pick.participantId);
+      if (traderState) {
+        traderState.territoryDrawdownBuffer = bestAvailable.drawdown_buffer_percent ?? 0;
+      }
+    }
+```
+
+This requires importing `getArenaState` at the top of `territory-manager.ts` — it is already
+imported: `import { getArenaState } from "./risk-monitor";`
+
+### HOW TO VERIFY
+
+```bash
+cd engine && npx tsc --noEmit
+# EXPECTED: No errors. If TypeScript complains about missing field:
+# - Check that ALL places that create a TraderState object now include territoryDrawdownBuffer: 0
+# - Run: grep -r "traders.set\|TraderState" engine/src to find all instantiation sites
+```
 
 ---
 
@@ -1373,10 +1526,12 @@ import { scheduleRoundEnd } from "../timers/round-timer";
 **WHERE TO ADD:** After line 9 (after the `scheduleRoundEnd` import), add:
 
 ```typescript
-import { generateTerritories } from "./territory-manager";
+import { generateTerritories, executeTerritoryDraft } from "./territory-manager";
 ```
 
-**WHY THIS LOCATION:** Imports are at the top of the file. Adding it here keeps the import organization consistent.
+**WHY BOTH EXPORTS:** `generateTerritories` creates the grid; `executeTerritoryDraft` assigns traders
+to cells. Both must be called in `startArena()` — see CHANGE 2. `executeTerritoryDraft` is also
+called in `beginNextRound()` (Step 5) for Rounds 2+, but Round 1 must be handled here.
 
 **WHAT THE IMPORTS LOOK LIKE AFTER:**
 ```typescript
@@ -1389,7 +1544,7 @@ import { initArena } from "./risk-monitor";
 import { startPeriodicSync } from "./periodic-sync";
 import { startLeaderboardUpdater } from "./leaderboard-updater";
 import { scheduleRoundEnd } from "../timers/round-timer";
-import { generateTerritories } from "./territory-manager";  // ← NEW LINE
+import { generateTerritories, executeTerritoryDraft } from "./territory-manager";  // ← NEW LINE
 ```
 
 ### EXISTING CODE CONTEXT (lines 115-135 of arena-manager.ts)
@@ -1426,8 +1581,14 @@ Find this section in the `startArena` function — it's right after leverage is 
 ```typescript
   // Generate territory grid for this arena
   // WHY HERE: Territories must exist before risk monitoring starts
-  // so that the draft can execute when beginNextRound is called
   await generateTerritories(arenaId);
+
+  // Run Round 1 territory draft immediately after generation.
+  // CRITICAL: executeTerritoryDraft is called by beginNextRound() for Rounds 2+,
+  // but beginNextRound() is NOT called for Round 1. Without this call, every trader
+  // starts Round 1 with no territory — the board is empty, no bonuses apply,
+  // and processTerritoryElimination finds nothing to eliminate.
+  await executeTerritoryDraft(arenaId, 1);
 ```
 
 **WHAT THE CODE LOOKS LIKE AFTER:**
@@ -1450,9 +1611,9 @@ Find this section in the `startArena` function — it's right after leverage is 
   }
 
   // Generate territory grid for this arena
-  // WHY HERE: Territories must exist before risk monitoring starts
-  // so that the draft can execute when beginNextRound is called
   await generateTerritories(arenaId);
+  // Execute Round 1 draft (Rounds 2+ are handled by beginNextRound in round-engine.ts)
+  await executeTerritoryDraft(arenaId, 1);
 
   // Create arena_start event
   await supabase.from("events").insert({
@@ -1482,7 +1643,7 @@ EXISTING FLOW:
 9. Start leaderboard updater                   ← EXISTING
 10. Schedule round 1 end timer                 ← EXISTING
 
-NEW FLOW (only step 6 added):
+NEW FLOW (steps 6-7 added):
 1. Fetch arena from DB
 2. Fetch participants
 3. For each participant:
@@ -1492,11 +1653,12 @@ NEW FLOW (only step 6 added):
 4. Update arena status to "round_1"
 5. Set leverage for all participants
 6. ✨ Generate territory grid (NEW)
-7. Create arena_start event
-8. Start risk monitoring (initArena)
-9. Start periodic sync
-10. Start leaderboard updater
-11. Schedule round 1 end timer
+7. ✨ Execute Round 1 draft (NEW) ← must be here; beginNextRound never runs for Round 1
+8. Create arena_start event
+9. Start risk monitoring (initArena)
+10. Start periodic sync
+11. Start leaderboard updater
+12. Schedule round 1 end timer
 ```
 
 ### HOW TO VERIFY
@@ -1565,16 +1727,39 @@ import { executeTerritoryDraft, processTerritoryElimination } from "./territory-
   await calculateLoot(arenaId, currentRound);
 ```
 
-### CHANGE 2: Add territory elimination between inactivity and ranking elimination
+### CHANGE 2: REPLACE ranking elimination with territory elimination
 
-**WHERE TO INSERT:** Between Step 1 (inactivity elimination) and Step 2 (ranking elimination)
+**⚠️ CRITICAL — DO NOT add `processTerritoryElimination` before `processRankingElimination`.
+Replace `processRankingElimination` entirely. Running both causes double-elimination:**
+- Territory elimination: eliminates 30% of 10 traders = 3 eliminated
+- Ranking elimination (if kept): eliminates 30% of the remaining 7 = 2 more
+- **Total: 5 eliminated instead of 3 — violates PROTOCOL.md §4.1**
 
-**EXACT CODE TO INSERT:**
+`processTerritoryElimination` already handles the FULL elimination count correctly:
+- Sorts elimination-zone territory holders FIRST (territorial priority)
+- Then remaining traders sorted by PnL ascending
+- Eliminates `eliminationPercent%` total (same count as before, same protocol rules)
+- It is a SUPERSET of `processRankingElimination`, not an addition.
+
+**WHERE TO CHANGE:** Replace Step 2 (ranking eliminations block) entirely.
+
+**FIND THIS CODE:**
 ```typescript
-  // Step 1.5: Territory-based elimination
-  // WHY HERE: Eliminate traders in bottom-row territories FIRST
-  // Then ranking elimination handles the rest
-  // This makes territory position matter for survival
+  // Step 2: Process ranking eliminations
+  if (roundParams.eliminationPercent > 0) {
+    await processRankingElimination(arenaId, currentRound, roundParams.eliminationPercent);
+  } else if (currentRound === 3) {
+    // Round 3: top 5 advance (handled inside processRankingElimination)
+    await processRankingElimination(arenaId, currentRound, 0);
+  }
+```
+
+**REPLACE WITH:**
+```typescript
+  // Step 2: Territory-aware elimination (replaces old processRankingElimination)
+  // WHY: processTerritoryElimination handles elimination-zone priority + PnL ranking
+  // in a single combined pass. Do NOT call processRankingElimination after this —
+  // that would eliminate an additional eliminationPercent% of survivors.
   await processTerritoryElimination(arenaId, currentRound);
 ```
 
@@ -1587,22 +1772,19 @@ import { executeTerritoryDraft, processTerritoryElimination } from "./territory-
     await processInactivityElimination(arenaId, currentRound, arena.starting_capital);
   }
 
-  // Step 1.5: Territory-based elimination
-  // WHY HERE: Eliminate traders in bottom-row territories FIRST
-  // Then ranking elimination handles the rest
-  // This makes territory position matter for survival
+  // Step 2: Territory-aware elimination (replaces old processRankingElimination)
+  // Elimination-zone holders eliminated first, then bottom PnL% as per protocol.
+  // DO NOT call processRankingElimination after this — it would double-eliminate.
   await processTerritoryElimination(arenaId, currentRound);
-
-  // Step 2: Process ranking eliminations
-  if (roundParams.eliminationPercent > 0) {
-    await processRankingElimination(arenaId, currentRound, roundParams.eliminationPercent);
-  } else if (currentRound === 3) {
-    // Round 3: top 5 advance (handled inside processRankingElimination)
-    await processRankingElimination(arenaId, currentRound, 0);
-  }
 
   // Step 3: Loot calculation (Wide Zone + Second Life)
   await calculateLoot(arenaId, currentRound);
+```
+
+**ALSO REMOVE** the `processRankingElimination` import from CHANGE 1 since it is no longer called
+in `advanceRound`. The import in CHANGE 1 should be only:
+```typescript
+import { executeTerritoryDraft, processTerritoryElimination } from "./territory-manager";
 ```
 
 ### EXISTING CODE CONTEXT (beginNextRound function, lines 140-155)
@@ -1767,9 +1949,20 @@ function onPriceUpdate(arenaId: string, symbol: string): void {
 }
 ```
 
-### CHANGE 2: Add territory drawdown buffer to effectiveMax calculation
+### CHANGE 2: Apply territory buffer synchronously in `onPriceUpdate`
 
-**WHERE TO MODIFY:** Replace the "Apply Wide Zone bonus" block (lines ~165-168) with territory-aware version.
+**⚠️ DO NOT add async DB queries to `onPriceUpdate` or `handleDrawdownBreach`.**
+
+The original guide proposed querying `participant_territories` inside `handleDrawdownBreach`.
+This is wrong — `handleDrawdownBreach` is called on every price tick when drawdown ≥ round max.
+If a trader sits in the buffer zone (e.g. 16% drawdown, 15% round limit, +3% territory buffer),
+this fires every second indefinitely → 60+ Supabase queries/minute per such trader.
+This would recreate the flooding crisis documented in `DEVELOPMENT_LAYERS.md § Notes for Resuming Agents`.
+
+**The correct approach: read `territoryDrawdownBuffer` from in-memory `TraderState`.**
+This field is populated by `executeTerritoryDraft()` (Step 3.5 above). Zero DB calls in the hot path.
+
+**WHERE TO MODIFY:** Replace the "Apply Wide Zone bonus" block in `onPriceUpdate`.
 
 **FIND THIS CODE:**
 ```typescript
@@ -1777,28 +1970,82 @@ function onPriceUpdate(arenaId: string, symbol: string): void {
     const effectiveMax = trader.hasWideZone
       ? state.maxDrawdownPercent + 5
       : state.maxDrawdownPercent;
+
+    // Check drawdown breach
+    if (drawdown >= effectiveMax) {
+      handleDrawdownBreach(state, trader);
+    }
 ```
 
 **REPLACE WITH:**
 ```typescript
-    // Calculate effective max drawdown with territory buffer
-    // Territory drawdown buffer is added to the round's max drawdown
-    // Example: Round max = 15%, Territory buffer = +3% → effective max = 18%
-    // Wide Zone adds +5% on top if trader has it
-    // NOTE: This is a synchronous read from in-memory state, so we can't async query DB here.
-    // The territory buffer is read from the in-memory trader state (set during onTradeExecuted
-    // or round transitions). For full accuracy, territory data should be loaded into trader state.
-    // For now, we'll handle this in handleDrawdownBreach with a DB check.
-    const effectiveMax = trader.hasWideZone
-      ? state.maxDrawdownPercent + 5
-      : state.maxDrawdownPercent;
+    // Apply Wide Zone bonus (+5%) AND territory buffer (cached from draft, no DB call)
+    // Both are additive on top of the round's base max drawdown.
+    // Example: Round max = 15%, Wide Zone = +5%, Territory buffer = +3% → effectiveMax = 23%
+    const effectiveMax = state.maxDrawdownPercent
+      + (trader.hasWideZone ? 5 : 0)
+      + (trader.territoryDrawdownBuffer ?? 0);
+
+    // Check drawdown breach
+    if (drawdown >= effectiveMax) {
+      handleDrawdownBreach(state, trader);
+    }
 ```
 
-**EXPLANATION:** The `onPriceUpdate` function runs on EVERY price tick (~1/sec) and MUST be synchronous. We can't add async DB queries here. Instead, we handle the territory buffer check in `handleDrawdownBreach` which IS async.
+**NO CHANGES NEEDED to `handleDrawdownBreach`.** The territory buffer is already accounted
+for in `onPriceUpdate` before the breach is detected. `handleDrawdownBreach` only fires if
+drawdown genuinely exceeds the territory-adjusted limit.
 
-### CHANGE 3: Add territory buffer check in handleDrawdownBreach
+### HOW TO VERIFY
 
-### EXISTING CODE CONTEXT (handleDrawdownBreach function, lines 180-195)
+```bash
+cd engine && npx tsc --noEmit
+# EXPECTED: No errors.
+# MANUAL CHECK: In onPriceUpdate, confirm effectiveMax now has 3 additive terms.
+# SUPABASE CHECK: No new queries should appear in Supabase logs during normal trading.
+```
+
+### COMPLETE `onPriceUpdate` AFTER MODIFICATION:
+
+```typescript
+function onPriceUpdate(arenaId: string, symbol: string): void {
+  const state = arenaStates.get(arenaId);
+  if (!state) return;
+
+  const priceManager = getPriceManager();
+  const allPrices = priceManager.getAllPrices();
+
+  for (const [, trader] of state.traders) {
+    if (trader.status !== "active") continue;
+    if (trader.isInGracePeriod) continue;
+    if (!trader.positions.has(symbol)) continue;
+
+    const equity = calcEquity(trader, allPrices);
+    trader.currentEquity = equity;
+
+    const drawdown = calcDrawdownPercent(equity, trader.equityBaseline);
+    trader.currentDrawdownPercent = drawdown;
+    if (drawdown > trader.maxDrawdownHit) {
+      trader.maxDrawdownHit = drawdown;
+    }
+
+    // Apply Wide Zone bonus (+5%) AND territory buffer (cached from draft, no DB call)
+    const effectiveMax = state.maxDrawdownPercent
+      + (trader.hasWideZone ? 5 : 0)
+      + (trader.territoryDrawdownBuffer ?? 0);
+
+    if (drawdown >= effectiveMax) {
+      handleDrawdownBreach(state, trader);
+    }
+  }
+}
+```
+
+### NOTE: `handleDrawdownBreach` is UNCHANGED
+
+The original guide's CHANGE 3 (adding an async DB query to `handleDrawdownBreach`) is
+**intentionally omitted**. The territory buffer is handled in `onPriceUpdate` above.
+`handleDrawdownBreach` keeps its existing logic:
 
 ```typescript
 async function handleDrawdownBreach(
@@ -1807,86 +2054,15 @@ async function handleDrawdownBreach(
 ): Promise<void> {
   const supabase = getSupabase();
 
-  // Check Second Life
+  // Check Second Life (unchanged)
   if (trader.hasSecondLife && !trader.secondLifeUsed) {
     trader.secondLifeUsed = true;
-    trader.equityBaseline = trader.currentEquity; // reset baseline
-    trader.currentDrawdownPercent = 0;
-    // ... [rest of Second Life handling] ...
-    return;
-  }
-
-  // Eliminate trader
-  trader.status = "eliminated";
-  // ... [rest of elimination] ...
-```
-
-**WHERE TO MODIFY:** BEFORE the "Check Second Life" block, add territory buffer check.
-
-**INSERT BEFORE `// Check Second Life`:**
-```typescript
-  // STEP 1: Check territory drawdown buffer
-  // Territory holders get additional drawdown buffer on top of round max
-  // This is checked HERE (not in onPriceUpdate) because we can async query DB
-  const { data: pt } = await supabase
-    .from("participant_territories")
-    .select("territories!inner(drawdown_buffer_percent)")
-    .eq("arena_id", state.arenaId)
-    .eq("participant_id", trader.participantId)
-    .eq("is_active", true)
-    .single();
-
-  const territoryBuffer = pt?.territories?.drawdown_buffer_percent ?? 0;
-  const effectiveMaxWithTerritory = state.maxDrawdownPercent + territoryBuffer;
-
-  // If drawdown is within territory buffer, trader is safe
-  if (trader.currentDrawdownPercent < effectiveMaxWithTerritory) {
-    return; // Territory buffer saved the trader
-  }
-
-  // STEP 2: Check Second Life (only if territory buffer wasn't enough)
-  if (trader.hasSecondLife && !trader.secondLifeUsed) {
-```
-
-### COMPLETE handleDrawdownBreach AFTER MODIFICATION:
-
-```typescript
-async function handleDrawdownBreach(
-  state: ArenaState,
-  trader: TraderState
-): Promise<void> {
-  const supabase = getSupabase();
-
-  // STEP 1: Check territory drawdown buffer
-  // Territory holders get additional drawdown buffer on top of round max
-  // This is checked HERE (not in onPriceUpdate) because we can async query DB
-  const { data: pt } = await supabase
-    .from("participant_territories")
-    .select("territories!inner(drawdown_buffer_percent)")
-    .eq("arena_id", state.arenaId)
-    .eq("participant_id", trader.participantId)
-    .eq("is_active", true)
-    .single();
-
-  const territoryBuffer = pt?.territories?.drawdown_buffer_percent ?? 0;
-  const effectiveMaxWithTerritory = state.maxDrawdownPercent + territoryBuffer;
-
-  // If drawdown is within territory buffer, trader is safe
-  if (trader.currentDrawdownPercent < effectiveMaxWithTerritory) {
-    return; // Territory buffer saved the trader
-  }
-
-  // STEP 2: Check Second Life (only if territory buffer wasn't enough)
-  if (trader.hasSecondLife && !trader.secondLifeUsed) {
-    trader.secondLifeUsed = true;
-    trader.equityBaseline = trader.currentEquity; // reset baseline
+    trader.equityBaseline = trader.currentEquity;
     trader.currentDrawdownPercent = 0;
 
     await supabase
       .from("arena_participants")
-      .update({
-        second_life_used: true,
-      })
+      .update({ second_life_used: true })
       .eq("id", trader.participantId);
 
     await supabase.from("events").insert({
@@ -1992,12 +2168,42 @@ export async function processRankingElimination(
   if (rankings.length === 0) return;
 ```
 
-### CHANGE 2: Add territory PnL bonus after base PnL calculation
+### CHANGE 2: Batch-query all territory bonuses, then apply in loop
 
-**WHERE TO MODIFY:** Inside the `for` loop, after `pnlPercent` is calculated and before `rankings.push()`.
+**⚠️ TWO BUGS in the original Step 7 code — both fixed here:**
 
-**FIND THIS CODE:**
+**Bug A — Missing `supabase` variable**: The original replacement code uses `await supabase.from(...)`
+inside `processRankingElimination`, but the function never declares `const supabase = getSupabase()`.
+This is a TypeScript compile error: `Cannot find name 'supabase'`.
+
+**Bug B — N sequential queries**: The original code queries `participant_territories` once per trader
+inside the loop. For 10 traders = 10 sequential Supabase queries at round end. This spikes load
+exactly when the engine is already busy processing eliminations.
+
+**The fix: one batch query before the loop, then look up from the result in the loop.**
+
+**WHERE TO MODIFY:** The beginning of `processRankingElimination` and the `for` loop.
+
+**FIND THIS CODE (top of function):**
 ```typescript
+export async function processRankingElimination(
+  arenaId: string,
+  roundNumber: number,
+  eliminationPercent: number
+): Promise<void> {
+  const state = getArenaState(arenaId);
+  if (!state) return;
+
+  const priceManager = getPriceManager();
+  const allPrices = priceManager.getAllPrices();
+
+  // Calculate PnL% for all active traders
+  const rankings: Array<{
+    participantId: string;
+    pnlPercent: number;
+    maxDrawdown: number;
+  }> = [];
+
   for (const [, trader] of state.traders) {
     if (trader.status !== "active") continue;
     const equity = calcEquity(trader, allPrices);
@@ -2015,6 +2221,41 @@ export async function processRankingElimination(
 
 **REPLACE WITH:**
 ```typescript
+export async function processRankingElimination(
+  arenaId: string,
+  roundNumber: number,
+  eliminationPercent: number
+): Promise<void> {
+  const supabase = getSupabase();  // ← REQUIRED: was missing in original Step 7
+  const state = getArenaState(arenaId);
+  if (!state) return;
+
+  const priceManager = getPriceManager();
+  const allPrices = priceManager.getAllPrices();
+
+  // Batch-query ALL active territory bonuses for this arena in ONE request.
+  // WHY BATCH: querying inside the for loop = N sequential DB calls at round end.
+  // One batch query → look up from Map in the loop = zero extra DB calls.
+  const { data: territoryBonuses } = await supabase
+    .from("participant_territories")
+    .select("participant_id, territories!inner(pnl_bonus_percent)")
+    .eq("arena_id", arenaId)
+    .eq("is_active", true);
+
+  // Build a Map for O(1) lookup by participantId
+  const bonusByParticipant = new Map<string, number>();
+  for (const row of territoryBonuses ?? []) {
+    const bonus = (row.territories as { pnl_bonus_percent: number } | null)?.pnl_bonus_percent ?? 0;
+    bonusByParticipant.set(row.participant_id, bonus);
+  }
+
+  // Calculate PnL% for all active traders (with territory bonus applied)
+  const rankings: Array<{
+    participantId: string;
+    pnlPercent: number;
+    maxDrawdown: number;
+  }> = [];
+
   for (const [, trader] of state.traders) {
     if (trader.status !== "active") continue;
     const equity = calcEquity(trader, allPrices);
@@ -2023,21 +2264,11 @@ export async function processRankingElimination(
       ? (pnl / trader.equityBaseline) * 100
       : 0;
 
-    // Apply territory PnL bonus
-    // Traders in high-row territories get PnL bonus that helps them survive elimination
+    // Apply territory PnL bonus from in-memory Map (no extra DB call per trader)
     // Example: Raw PnL = +20%, Territory bonus = +8% → Adjusted PnL = +21.6%
-    const { data: pt } = await supabase
-      .from("participant_territories")
-      .select("territories!inner(pnl_bonus_percent)")
-      .eq("arena_id", arenaId)
-      .eq("participant_id", trader.participantId)
-      .eq("is_active", true)
-      .single();
-
-    if (pt?.territories?.pnl_bonus_percent) {
-      pnlPercent = calculateAdjustedPnl(pnlPercent / 100, {
-        pnl_bonus_percent: pt.territories.pnl_bonus_percent,
-      }) * 100;
+    const bonus = bonusByParticipant.get(trader.participantId) ?? 0;
+    if (bonus !== 0) {
+      pnlPercent = calculateAdjustedPnl(pnlPercent / 100, { pnl_bonus_percent: bonus }) * 100;
     }
 
     rankings.push({
@@ -2053,6 +2284,72 @@ export async function processRankingElimination(
 ```bash
 cd engine && npx tsc --noEmit
 # EXPECTED: No errors
+```
+
+---
+
+## Step 7.5: Demo Arena Territory Setup
+
+### What you're doing
+Making demo arenas (the always-on Demo Arena + Open Arena used for hackathon demo day)
+generate and draft territories so the TerritoryBoard is visible and functional during demos.
+
+### WHY THIS STEP EXISTS — Demo Arena Gap
+
+`generateTerritories()` and `executeTerritoryDraft()` are called from `startArena()` (Step 4).
+But `setupDemoArena()` and `setupTraderDemoArena()` in `engine/src/mock/demo-setup.ts`
+**bypass `startArena()` entirely** — they create arena records directly in Supabase and
+call `initArena()` separately. Without this step, demo arenas have no territories and the
+TerritoryBoard component renders empty for the demo day presentation.
+
+### File to modify
+`engine/src/mock/demo-setup.ts`
+
+### CHANGE 1: Add imports
+
+**FIND** the existing import block at the top of `demo-setup.ts` and **ADD**:
+```typescript
+import { generateTerritories, executeTerritoryDraft } from "../services/territory-manager";
+```
+
+### CHANGE 2: Add territory setup in `setupDemoArena`
+
+In `setupDemoArena()`, after all bot participants are inserted into `arena_participants`
+and their IDs are known, add:
+
+```typescript
+  // Generate and draft territories for demo arena
+  // WHY HERE: setupDemoArena bypasses startArena(), so we must call these directly.
+  // Without this, the TerritoryBoard is empty during demo day.
+  await generateTerritories(demoArenaId);
+  await executeTerritoryDraft(demoArenaId, 1);
+```
+
+Place this call AFTER the loop that inserts bot participants, and BEFORE `initArena()`.
+
+### CHANGE 3: Add territory setup in `setupTraderDemoArena`
+
+Same pattern in `setupTraderDemoArena()`:
+
+```typescript
+  // Generate and draft territories for open demo arena
+  await generateTerritories(openArenaId);
+  await executeTerritoryDraft(openArenaId, 1);
+```
+
+Place AFTER participant inserts, BEFORE `initArena()`.
+
+### HOW TO VERIFY
+
+After restarting the engine with these changes:
+1. Open the spectate page for the Demo Arena
+2. The TerritoryBoard component should show the grid with bot trader assignments
+3. Each cell should show the bot's username and current PnL%
+
+```bash
+# Engine log should show:
+[Territory] Generated N territories for <demo-arena-id>
+[Territory] Draft complete for <demo-arena-id>, round 1
 ```
 
 ---
