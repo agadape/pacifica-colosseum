@@ -5,7 +5,6 @@
 **Built for:** Pacifica Hackathon 2026 (deadline: April 16, 2026)
 **Tech Stack:** Next.js 15, React 19, Tailwind CSS v4, Framer Motion, Zustand, TanStack React Query v5, Privy, Supabase, Pacifica Exchange (REST + WebSocket), Express 5, TradingView Lightweight Charts, Three.js
 
----
 
 ## Table of Contents
 
