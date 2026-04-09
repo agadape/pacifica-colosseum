@@ -983,7 +983,17 @@ async function resumeTraderArena(
  * Registers 4 bots and leaves 2 open slots for real users.
  * Loops automatically after completion.
  */
+let _traderSetupBusy = false;
 export async function setupTraderDemoArena(): Promise<void> {
+  if (_traderSetupBusy) { console.log("[Trader Demo] setup already in progress, skipping"); return; }
+  _traderSetupBusy = true;
+  try {
+    await _setupTraderDemoArena();
+  } finally {
+    _traderSetupBusy = false;
+  }
+}
+async function _setupTraderDemoArena(): Promise<void> {
   const supabase = getSupabase();
   const encryptionKey = process.env.ENCRYPTION_KEY;
 
@@ -1293,7 +1303,17 @@ export async function setupTraderDemoArena(): Promise<void> {
  * Auto-setup a demo arena with bot traders.
  * Called on engine startup when DEMO_MODE=true.
  */
+let _demoSetupBusy = false;
 export async function setupDemoArena(): Promise<void> {
+  if (_demoSetupBusy) { console.log("[Demo] setup already in progress, skipping"); return; }
+  _demoSetupBusy = true;
+  try {
+    await _setupDemoArena();
+  } finally {
+    _demoSetupBusy = false;
+  }
+}
+async function _setupDemoArena(): Promise<void> {
   const supabase = getSupabase();
   const encryptionKey = process.env.ENCRYPTION_KEY;
 
