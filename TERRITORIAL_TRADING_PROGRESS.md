@@ -37,10 +37,10 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 |-------|-------------|--------|-------|
 | 1 | Foundation | ✅ Done | 4/4 |
 | 2 | Engine Integration | ✅ Done | 8/8 |
-| 3 | Skirmish System | 🔴 Not Started | 0/3 |
+| 3 | Skirmish System | ✅ Done | 3/3 |
 | 4 | Frontend | 🔴 Not Started | 0/6 |
 
-**Total tasks: 21 | Done: 12 | Remaining: 9**
+**Total tasks: 21 | Done: 15 | Remaining: 6**
 
 ---
 
@@ -141,7 +141,7 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 
 ### Tasks
 
-- [ ] **Step 8** — Skirmish Scheduler: Create `engine/src/services/skirmish-scheduler.ts`
+- [x] **Step 8** — Skirmish Scheduler: Create `engine/src/services/skirmish-scheduler.ts`
   - 60s base interval, 30s declaration window, resolves all pending attacks
   - **Preset-aware interval**: read arena's `preset` field; for `"blitz"` use 30s interval instead of 60s
     - Blitz has 90s rounds — 60s interval gives only one skirmish window; 30s gives two
@@ -149,12 +149,12 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
   - Wire into `engine/src/index.ts` startup
   - Verify: engine logs show "Skirmish window open" every 30s (blitz) or 60s (other presets)
 
-- [ ] **Step 8.5** — Preset-Aware Skirmish Interval (verification task):
+- [x] **Step 8.5** — Preset-Aware Skirmish Interval (verification task):
   - Confirm that `skirmish-scheduler.ts` reads arena preset at startup (not hardcoded)
   - Confirm bot auto-skirmish interval (Step 7.6) matches the scheduler interval for each arena
   - Verify: start one blitz demo arena → 30s interval in logs; start one sprint arena → 60s interval
 
-- [ ] **Step 9** — Internal API Endpoints: Add skirmish endpoints to `engine/src/index.ts`
+- [x] **Step 9** — Internal API Endpoints: Add skirmish endpoints to `engine/src/index.ts`
   - `POST /internal/arenas/:id/skirmish` — declare attack (attacker + defender IDs)
   - `GET /internal/arenas/:id/territories` — board state for frontend API route
 

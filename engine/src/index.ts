@@ -10,6 +10,8 @@ import { setupDemoArena, setupTraderDemoArena } from "./mock/demo-setup";
 import { executeOrder, cancelOrder, getPositions, getAccountInfo } from "./services/order-relay";
 import { getSupabase } from "./db";
 import type { OrderInput } from "./services/order-validator";
+import { startSkirmishScheduler, declareAttack, getSkirmishPhase } from "./services/skirmish-scheduler";
+import { getTerritoryBoardState } from "./services/territory-manager";
 
 /**
  * Wait until Supabase responds to a simple ping before starting heavy setup.
@@ -124,6 +126,44 @@ app.post("/internal/arenas/:id/schedule", internalAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Territory endpoints ----
+
+app.get("/internal/territory/board/:arenaId", internalAuth, async (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const board = await getTerritoryBoardState(arenaId);
+  if (!board) {
+    res.status(404).json({ error: "No territory board found for this arena" });
+    return;
+  }
+  res.json(board);
+});
+
+app.post("/internal/territory/attack", internalAuth, (req, res) => {
+  const { arenaId, attackerId, defenderId } = req.body as {
+    arenaId: string;
+    attackerId: string;
+    defenderId: string;
+  };
+  const result = declareAttack(arenaId, attackerId, defenderId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+app.get("/internal/territory/phase/:arenaId", internalAuth, (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const phase = getSkirmishPhase(arenaId);
+  if (phase) {
+    res.json({
+      active: true,
+      declarationOpen: Date.now() < phase.declarationCloseAt,
+      declarationClosesAt: new Date(phase.declarationCloseAt).toISOString(),
+      resolutionAt: new Date(phase.resolutionAt).toISOString(),
+      declaredAttacks: phase.declaredAttacks,
+    });
+  } else {
+    res.json({ active: false });
+  }
+});
+
 const server = createServer(app);
 
 const wss = new WebSocketServer({ server, path: "/ws" });
@@ -163,12 +203,20 @@ server.listen(PORT, async () => {
       try { await setupTraderDemoArena(); } catch (e) { console.error("[Watchdog] Open Arena:", e); }
     }, 60_000);
 
+    // Start skirmish scheduler in demo mode
+    startSkirmishScheduler();
+    console.log("[Engine] Skirmish scheduler started (demo mode)");
+
     // Skip real arena timers in demo mode — demo manages its own scheduling
   } else {
     // Start real price feed
     const priceManager = getPriceManager();
     priceManager.start();
     console.log("[Engine] Price manager started");
+
+    // Start skirmish scheduler
+    startSkirmishScheduler();
+    console.log("[Engine] Skirmish scheduler started");
 
     // Initialize arena timers from DB (real mode only)
     await initArenaTimers();
