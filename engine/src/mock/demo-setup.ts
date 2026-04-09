@@ -65,18 +65,16 @@ function startMockLeaderboard(
     if (activeBots.length === 0) return;
     pnlBusy = true;
     try {
-      const updates = activeBots.map(bot => {
+      await Promise.all(activeBots.map(bot => {
         const equity = computeEquity(bot.subaccount_address, priceGenerator);
         const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
         const drawdown = Math.max(0, -pnlPercent);
-        return {
-          id: bot.id,
+        return supabase.from("arena_participants").update({
           total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
           total_pnl_percent: Math.round(pnlPercent * 100) / 100,
           max_drawdown_hit: Math.round(drawdown * 100) / 100,
-        };
-      });
-      await supabase.from("arena_participants").upsert(updates, { onConflict: "id" });
+        }).eq("id", bot.id);
+      }));
     } finally {
       pnlBusy = false;
     }
@@ -363,21 +361,19 @@ function startTraderLeaderboard(
     if (pnlBusy) return; // skip if previous tick still in-flight
     pnlBusy = true;
     try {
-      // 1 upsert for all active bots
+      // Parallel update all active bots (concurrent, not sequential)
       const activeBots = bots.filter(b => activeIds.has(b.id));
       if (activeBots.length > 0) {
-        const botUpdates = activeBots.map(bot => {
+        await Promise.all(activeBots.map(bot => {
           const equity = computeEquity(bot.subaccount_address, priceGenerator);
           const pnlPercent = ((equity - STARTING_CAPITAL) / STARTING_CAPITAL) * 100;
           const drawdown = Math.max(0, -pnlPercent);
-          return {
-            id: bot.id,
+          return supabase.from("arena_participants").update({
             total_pnl: Math.round((equity - STARTING_CAPITAL) * 100) / 100,
             total_pnl_percent: Math.round(pnlPercent * 100) / 100,
             max_drawdown_hit: Math.round(drawdown * 100) / 100,
-          };
-        });
-        await supabase.from("arena_participants").upsert(botUpdates, { onConflict: "id" });
+          }).eq("id", bot.id);
+        }));
       }
 
       // Live PnL update + drawdown check for real users (1 SELECT)
