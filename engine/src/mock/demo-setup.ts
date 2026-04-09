@@ -6,6 +6,7 @@ import { PRESETS, STARTING_CAPITAL, calculateRoundTimings } from "../../../src/l
 import { MockPriceGenerator } from "./price-generator";
 import { mockTransferFunds, mockCreateSubaccount, getAccount } from "./mock-pacifica";
 import { startBotTraders, stopBotTraders } from "./bot-traders";
+import { generateTerritories, executeTerritoryDraft } from "../services/territory-manager";
 
 /**
  * Tracks arenas that have been fully initialized by THIS process run.
@@ -1286,6 +1287,10 @@ async function _setupTraderDemoArena(): Promise<void> {
 
     const activeIds = new Set(allRegistered.map((p) => p.id));
 
+    // Generate territories + run Round 1 draft for demo arena
+    await generateTerritories(arena.id);
+    await executeTerritoryDraft(arena.id, 1);
+
     startBotTraders(arena.id, botParticipants, priceGenerator, ["BTC", "ETH", "SOL"]);
 
     const leaderboard = startTraderLeaderboard(arena.id, botParticipants, activeIds, priceGenerator);
@@ -1565,6 +1570,10 @@ async function _setupDemoArena(): Promise<void> {
 
     // Track which bots are still active
     const activeIds = new Set(botParticipants.map((b) => b.id));
+
+    // Generate territories + run Round 1 draft for demo arena
+    await generateTerritories(arena.id);
+    await executeTerritoryDraft(arena.id, 1);
 
     // Start bot traders
     startBotTraders(arena.id, botParticipants, priceGenerator, ["BTC", "ETH", "SOL"]);

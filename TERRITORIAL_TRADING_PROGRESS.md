@@ -36,11 +36,11 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 | Phase | Description | Status | Tasks |
 |-------|-------------|--------|-------|
 | 1 | Foundation | ✅ Done | 4/4 |
-| 2 | Engine Integration | 🔴 Not Started | 0/8 |
+| 2 | Engine Integration | ✅ Done | 8/8 |
 | 3 | Skirmish System | 🔴 Not Started | 0/3 |
 | 4 | Frontend | 🔴 Not Started | 0/6 |
 
-**Total tasks: 21 | Done: 4 | Remaining: 17**
+**Total tasks: 21 | Done: 12 | Remaining: 9**
 
 ---
 
@@ -77,24 +77,24 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
 
 ### Tasks
 
-- [ ] **Step 3.6** — Engine Restart Buffer Reload (`engine/src/services/risk-monitor.ts`):
+- [x] **Step 3.6** — Engine Restart Buffer Reload (`engine/src/services/risk-monitor.ts`):
   - In `initArena()`, after building each `TraderState` from DB, query `participant_territories` for that arena to restore `territoryDrawdownBuffer` for all active participants
   - One batch query (not per-trader): `SELECT participant_id, territories!inner(drawdown_buffer_percent) WHERE arena_id=X AND is_active=true`
   - Populate `traderState.territoryDrawdownBuffer` from result Map
   - ⚠️ Without this: Railway restart wipes all territory buffers → traders lose protection silently
   - Verify: restart engine → check logs that buffer values are non-zero for traders with territory bonuses
 
-- [ ] **Step 4** — Arena Manager (`engine/src/services/arena-manager.ts`):
+- [x] **Step 4** — Arena Manager (`engine/src/services/arena-manager.ts`):
   - Add import: `import { generateTerritories, executeTerritoryDraft } from "./territory-manager"`
   - After leverage-setting loop in `startArena()`, add: `await generateTerritories(arenaId)` then `await executeTerritoryDraft(arenaId, 1)`
   - ⚠️ Both calls required — Round 1 draft is NOT called by `beginNextRound`
 
-- [ ] **Step 5** — Round Engine (`engine/src/services/round-engine.ts`):
+- [x] **Step 5** — Round Engine (`engine/src/services/round-engine.ts`):
   - Add import: `import { executeTerritoryDraft, processTerritoryElimination } from "./territory-manager"`
   - In `advanceRound()`: **REPLACE** `processRankingElimination` with `processTerritoryElimination` — do NOT add both, that double-eliminates
   - In `beginNextRound()`: add `await executeTerritoryDraft(arenaId, roundNumber)` after leverage loop
 
-- [ ] **Step 6** — Risk Monitor (`engine/src/services/risk-monitor.ts`):
+- [x] **Step 6** — Risk Monitor (`engine/src/services/risk-monitor.ts`):
   - In `onPriceUpdate()`, update `effectiveMax` to include `trader.territoryDrawdownBuffer`:
     ```typescript
     const effectiveMax = state.maxDrawdownPercent
@@ -104,19 +104,19 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
   - ⚠️ No new imports needed. No DB calls. Buffer comes from TraderState (Step 3.5).
   - `handleDrawdownBreach` is UNCHANGED
 
-- [ ] **Step 7** — Elimination Engine (`engine/src/services/elimination-engine.ts`):
+- [x] **Step 7** — Elimination Engine (`engine/src/services/elimination-engine.ts`):
   - Add import: `import { calculateAdjustedPnl } from "./territory-manager"`
   - Add `const supabase = getSupabase()` at top of `processRankingElimination`
   - Batch-query territory bonuses BEFORE the trader loop (one query, not N)
   - Apply bonus from Map lookup inside loop
 
-- [ ] **Step 7.5** — Demo Setup (`engine/src/mock/demo-setup.ts`):
+- [x] **Step 7.5** — Demo Setup (`engine/src/mock/demo-setup.ts`):
   - Add import: `import { generateTerritories, executeTerritoryDraft } from "../services/territory-manager"`
   - In `setupDemoArena()`: add `await generateTerritories(id)` + `await executeTerritoryDraft(id, 1)` after participant inserts, before `initArena()`
   - Same in `setupTraderDemoArena()`
   - ⚠️ Without this, TerritoryBoard is empty on demo day
 
-- [ ] **Step 7.6** — Bot Auto-Skirmish (`engine/src/mock/bot-traders.ts`):
+- [x] **Step 7.6** — Bot Auto-Skirmish (`engine/src/mock/bot-traders.ts`):
   - Add a periodic check (every 60s, aligned with skirmish-scheduler interval) where each bot:
     1. Queries its current active territory
     2. Fetches adjacent territory holders and their current PnL%
@@ -125,7 +125,7 @@ Phase 4: Frontend        ← API routes, Realtime subscription, TerritoryBoard, 
   - ⚠️ Must not fire more frequently than skirmish-scheduler — use the same 60s (or preset-aware) interval
   - Verify: in demo run, watch engine logs for bot-declared skirmish events and subsequent territory swaps
 
-- [ ] **Step 7.7** — Leverage Enforcement (`engine/src/services/order-validator.ts`):
+- [x] **Step 7.7** — Leverage Enforcement (`engine/src/services/order-validator.ts`):
   - Read current file first to understand existing validation logic
   - Add query for trader's active territory `leverage_override` (nullable — null means no cap)
   - If territory has `leverage_override`, clamp requested leverage to `min(requested, override)`
@@ -220,11 +220,14 @@ The feature is complete when:
 
 *(Update this section whenever you stop. Include: last step completed, what's in progress, any blockers, Railway/Vercel deploy status.)*
 
-**Session Apr 9 2026:**
-- Feature planned. All 4 planning docs read and cross-checked against existing codebase.
-- 8 bugs found in `IMPLEMENTATION_TERRITORIAL_TRADING.md` — all fixed. Guide is now correct.
-- 6 additional gap tasks identified and added to this tracker (Steps 3.6, 7.6, 7.7, 8.5, 10.5 + Blitz note in Step 8).
-- Total tasks: 21 (up from 16).
-- No code written yet. Phase 1 Step 1 is the starting point.
-- Infrastructure is stable (Supabase ~15-20 req/min, Railway engine healthy, no zombies).
-- Before starting: confirm Supabase is still healthy (`SELECT NOW()` in dashboard SQL editor).
+**Session Apr 9 2026 — Phase 1 DONE:**
+- Phase 1 complete (4/4 tasks). Committed and pushed.
+- DB migration run in Supabase dashboard — 3 tables, 8 indexes, RLS confirmed.
+- `participant_territories` Realtime toggled ON in Supabase dashboard.
+- `src/lib/supabase/types.ts` — 3 new table types added (Relationships: [] to match codebase pattern).
+- `engine/src/services/territory-manager.ts` — full service created (6 exported functions).
+- `engine/src/state/types.ts` — `territoryDrawdownBuffer: number` added to TraderState.
+- `engine/src/services/risk-monitor.ts` — `territoryDrawdownBuffer: 0` initialized in initArena().
+- `tests/engine/risk-monitor.test.ts` — field added to test helper.
+- tsc: 0 errors in new code. Pre-existing errors in bot-traders.ts/demo-setup.ts unchanged.
+- **Next: Phase 2 Step 3.6** — engine restart buffer reload in initArena().

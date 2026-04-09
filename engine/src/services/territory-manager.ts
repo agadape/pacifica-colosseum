@@ -494,10 +494,12 @@ export async function processTerritoryElimination(
 
   const rankings = participantTerritories.map((pt) => {
     const trader = state?.traders.get(pt.participant_id);
-    const pnl = trader
+    const territory = pt.territories;
+    const rawPnl = trader
       ? calcEquity(trader, allPrices) / trader.equityBaseline - 1
       : 0;
-    const territory = pt.territories;
+    // Apply territory PnL bonus to ranking — top-row traders rank higher, less likely eliminated
+    const pnl = rawPnl * (1 + territory.pnl_bonus_percent / 100);
 
     return {
       participantId: pt.participant_id,

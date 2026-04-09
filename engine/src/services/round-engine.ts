@@ -2,7 +2,8 @@ import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
 import { getSupabase } from "../db";
 import { updateArenaRound, getArenaState } from "./risk-monitor";
 import { startGracePeriod } from "./grace-period";
-import { processInactivityElimination, processRankingElimination } from "./elimination-engine";
+import { processInactivityElimination } from "./elimination-engine";
+import { executeTerritoryDraft, processTerritoryElimination } from "./territory-manager";
 import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
@@ -34,13 +35,10 @@ export async function advanceRound(arenaId: string): Promise<void> {
     await processInactivityElimination(arenaId, currentRound, arena.starting_capital);
   }
 
-  // Step 2: Process ranking eliminations
-  if (roundParams.eliminationPercent > 0) {
-    await processRankingElimination(arenaId, currentRound, roundParams.eliminationPercent);
-  } else if (currentRound === 3) {
-    // Round 3: top 5 advance (handled inside processRankingElimination)
-    await processRankingElimination(arenaId, currentRound, 0);
-  }
+  // Step 2: Territory-aware elimination (replaces processRankingElimination).
+  // processTerritoryElimination eliminates bottom-row territory holders first,
+  // then remaining bottom X% by PnL — DO NOT call processRankingElimination after this.
+  await processTerritoryElimination(arenaId, currentRound);
 
   // Step 3: Loot calculation (Wide Zone + Second Life)
   await calculateLoot(arenaId, currentRound);
@@ -185,6 +183,9 @@ async function beginNextRound(arenaId: string, roundNumber: number): Promise<voi
       }
     }
   }
+
+  // Run territory draft for this round (Round 1 draft is called by startArena(), not here)
+  await executeTerritoryDraft(arenaId, roundNumber);
 
   // Schedule next round end
   if (round?.ends_at) {

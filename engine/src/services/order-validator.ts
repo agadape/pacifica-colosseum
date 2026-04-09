@@ -99,12 +99,31 @@ export async function validateOrder(
     };
   }
 
-  // Check leverage
-  if (order.leverage && order.leverage > round.max_leverage) {
-    return {
-      valid: false,
-      error: `Leverage ${order.leverage}x exceeds round max of ${round.max_leverage}x`,
-    };
+  // Check leverage — against round max AND territory override (whichever is lower)
+  if (order.leverage) {
+    // Fetch territory leverage cap (one query at order time — not in hot path)
+    const { data: activeTerritory } = await supabase
+      .from("participant_territories")
+      .select("territories!inner(leverage_override)")
+      .eq("arena_id", arenaId)
+      .eq("participant_id", participant.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    type TerritoryOverride = { territories: { leverage_override: number | null } };
+    const territoryLevCap = (activeTerritory as unknown as TerritoryOverride | null)
+      ?.territories?.leverage_override ?? null;
+
+    const effectiveMaxLeverage = territoryLevCap !== null
+      ? Math.min(round.max_leverage, territoryLevCap)
+      : round.max_leverage;
+
+    if (order.leverage > effectiveMaxLeverage) {
+      return {
+        valid: false,
+        error: `Leverage ${order.leverage}x exceeds effective max of ${effectiveMaxLeverage}x (territory cap)`,
+      };
+    }
   }
 
   // Check margin mode (Round 2+ requires isolated)

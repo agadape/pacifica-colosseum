@@ -1,6 +1,7 @@
 import { MockPriceGenerator } from "./price-generator";
 import { getSupabase } from "../db";
 import { mockCreateMarketOrder } from "./mock-pacifica";
+import { resolveSkirmish } from "../services/territory-manager";
 
 interface BotPersonality {
   name: string;
@@ -62,6 +63,9 @@ export function startBotTraders(
   }
 
   activeBots.set(arenaId, bots);
+
+  // Start skirmish scheduler so bots auto-attack when they have ≥15% PnL lead
+  startBotSkirmishScheduler(arenaId);
 }
 
 /**
@@ -127,6 +131,115 @@ export function stopBotTraders(arenaId: string): void {
     if (bot.interval) clearInterval(bot.interval);
   }
 
+  // Clear skirmish scheduler too
+  const skirmishTimer = skirmishSchedulers.get(arenaId);
+  if (skirmishTimer) {
+    clearInterval(skirmishTimer);
+    skirmishSchedulers.delete(arenaId);
+  }
+
   activeBots.delete(arenaId);
   console.log(`[Bot] All bots stopped for arena ${arenaId}`);
+}
+
+// Tracks skirmish scheduler timers per arena
+const skirmishSchedulers = new Map<string, ReturnType<typeof setInterval>>();
+
+/**
+ * Start bot skirmish scheduler.
+ * Every 60s, each bot checks if it has a ≥15% PnL lead over an adjacent territory holder.
+ * If so, it declares a skirmish attack. This ensures territory steals happen in demo.
+ */
+function startBotSkirmishScheduler(arenaId: string, intervalMs = 60_000): void {
+  const timer = setInterval(async () => {
+    await runBotSkirmishChecks(arenaId);
+  }, intervalMs);
+
+  skirmishSchedulers.set(arenaId, timer);
+}
+
+async function runBotSkirmishChecks(arenaId: string): Promise<void> {
+  const supabase = getSupabase();
+  const bots = activeBots.get(arenaId);
+  if (!bots?.length) return;
+
+  // Get arena current round
+  const { data: arena } = await supabase
+    .from("arenas")
+    .select("current_round")
+    .eq("id", arenaId)
+    .maybeSingle();
+
+  if (!arena) return;
+  const roundNumber = arena.current_round;
+
+  // Batch-fetch all active territories + participant PnL for this arena
+  const { data: participants } = await supabase
+    .from("arena_participants")
+    .select("id, total_pnl_percent, status")
+    .eq("arena_id", arenaId)
+    .eq("status", "active");
+
+  if (!participants?.length) return;
+
+  const pnlByParticipant = new Map<string, number>();
+  for (const p of participants) {
+    pnlByParticipant.set(p.id, p.total_pnl_percent ?? 0);
+  }
+
+  type TerritoryRow = {
+    participant_id: string;
+    territory_id: string;
+    territories: { row_index: number; col_index: number; is_elimination_zone: boolean };
+  };
+
+  const { data: rawTerritories } = await supabase
+    .from("participant_territories")
+    .select("participant_id, territory_id, territories!inner(row_index, col_index, is_elimination_zone)")
+    .eq("arena_id", arenaId)
+    .eq("is_active", true);
+
+  const territories = rawTerritories as unknown as TerritoryRow[] | null;
+  if (!territories?.length) return;
+
+  // Build a map: participantId → territory position
+  const territoryByParticipant = new Map<string, { row: number; col: number; territoryId: string }>();
+  for (const t of territories) {
+    territoryByParticipant.set(t.participant_id, {
+      row: t.territories.row_index,
+      col: t.territories.col_index,
+      territoryId: t.territory_id,
+    });
+  }
+
+  // For each bot, check if it can attack any adjacent holder
+  for (const bot of bots) {
+    const botTerritory = territoryByParticipant.get(bot.participantId);
+    if (!botTerritory) continue;
+
+    const botPnl = pnlByParticipant.get(bot.participantId) ?? 0;
+
+    for (const [participantId, pos] of territoryByParticipant) {
+      if (participantId === bot.participantId) continue;
+
+      // Check adjacency (cardinal directions only)
+      const rowDiff = Math.abs(botTerritory.row - pos.row);
+      const colDiff = Math.abs(botTerritory.col - pos.col);
+      const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+      if (!isAdjacent) continue;
+
+      const defenderPnl = pnlByParticipant.get(participantId) ?? 0;
+      const requiredLead = defenderPnl * 1.15;
+
+      if (botPnl >= requiredLead) {
+        console.log(`[Bot Skirmish] ${bot.personality.name} attacking ${participantId} (${botPnl.toFixed(2)}% vs ${defenderPnl.toFixed(2)}%)`);
+        try {
+          await resolveSkirmish(arenaId, roundNumber, bot.participantId, participantId);
+        } catch (err) {
+          console.error(`[Bot Skirmish] resolveSkirmish failed:`, err);
+        }
+        break; // One attack per bot per interval
+      }
+    }
+  }
 }

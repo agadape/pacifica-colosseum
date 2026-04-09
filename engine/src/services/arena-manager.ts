@@ -4,6 +4,7 @@ import { keypairFromBase58, publicKeyToString } from "../../../src/lib/utils/key
 import { decryptPrivateKey } from "../../../src/lib/utils/encryption";
 import { STARTING_CAPITAL, ROUND_PARAMS } from "../../../src/lib/utils/constants";
 import { initArena } from "./risk-monitor";
+import { generateTerritories, executeTerritoryDraft } from "./territory-manager";
 import { startPeriodicSync } from "./periodic-sync";
 import { startLeaderboardUpdater } from "./leaderboard-updater";
 import { scheduleRoundEnd } from "../timers/round-timer";
@@ -110,6 +111,12 @@ export async function startArena(arenaId: string): Promise<void> {
       console.error(`[Arena ${arenaId}] Failed to set leverage for ${participant.id}:`, err);
     }
   }
+
+  // Generate territory grid + run Round 1 draft
+  // NOTE: executeTerritoryDraft for Rounds 2+ is called by beginNextRound() in round-engine.
+  // Round 1 is NOT handled there, so it must be called here explicitly.
+  await generateTerritories(arenaId);
+  await executeTerritoryDraft(arenaId, 1);
 
   // Create arena_start event
   await supabase.from("events").insert({

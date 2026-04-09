@@ -128,6 +128,29 @@ export async function initArena(arenaId: string): Promise<void> {
 
   arenaStates.set(arenaId, arenaState);
 
+  // Step 3.6: Reload territory drawdown buffers from DB on engine restart.
+  // executeTerritoryDraft() populates territoryDrawdownBuffer in-memory at draft time,
+  // but Railway restarts wipe in-memory state. This restores buffers from the DB
+  // so traders don't silently lose their drawdown protection after a restart.
+  try {
+    type PtWithBuffer = { participant_id: string; territories: { drawdown_buffer_percent: number } };
+    const { data: activeTerritories } = await supabase
+      .from("participant_territories")
+      .select("participant_id, territories!inner(drawdown_buffer_percent)")
+      .eq("arena_id", arenaId)
+      .eq("is_active", true);
+
+    for (const pt of (activeTerritories as unknown as PtWithBuffer[] | null) ?? []) {
+      const trader = traders.get(pt.participant_id);
+      if (trader) {
+        trader.territoryDrawdownBuffer = pt.territories.drawdown_buffer_percent ?? 0;
+      }
+    }
+    console.log(`[RiskMonitor] Territory buffers restored for arena ${arenaId}`);
+  } catch (err) {
+    console.error(`[RiskMonitor] Failed to restore territory buffers:`, err);
+  }
+
   // Listen for price updates
   const priceManager = getPriceManager();
   priceManager.on("price", (update: PriceUpdate) => {
@@ -165,10 +188,10 @@ function onPriceUpdate(arenaId: string, symbol: string): void {
       trader.maxDrawdownHit = drawdown;
     }
 
-    // Apply Wide Zone bonus (+5% threshold)
-    const effectiveMax = trader.hasWideZone
-      ? state.maxDrawdownPercent + 5
-      : state.maxDrawdownPercent;
+    // Apply Wide Zone bonus (+5%) and territory drawdown buffer (cached, no DB query)
+    const effectiveMax = state.maxDrawdownPercent
+      + (trader.hasWideZone ? 5 : 0)
+      + (trader.territoryDrawdownBuffer ?? 0);
 
     // Check drawdown breach
     if (drawdown >= effectiveMax) {
