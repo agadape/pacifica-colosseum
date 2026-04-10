@@ -11,18 +11,34 @@
 ## How It Works
 
 1. **Join** — Enter an arena with other traders
-2. **Trade** — Open positions on Pacifica perpetual futures (BTC, ETH, SOL)
-3. **Survive** — Each round tightens the rules. Hit the drawdown limit = eliminated
-4. **Win** — Last trader standing takes the crown
+2. **Draft Territory** — Each round, snake draft assigns you a board position with unique modifiers
+3. **Trade** — Open positions on Pacifica perpetual futures (BTC, ETH, SOL)
+4. **Survive** — Each round tightens the rules. Bottom-row territories = auto-elimination
+5. **Skirmish** — Attack adjacent territories every 60s to steal better positions
+6. **Win** — Last trader standing takes the crown
 
 ### Round Progression
 
 | Round | Name | Max Leverage | Max Drawdown | Elimination |
 |-------|------|-------------|-------------|-------------|
-| 1 | Open Field | 20x | 20% | Bottom 30% |
-| 2 | The Storm | 10x | 15% | Bottom 40% |
-| 3 | Final Circle | 5x | 10% | Top 5 advance |
-| 4 | Sudden Death | 3x | 8% | Any breach |
+| 1 | Open Field | 20x | 20% | Territory-based: bottom row + bottom 30% PnL |
+| 2 | The Storm | 10x | 15% | Territory-based: bottom row + bottom 40% PnL |
+| 3 | Final Circle | 5x | 10% | Territory-based: top 5 advance |
+| 4 | Sudden Death | 3x | 8% | Any drawdown breach |
+
+### Territory System
+
+Each arena generates a **territory board** where each cell provides unique modifiers:
+
+| Tier | PnL Bonus | DD Buffer | Leverage | Max Position |
+|------|-----------|-----------|----------|-------------|
+| **Top Row** | +5–8% | +3–5% | 100% | $500 |
+| **Middle Row** | 0–2% | 0–1% | 70% | $250 |
+| **Bottom Row** ⚠️ | -3–5% | -2–3% | 50% | $150 |
+
+- **Snake Draft:** Top PnL% picks first. Last place gets first pick of next round.
+- **Skirmish:** Every 60s, attack adjacent territories. Need 15% PnL lead to steal.
+- **Elimination Zone:** Bottom-row traders auto-eliminated at round end.
 
 ### Loot System
 
@@ -65,7 +81,7 @@
               ┌───────▼───────┐
               │   Supabase    │
               │               │
-              │  • 11 Tables  │
+              │  • 14 Tables  │
               │  • RLS        │
               │  • Realtime   │
               └───────────────┘
@@ -165,7 +181,8 @@ pacifica-colosseum/
 │   │   ├── arena/              # ArenaCard, RoundIndicator, RoundTransition
 │   │   ├── shared/             # Navbar, Timer, DrawdownMeter, StatusBadge
 │   │   ├── spectator/          # SurvivorGrid, TraderCard, ActivityFeed, VotePanel
-│   │   └── trading/            # OrderForm, PositionList, Chart, AccountPanel
+│   │   ├── trading/            # OrderForm, PositionList, Chart, AccountPanel
+│   │   └── territory/          # TerritoryBoard, TerritoryInfoCard, TerritoryDraftModal
 │   ├── hooks/                  # useArena, useCountdown, useTrading, useWebSocket
 │   ├── stores/                 # Zustand (arena, trading, ws)
 │   └── lib/
@@ -175,13 +192,15 @@ pacifica-colosseum/
 │       └── utils/              # Constants, encryption, keypair, columns
 ├── engine/
 │   ├── src/
-│   │   ├── services/           # arena-manager, risk-monitor, order-relay, settlement, etc.
+│   │   ├── services/           # arena-manager, risk-monitor, territory-manager,
+│   │   │                       # skirmish-scheduler, ability-manager, hazard-manager,
+│   │   │                       # progression-manager, order-relay, settlement, etc.
 │   │   ├── state/              # In-memory types, price manager
 │   │   ├── timers/             # Arena + round timers
 │   │   └── mock/               # Demo mode (price gen, bot traders, mock Pacifica)
 │   └── package.json
-├── supabase/migrations/        # SQL schema (4 files)
-├── tests/                      # Vitest unit tests (53 tests)
+├── supabase/migrations/        # SQL schema (5+ files)
+├── tests/                      # Vitest unit tests (60+ tests)
 └── iteration/                  # Layer-by-layer development summaries
 ```
 
@@ -191,9 +210,10 @@ pacifica-colosseum/
 
 Built for the **Pacifica Hackathon 2026** (deadline: April 16, 2026).
 
-- 16 development layers, 156 tasks
-- ~95 source files
-- 53 unit tests
+- 20+ development layers, 200+ tasks
+- ~120+ source files
+- 60+ unit tests
+- **Unique mechanics:** Territorial Trading, Ability System, Hazard Events, Progression Tree
 - Live E2E verified on Pacifica testnet (subaccounts, trading, fund transfers)
 - Deployed on Vercel + Railway
 

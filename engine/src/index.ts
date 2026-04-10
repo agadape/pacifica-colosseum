@@ -15,6 +15,13 @@ import { getTerritoryBoardState } from "./services/territory-manager";
 import { activateAbility, getParticipantAbilities, getArenaActiveEffects } from "./services/ability-manager";
 import { getActiveHazards } from "./services/hazard-manager";
 import { getParticipantProgression, chooseUnlock } from "./services/progression-manager";
+import {
+  proposeAlliance,
+  acceptAlliance,
+  declineAlliance,
+  castBetrayalVote,
+  getAlliancesForParticipant,
+} from "./services/alliance-manager";
 
 /**
  * Wait until Supabase responds to a simple ping before starting heavy setup.
@@ -199,6 +206,40 @@ app.post("/internal/abilities/activate", internalAuth, async (req, res) => {
     targetParticipantId?: string;
   };
   const result = await activateAbility(arenaId, participantId, abilityId, targetParticipantId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+// ---- Alliance endpoints (M-3) ----
+// NOTE: register specific static paths BEFORE dynamic :param routes
+
+app.get("/internal/alliances/:arenaId/:participantId", internalAuth, async (req, res) => {
+  const arenaId = req.params.arenaId as string;
+  const participantId = req.params.participantId as string;
+  const data = await getAlliancesForParticipant(arenaId, participantId);
+  res.json({ data });
+});
+
+app.post("/internal/alliances/propose", internalAuth, async (req, res) => {
+  const { arenaId, proposerId, targetId } = req.body as { arenaId: string; proposerId: string; targetId: string };
+  const result = await proposeAlliance(arenaId, proposerId, targetId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+app.post("/internal/alliances/accept", internalAuth, async (req, res) => {
+  const { arenaId, allianceId, participantId } = req.body as { arenaId: string; allianceId: string; participantId: string };
+  const result = await acceptAlliance(arenaId, allianceId, participantId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+app.post("/internal/alliances/decline", internalAuth, async (req, res) => {
+  const { arenaId, allianceId, participantId } = req.body as { arenaId: string; allianceId: string; participantId: string };
+  const result = await declineAlliance(arenaId, allianceId, participantId);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
+app.post("/internal/alliances/vote", internalAuth, async (req, res) => {
+  const { allianceId, participantId, vote } = req.body as { allianceId: string; participantId: string; vote: "stay" | "betray" };
+  const result = await castBetrayalVote(allianceId, participantId, vote);
   res.status(result.success ? 200 : 400).json(result);
 });
 

@@ -7,6 +7,7 @@ import { executeTerritoryDraft, processTerritoryElimination } from "./territory-
 import { awardAbilitiesForRound } from "./ability-manager";
 import { scheduleHazardsForRound } from "./hazard-manager";
 import { awardProgression, reloadProgressionState } from "./progression-manager";
+import { startBetrayalPhase, runBotAllianceProposal } from "./alliance-manager";
 import { calculateLoot } from "./loot-calculator";
 import { endArena } from "./settlement";
 import { scheduleRoundEnd } from "../timers/round-timer";
@@ -48,6 +49,9 @@ export async function advanceRound(arenaId: string): Promise<void> {
 
   // Step 3b: Award progression choice to survivors (bots auto-pick after 3s)
   await awardProgression(arenaId, currentRound);
+
+  // Step 3c: Start betrayal phase for active alliances (60s window — fires-and-returns)
+  await startBetrayalPhase(arenaId, currentRound);
 
   // Step 4: Loot calculation (Wide Zone + Second Life)
   await calculateLoot(arenaId, currentRound);
@@ -195,6 +199,9 @@ async function beginNextRound(arenaId: string, roundNumber: number): Promise<voi
 
   // Run territory draft for this round (Round 1 draft is called by startArena(), not here)
   await executeTerritoryDraft(arenaId, roundNumber);
+
+  // M-3: Carl+Steve bot alliance proposal (fires async, no-op if already allied)
+  void runBotAllianceProposal(arenaId);
 
   // Schedule hazard events for this round (fire-and-forget via setTimeout — do NOT await)
   if (round?.ends_at) {

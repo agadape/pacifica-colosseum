@@ -925,6 +925,60 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["participant_unlocks"]["Insert"]>;
         Relationships: [];
       };
+      alliances: {
+        Row: {
+          id: string;
+          arena_id: string;
+          round_number: number;
+          name: string | null;
+          status: string;
+          proposer_id: string;
+          target_id: string;
+          expires_at: string | null;
+          betrayal_started_at: string | null;
+          betrayal_deadline_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          arena_id: string;
+          round_number: number;
+          name?: string | null;
+          status?: string;
+          proposer_id: string;
+          target_id: string;
+          expires_at?: string | null;
+          betrayal_started_at?: string | null;
+          betrayal_deadline_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["alliances"]["Insert"]>;
+        Relationships: [];
+      };
+      alliance_members: {
+        Row: {
+          id: string;
+          alliance_id: string;
+          participant_id: string;
+          round_number: number;
+          betrayal_vote: string | null;
+          voted_at: string | null;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          alliance_id: string;
+          participant_id: string;
+          round_number: number;
+          betrayal_vote?: string | null;
+          voted_at?: string | null;
+          joined_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["alliance_members"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

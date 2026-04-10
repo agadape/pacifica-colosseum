@@ -28,6 +28,7 @@ import { getPriceManager } from "../state/price-manager";
 import { calcEquity } from "../state/types";
 import { eliminateTrader } from "./elimination-engine";
 import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
+import { getAveragedPnlMap } from "./alliance-manager";
 
 // ============================================================
 // GRID CONFIGURATION
@@ -339,12 +340,14 @@ export async function resolveSkirmish(
       roundNumber
     );
 
+    // G4 FIX: Log the contested territory (defender's), not attacker's old territory
+    // The skirmish is about who controls the defender's cell
     await supabase.from("territory_skirmishes").insert({
       arena_id: arenaId,
       round_number: roundNumber,
       attacker_id: attackerId,
       defender_id: defenderId,
-      territory_id: attackerTerritory.data.territory_id,
+      territory_id: defenderTerritory.data.territory_id,
       attacker_pnl_percent: attackerPnl,
       defender_pnl_percent: defenderPnl,
       pnl_difference: attackerPnl - defenderPnl,
@@ -365,12 +368,13 @@ export async function resolveSkirmish(
 
     return { success: true, winner: "attacker", territoriesSwapped: true };
   } else {
+    // G4 FIX: Even on defender win, log the contested territory (defender's)
     await supabase.from("territory_skirmishes").insert({
       arena_id: arenaId,
       round_number: roundNumber,
       attacker_id: attackerId,
       defender_id: defenderId,
-      territory_id: attackerTerritory.data.territory_id,
+      territory_id: defenderTerritory.data.territory_id,
       attacker_pnl_percent: attackerPnl,
       defender_pnl_percent: defenderPnl,
       pnl_difference: attackerPnl - defenderPnl,
@@ -492,12 +496,16 @@ export async function processTerritoryElimination(
 
   if (!participantTerritories?.length) return;
 
+  // M-3: Get alliance-averaged PnL for elimination ranking
+  const alliancePnlMap = await getAveragedPnlMap(arenaId);
+
   const rankings = participantTerritories.map((pt) => {
     const trader = state?.traders.get(pt.participant_id);
     const territory = pt.territories;
-    const rawPnl = trader
-      ? calcEquity(trader, allPrices) / trader.equityBaseline - 1
-      : 0;
+    // Use alliance-averaged PnL if participant is in an alliance, else individual
+    const rawPnl = alliancePnlMap.has(pt.participant_id)
+      ? alliancePnlMap.get(pt.participant_id)!
+      : (trader ? calcEquity(trader, allPrices) / trader.equityBaseline - 1 : 0);
     // Apply territory PnL bonus to ranking — top-row traders rank higher, less likely eliminated
     const pnl = rawPnl * (1 + territory.pnl_bonus_percent / 100);
 

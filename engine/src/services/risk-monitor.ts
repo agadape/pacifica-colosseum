@@ -6,6 +6,7 @@ import { getPriceManager, type PriceUpdate } from "../state/price-manager";
 import type { Json } from "../../../src/lib/supabase/types";
 import { reloadAbilityEffects } from "./ability-manager";
 import { reloadProgressionState } from "./progression-manager";
+import { dissolveAllianceOnElimination } from "./alliance-manager";
 import {
   type ArenaState,
   type TraderState,
@@ -304,6 +305,9 @@ async function handleDrawdownBreach(
       drawdown: trader.currentDrawdownPercent,
     },
   });
+
+  // Dissolve any active alliance so the partner becomes independent
+  void dissolveAllianceOnElimination(state.arenaId, trader.participantId);
 
   console.log(`[RiskMonitor] ${trader.participantId} ELIMINATED at ${trader.currentDrawdownPercent.toFixed(1)}% drawdown`);
 }

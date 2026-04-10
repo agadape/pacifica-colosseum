@@ -68,6 +68,15 @@ export function useArenaRealtime(arenaId: string) {
       })
     );
 
+    // Alliance state changes (proposals, accepts, betrayal phases)
+    channels.push(
+      subscribeToTable(`alliances-${arenaId}`, "alliances", arenaId, () => {
+        queryClient.invalidateQueries({ queryKey: ["alliances", arenaId] });
+      })
+    );
+
+    // alliance_members has no arena_id column — polling via 5s refetch handles vote updates
+
     channelsRef.current = channels;
 
     return () => {

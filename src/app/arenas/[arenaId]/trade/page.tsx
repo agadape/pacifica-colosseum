@@ -17,6 +17,8 @@ import TerritoryInfoCard from "@/components/TerritoryInfoCard";
 import { AbilityPanel } from "@/components/AbilityPanel";
 import { HazardBanner } from "@/components/HazardBanner";
 import { ProgressionModal } from "@/components/ProgressionModal";
+import { AlliancePanel } from "@/components/AlliancePanel";
+import { BetrayalVoteModal } from "@/components/BetrayalVoteModal";
 
 const KNOWN_BOT_NAMES = new Set([
   "Conservative Carl", "Aggressive Alice", "Scalper Sam",
@@ -116,6 +118,14 @@ export default function TradePage({
 
       {/* Progression Modal — shown to active participants after round ends */}
       {myStatus === "active" && <ProgressionModal arenaId={arenaId} />}
+
+      {/* Betrayal Vote Modal — shown during alliance betrayal phase */}
+      {myStatus === "active" && !!myParticipant?.id && (
+        <BetrayalVoteModal
+          arenaId={arenaId}
+          partnerName="your ally"
+        />
+      )}
 
       {/* Elimination overlay — fullscreen */}
       <AnimatePresence>
@@ -309,6 +319,20 @@ export default function TradePage({
               {/* Ability panel — shows owned abilities and active effects */}
               {!!myParticipant?.id && myStatus === "active" && (
                 <AbilityPanel
+                  arenaId={arenaId}
+                  myParticipantId={myParticipant.id as string}
+                  targets={leaderboard
+                    .filter(p => p.id !== myParticipant?.id && p.status === "active")
+                    .map(p => ({
+                      participantId: p.id as string,
+                      username: (p.users as { username?: string | null } | null)?.username ?? (p.subaccount_address as string)?.slice(0, 6) ?? "?",
+                    }))}
+                />
+              )}
+
+              {/* Alliance panel — propose / view / manage alliances */}
+              {!!myParticipant?.id && myStatus === "active" && (
+                <AlliancePanel
                   arenaId={arenaId}
                   myParticipantId={myParticipant.id as string}
                   targets={leaderboard
