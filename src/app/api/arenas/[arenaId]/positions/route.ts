@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyAuth, unauthorized } from "@/lib/auth/middleware";
 import { findOrCreateUser } from "@/lib/auth/register";
+import { fetchEngine } from "@/lib/utils/fetch-engine";
 
 const ENGINE_URL = process.env.ENGINE_URL || "http://localhost:4000";
 const INTERNAL_KEY = process.env.INTERNAL_API_KEY || "dev-internal-key";
@@ -20,7 +21,7 @@ export async function GET(
 
   const { arenaId } = await params;
 
-  const res = await fetch(`${ENGINE_URL}/internal/positions`, {
+  const res = await fetchEngine(`${ENGINE_URL}/internal/positions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

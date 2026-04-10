@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyAuth, unauthorized } from "@/lib/auth/middleware";
 import { findOrCreateUser } from "@/lib/auth/register";
+import { fetchEngine } from "@/lib/utils/fetch-engine";
 
 const ENGINE_URL = process.env.ENGINE_URL || "http://localhost:4000";
 const INTERNAL_KEY = process.env.INTERNAL_API_KEY || "dev-internal-key";
@@ -39,8 +40,8 @@ export async function POST(
     return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
 
-  // Call engine internal endpoint
-  const res = await fetch(`${ENGINE_URL}/internal/trade`, {
+  // Call engine internal endpoint (retries once on 5xx/network error)
+  const res = await fetchEngine(`${ENGINE_URL}/internal/trade`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

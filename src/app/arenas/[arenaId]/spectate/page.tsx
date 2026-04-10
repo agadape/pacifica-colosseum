@@ -78,7 +78,7 @@ export default function SpectatePage({
     if (!endsAt || endsAt >= Date.now()) return;
     const t = setTimeout(() => handleReset(), 5000);
     return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- handleReset intentionally excluded: including it causes infinite re-render loop
   }, [arena?.id, arena?.current_round_ends_at, resetDone]);
 
   if (!arena) {

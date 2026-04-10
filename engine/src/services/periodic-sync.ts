@@ -77,7 +77,10 @@ async function syncArena(arenaId: string): Promise<void> {
         };
 
         if (accInfo?.balance) {
-          trader.balance = parseFloat(accInfo.balance);
+          const parsed = parseFloat(accInfo.balance);
+          if (!isNaN(parsed) && parsed >= 0) {
+            trader.balance = parsed;
+          }
         }
       }
     } catch {

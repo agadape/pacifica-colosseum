@@ -87,12 +87,15 @@ async function endGracePeriod(arenaId: string): Promise<void> {
       })
       .eq("id", trader.participantId);
 
-    // Snapshot equity for round boundary
-    const roundField = `equity_round_${state.currentRound}_end` as string;
-    await supabase
-      .from("arena_participants")
-      .update({ [roundField]: equity })
-      .eq("id", trader.participantId);
+    // Snapshot equity for round boundary (rounds 1-3 only — no field for sudden death)
+    const validRound = state.currentRound >= 1 && state.currentRound <= 3;
+    if (validRound) {
+      const roundField = `equity_round_${state.currentRound}_end`;
+      await supabase
+        .from("arena_participants")
+        .update({ [roundField]: equity })
+        .eq("id", trader.participantId);
+    }
   }
 
   console.log(`[GracePeriod] Arena ${arenaId} — grace period ended, baselines reset`);

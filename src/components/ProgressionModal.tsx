@@ -96,7 +96,7 @@ export function ProgressionModal({ arenaId }: ProgressionModalProps) {
       const random = available[Math.floor(Math.random() * available.length)];
       void handleChoose(random.id);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- handleChoose excluded: defined below this effect, including it re-registers on every render
   }, [countdown]);
 
   const handleChoose = useCallback(async (nodeId: string) => {
