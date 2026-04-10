@@ -15,7 +15,7 @@
 import { getSupabase } from "../db";
 import { getArenaState } from "./risk-monitor";
 import { getPriceManager } from "../state/price-manager";
-import { calcEquity } from "../state/types";
+import { calcEquity, safePnlRatio } from "../state/types";
 
 // ============================================================
 // PROPOSE / ACCEPT / DECLINE
@@ -252,7 +252,7 @@ export async function getAveragedPnlMap(
     for (const m of members) {
       const trader = state?.traders.get(m.participant_id);
       if (trader && trader.status === "active") {
-        const pnl = calcEquity(trader, allPrices) / trader.equityBaseline - 1;
+        const pnl = safePnlRatio(calcEquity(trader, allPrices), trader.equityBaseline);
         pnls.push(pnl);
       }
     }
@@ -486,7 +486,7 @@ async function resolveBetrayal(allianceId: string, arenaId: string): Promise<voi
     let lowestId: string | null = null;
     for (const m of members) {
       const trader = state?.traders.get(m.participant_id);
-      const pnl = trader ? calcEquity(trader, allPrices) / trader.equityBaseline - 1 : 0;
+      const pnl = trader ? safePnlRatio(calcEquity(trader, allPrices), trader.equityBaseline) : 0;
       if (pnl < lowestPnl) {
         lowestPnl = pnl;
         lowestId = m.participant_id;

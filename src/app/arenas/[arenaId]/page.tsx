@@ -30,9 +30,14 @@ export default function ArenaDetailPage({
 
   const handleResetOpenArena = useCallback(async () => {
     setIsResetting(true);
-    await fetch("/api/demo/reset-open-arena", { method: "POST" });
-    setIsResetting(false);
-    setResetDone(true);
+    try {
+      const res = await fetch("/api/demo/reset-open-arena", { method: "POST" });
+      if (res.ok) setResetDone(true);
+    } catch {
+      // Network error — button stays enabled so user can retry
+    } finally {
+      setIsResetting(false);
+    }
   }, []);
 
   if (isLoading) {

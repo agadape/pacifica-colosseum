@@ -47,7 +47,12 @@ export async function startGracePeriod(
 
   // After grace period: snapshot equity, reset baselines, resume
   setTimeout(async () => {
-    await endGracePeriod(arenaId);
+    try {
+      await endGracePeriod(arenaId);
+    } catch (err) {
+      console.error(`[GracePeriod] endGracePeriod failed for arena ${arenaId}:`, err);
+      // Still call callback — round must advance even if snapshot fails
+    }
     callback();
   }, duration);
 }

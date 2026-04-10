@@ -91,3 +91,12 @@ export function calcDrawdownPercent(equity: number, baseline: number): number {
   const drawdown = ((baseline - equity) / baseline) * 100;
   return Math.max(0, drawdown); // can't have negative drawdown
 }
+
+/**
+ * Safe PnL ratio: (equity / baseline) - 1.
+ * Returns 0 if baseline is 0 or negative — prevents division by zero.
+ */
+export function safePnlRatio(equity: number, baseline: number): number {
+  if (baseline <= 0) return 0;
+  return equity / baseline - 1;
+}

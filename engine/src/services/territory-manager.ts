@@ -25,7 +25,7 @@
 import { getSupabase } from "../db";
 import { getArenaState } from "./risk-monitor";
 import { getPriceManager } from "../state/price-manager";
-import { calcEquity } from "../state/types";
+import { calcEquity, safePnlRatio } from "../state/types";
 import { eliminateTrader } from "./elimination-engine";
 import { ROUND_PARAMS } from "../../../src/lib/utils/constants";
 import { getAveragedPnlMap } from "./alliance-manager";
@@ -324,8 +324,8 @@ export async function resolveSkirmish(
     return { success: false, error: "Trader state not found" };
   }
 
-  const attackerPnl = calcEquity(attackerState, allPrices) / attackerState.equityBaseline - 1;
-  const defenderPnl = calcEquity(defenderState, allPrices) / defenderState.equityBaseline - 1;
+  const attackerPnl = safePnlRatio(calcEquity(attackerState, allPrices), attackerState.equityBaseline);
+  const defenderPnl = safePnlRatio(calcEquity(defenderState, allPrices), defenderState.equityBaseline);
 
   const requiredLead = defenderPnl * SKIRMISH_PNL_THRESHOLD;
   const attackerWins = attackerPnl >= requiredLead;
@@ -412,10 +412,10 @@ async function swapTerritories(
   const attackerState = state?.traders.get(attackerId);
   const defenderState = state?.traders.get(defenderId);
   const attackerPnl = attackerState
-    ? calcEquity(attackerState, allPrices) / attackerState.equityBaseline - 1
+    ? safePnlRatio(calcEquity(attackerState, allPrices), attackerState.equityBaseline)
     : 0;
   const defenderPnl = defenderState
-    ? calcEquity(defenderState, allPrices) / defenderState.equityBaseline - 1
+    ? safePnlRatio(calcEquity(defenderState, allPrices), defenderState.equityBaseline)
     : 0;
 
   await supabase
@@ -505,7 +505,7 @@ export async function processTerritoryElimination(
     // Use alliance-averaged PnL if participant is in an alliance, else individual
     const rawPnl = alliancePnlMap.has(pt.participant_id)
       ? alliancePnlMap.get(pt.participant_id)!
-      : (trader ? calcEquity(trader, allPrices) / trader.equityBaseline - 1 : 0);
+      : (trader ? safePnlRatio(calcEquity(trader, allPrices), trader.equityBaseline) : 0);
     // Apply territory PnL bonus to ranking — top-row traders rank higher, less likely eliminated
     const pnl = rawPnl * (1 + territory.pnl_bonus_percent / 100);
 
@@ -659,7 +659,7 @@ export async function getTerritoryBoardState(arenaId: string) {
     const participant = participants?.find((p) => p.id === pt?.participant_id);
     const trader = pt ? state?.traders.get(pt.participant_id) : null;
     const pnl = trader
-      ? calcEquity(trader, allPrices) / trader.equityBaseline - 1
+      ? safePnlRatio(calcEquity(trader, allPrices), trader.equityBaseline)
       : 0;
 
     grid[territory.row_index][territory.col_index] = {
