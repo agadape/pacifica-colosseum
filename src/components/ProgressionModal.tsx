@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
@@ -87,10 +87,12 @@ export function ProgressionModal({ arenaId }: ProgressionModalProps) {
   const available = progression?.available ?? [];
 
   const countdown = useCountdown(30);
+  const autoPickFired = useRef(false);
 
-  // Auto-pick randomly if countdown hits 0
+  // Auto-pick randomly if countdown hits 0 — guard prevents double-fire
   useEffect(() => {
-    if (countdown === 0 && pending && available.length && !chosen) {
+    if (countdown === 0 && pending && available.length && !chosen && !autoPickFired.current) {
+      autoPickFired.current = true;
       const random = available[Math.floor(Math.random() * available.length)];
       void handleChoose(random.id);
     }

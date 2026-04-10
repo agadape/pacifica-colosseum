@@ -57,7 +57,9 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ allianceId: alliance?.id, vote }),
       });
-      return res.json();
+      const json = await res.json() as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Vote failed");
+      return json;
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["alliances", arenaId] });
