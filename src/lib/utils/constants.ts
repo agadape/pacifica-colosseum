@@ -35,7 +35,7 @@ export type AllianceStatus = "pending" | "active" | "dissolved";
 // Protocol Constants
 // ============================================================
 
-export const MIN_PARTICIPANTS = 4;
+export const MIN_PARTICIPANTS = 2;
 export const MAX_PARTICIPANTS = 100;
 export const STARTING_CAPITAL = 1000; // USDC testnet
 export const GRACE_PERIOD_SECONDS = 120; // 2 min (60s for Sudden Death)
