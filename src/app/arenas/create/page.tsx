@@ -129,7 +129,7 @@ export default function CreateArenaPage() {
                 <option value={1440}>24 hours</option>
               </select>
               <p className="mt-2 text-xs text-text-tertiary">
-                Minimum <span className="text-accent-primary font-semibold">2 traders</span> required to start. Arena auto-cancels if not met.
+                Arena starts automatically at the scheduled time. Solo play supported — <span className="text-accent-primary font-semibold">no minimum</span> required.
               </p>
             </div>
 

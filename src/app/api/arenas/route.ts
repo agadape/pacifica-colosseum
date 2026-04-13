@@ -18,8 +18,8 @@ const createArenaSchema = z.object({
   description: z.string().max(200).optional(),
   preset: z.enum(["blitz", "sprint", "daily", "weekly"]),
   starts_at: z.string().datetime(),
-  min_participants: z.number().int().min(MIN_PARTICIPANTS).max(MAX_PARTICIPANTS).optional(),
-  max_participants: z.number().int().min(MIN_PARTICIPANTS).max(MAX_PARTICIPANTS).optional(),
+  min_participants: z.number().int().min(1).max(MAX_PARTICIPANTS).optional(),
+  max_participants: z.number().int().min(1).max(MAX_PARTICIPANTS).optional(),
   is_invite_only: z.boolean().optional(),
 });
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     description: input.description ?? null,
     preset: input.preset,
     starting_capital: STARTING_CAPITAL,
-    min_participants: input.min_participants ?? MIN_PARTICIPANTS,
+    min_participants: input.min_participants ?? 1,
     max_participants: input.max_participants ?? MAX_PARTICIPANTS,
     is_invite_only: input.is_invite_only ?? false,
     registration_deadline: registrationDeadline.toISOString(),
