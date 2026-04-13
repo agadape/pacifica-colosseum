@@ -1,4 +1,37 @@
 // ============================================================
+// Status Union Types
+// ============================================================
+
+/** All possible arena lifecycle statuses stored in the arenas.status column. */
+export type ArenaStatus =
+  | "registration"
+  | "round_1"
+  | "round_2"
+  | "round_3"
+  | "sudden_death"
+  | "settling"
+  | "completed"
+  | "cancelled";
+
+/** All possible participant statuses stored in arena_participants.status column. */
+export type ParticipantStatus =
+  | "registered"
+  | "active"
+  | "eliminated"
+  | "winner"
+  | "completed";
+
+/** All possible round statuses stored in rounds.status column. */
+export type RoundStatus =
+  | "pending"
+  | "active"
+  | "eliminating"
+  | "completed";
+
+/** Alliance lifecycle statuses. */
+export type AllianceStatus = "pending" | "active" | "dissolved";
+
+// ============================================================
 // Protocol Constants
 // ============================================================
 
