@@ -40,9 +40,9 @@ export function useArena(arenaId: string) {
     queryKey: ["arena", arenaId],
     queryFn: () => fetchWithAuth(`/api/arenas/${arenaId}`),
     enabled: !!arenaId,
-    staleTime: 10000,
+    staleTime: 5000,
     gcTime: 30000,
-    refetchInterval: 120000,
+    refetchInterval: 15000,
   });
 }
 

@@ -19,7 +19,7 @@ export default function CreateArenaPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [preset, setPreset] = useState("sprint");
-  const [startsIn, setStartsIn] = useState(60); // minutes from now
+  const [startsIn, setStartsIn] = useState(5); // minutes from now
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +120,8 @@ export default function CreateArenaPage() {
                 onChange={(e) => setStartsIn(Number(e.target.value))}
                 className="w-full px-4 py-3 rounded-xl bg-surface border border-border-light text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
               >
+                <option value={1}>1 minute</option>
+                <option value={2}>2 minutes</option>
                 <option value={5}>5 minutes</option>
                 <option value={15}>15 minutes</option>
                 <option value={30}>30 minutes</option>

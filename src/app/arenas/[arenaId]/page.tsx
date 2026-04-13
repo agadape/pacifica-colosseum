@@ -1,9 +1,11 @@
 "use client";
 
-import { use, useState, useCallback } from "react";
+import { use, useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useArena, useJoinArena, useLeaveArena, useCurrentUser } from "@/hooks/use-arena";
+import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import Timer from "@/components/shared/Timer";
 import RoundIndicator from "@/components/arena/RoundIndicator";
 
@@ -12,21 +14,46 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
+const ACTIVE_STATUSES = ["round_1", "round_2", "round_3", "sudden_death"];
+
 export default function ArenaDetailPage({
   params,
 }: {
   params: Promise<{ arenaId: string }>;
 }) {
   const { arenaId } = use(params);
+  const router = useRouter();
   const { data, isLoading } = useArena(arenaId);
   const { data: userData } = useCurrentUser();
   const joinArena = useJoinArena(arenaId);
   const leaveArena = useLeaveArena(arenaId);
 
+  // Live push updates via Supabase Realtime
+  useArenaRealtime(arenaId);
+
   const arena = data?.data;
   const currentUser = userData?.data;
   const [isResetting, setIsResetting] = useState(false);
   const [resetDone, setResetDone] = useState(false);
+  const [arenaJustStarted, setArenaJustStarted] = useState(false);
+  const [arenaCancelled, setArenaCancelled] = useState(false);
+  const prevStatusRef = useRef<string | undefined>(undefined);
+
+  // Detect status transitions while user is on the page
+  useEffect(() => {
+    if (!arena?.status) return;
+    const prev = prevStatusRef.current;
+
+    if (prev === "registration") {
+      if (ACTIVE_STATUSES.includes(arena.status)) {
+        setArenaJustStarted(true);
+      } else if (arena.status === "cancelled") {
+        setArenaCancelled(true);
+      }
+    }
+
+    prevStatusRef.current = arena.status;
+  }, [arena?.status]);
 
   const handleResetOpenArena = useCallback(async () => {
     setIsResetting(true);
@@ -34,7 +61,7 @@ export default function ArenaDetailPage({
       const res = await fetch("/api/demo/reset-open-arena", { method: "POST" });
       if (res.ok) setResetDone(true);
     } catch {
-      // Network error — button stays enabled so user can retry
+      // silent — button stays enabled for retry
     } finally {
       setIsResetting(false);
     }
@@ -42,7 +69,7 @@ export default function ArenaDetailPage({
 
   if (isLoading) {
     return (
-      <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
+      <main className="min-h-screen pt-20 px-6 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
       </main>
     );
@@ -50,7 +77,7 @@ export default function ArenaDetailPage({
 
   if (!arena) {
     return (
-      <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
+      <main className="min-h-screen pt-20 px-6 flex items-center justify-center">
         <p className="text-text-tertiary text-lg">Arena not found</p>
       </main>
     );
@@ -65,21 +92,75 @@ export default function ArenaDetailPage({
     (p: Record<string, unknown>) => p.user_id === currentUser.id
   );
   const isRegistration = arena.status === "registration";
-  const isActive = ["round_1", "round_2", "round_3", "sudden_death"].includes(arena.status);
+  const isActive = ACTIVE_STATUSES.includes(arena.status);
 
   return (
-    <main className="min-h-screen pt-24 px-6 md:px-10">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen pt-20 px-6 md:px-10">
+      <div className="max-w-5xl mx-auto">
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+
+          {/* ── Arena-just-started banner ── */}
+          <AnimatePresence>
+            {arenaJustStarted && (
+              <motion.div
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                className="mb-6 rounded-2xl border border-accent-primary/40 bg-accent-primary/5 px-5 py-4"
+              >
+                <p className="text-sm font-bold text-accent-primary mb-1">⚡ Arena is live!</p>
+                <p className="text-xs text-text-secondary mb-3">
+                  The arena has started. {isParticipant ? "Jump in and start trading." : "Watch the battle unfold."}
+                </p>
+                <div className="flex gap-2">
+                  {isParticipant && (
+                    <button
+                      onClick={() => router.push(`/arenas/${arenaId}/trade`)}
+                      className="px-4 py-2 rounded-full bg-accent-primary text-white text-xs font-semibold hover:bg-accent-hover transition-colors"
+                    >
+                      Go Trade →
+                    </button>
+                  )}
+                  <button
+                    onClick={() => router.push(`/arenas/${arenaId}/spectate`)}
+                    className="px-4 py-2 rounded-full border border-border text-text-secondary text-xs font-semibold hover:text-text-primary transition-colors"
+                  >
+                    Watch Live
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Arena-cancelled banner ── */}
+          <AnimatePresence>
+            {arenaCancelled && (
+              <motion.div
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                className="mb-6 rounded-2xl border border-danger/40 bg-danger/5 px-5 py-4"
+              >
+                <p className="text-sm font-bold text-danger mb-1">Arena cancelled</p>
+                <p className="text-xs text-text-secondary">
+                  Not enough participants joined in time. The arena has been cancelled.
+                </p>
+                <Link href="/arenas">
+                  <button className="mt-3 px-4 py-2 rounded-full border border-border text-text-secondary text-xs font-semibold hover:text-text-primary transition-colors">
+                    ← Back to Arenas
+                  </button>
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-xs uppercase tracking-[0.3em] text-text-tertiary">
                 {arena.preset}
               </span>
-              <span className="text-xs text-text-tertiary">
-                &middot;
-              </span>
+              <span className="text-xs text-text-tertiary">&middot;</span>
               <span className="text-xs uppercase tracking-wider text-accent-primary font-semibold">
                 {arena.status.replace(/_/g, " ")}
               </span>
@@ -118,7 +199,7 @@ export default function ArenaDetailPage({
             </div>
           )}
 
-          {/* See Results button for completed arenas */}
+          {/* See Results (completed) */}
           {arena.status === "completed" && (
             <div className="flex gap-3 mb-8">
               <Link href={`/arenas/${arenaId}/spectate`}>
@@ -133,7 +214,7 @@ export default function ArenaDetailPage({
             </div>
           )}
 
-          {/* Round Indicator (if active) */}
+          {/* Round Indicator (active) */}
           {isActive && currentRound && (
             <div className="mb-8">
               <RoundIndicator
@@ -147,7 +228,7 @@ export default function ArenaDetailPage({
             </div>
           )}
 
-          {/* Registration zombie banner */}
+          {/* Zombie banner */}
           {isRegistration && arena.starts_at && new Date(arena.starts_at as string) < new Date() && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -174,13 +255,16 @@ export default function ArenaDetailPage({
             </motion.div>
           )}
 
-          {/* Registration phase */}
+          {/* Registration waiting room */}
           {isRegistration && (
-            <div className="bg-surface rounded-2xl border border-border-light p-6 mb-8">
-              <div className="flex items-center justify-between mb-2">
+            <div className="bg-surface rounded-2xl border border-border-medium p-6 mb-8">
+              <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-text-secondary">
-                    {participants.length} / {arena.max_participants} traders
+                  <p className="text-2xl font-bold font-mono text-text-primary">
+                    {participants.length}
+                    <span className="text-text-tertiary font-normal text-base">
+                      {" "}/ {arena.max_participants} traders
+                    </span>
                   </p>
                   <Timer targetDate={arena.starts_at} label="starts in" className="mt-1" />
                 </div>
@@ -191,7 +275,7 @@ export default function ArenaDetailPage({
                     whileTap={{ scale: 0.97 }}
                     onClick={() => joinArena.mutate()}
                     disabled={joinArena.isPending}
-                    className="px-6 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50"
+                    className="px-6 py-3 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50"
                   >
                     {joinArena.isPending ? "Joining..." : "Join Arena"}
                   </motion.button>
@@ -201,25 +285,38 @@ export default function ArenaDetailPage({
                     whileTap={{ scale: 0.97 }}
                     onClick={() => leaveArena.mutate()}
                     disabled={leaveArena.isPending}
-                    className="px-6 py-2.5 rounded-full border border-border text-text-secondary text-sm font-semibold hover:border-danger hover:text-danger transition-colors disabled:opacity-50"
+                    className="px-6 py-3 rounded-full border border-border text-text-secondary text-sm font-semibold hover:border-danger hover:text-danger transition-colors disabled:opacity-50"
                   >
                     {leaveArena.isPending ? "Leaving..." : "Leave Arena"}
                   </motion.button>
                 ) : null}
               </div>
-              <p className="text-xs text-text-tertiary">
-                Minimum <span className="text-accent-primary font-semibold">2 traders</span> required to start
-              </p>
+
+              {isParticipant && (
+                <p className="text-xs text-success font-medium">
+                  ✓ You&apos;re in — arena starts automatically when the timer hits zero.
+                </p>
+              )}
+              {!isParticipant && (
+                <p className="text-xs text-text-tertiary">
+                  No minimum required — arena starts automatically at the scheduled time.
+                </p>
+              )}
             </div>
           )}
 
-          {/* Participants */}
+          {/* Participant list */}
           <div>
-            <h2 className="font-display text-lg font-700 text-text-primary mb-4">
+            <h2 className="font-display text-xl font-700 text-text-primary mb-4">
               Traders
+              <span className="text-text-tertiary text-base font-normal ml-2">
+                ({participants.length})
+              </span>
             </h2>
             {participants.length === 0 ? (
-              <p className="text-text-tertiary text-sm">No traders yet</p>
+              <p className="text-text-tertiary text-sm py-8 text-center">
+                No traders yet — be the first to join.
+              </p>
             ) : (
               <div className="space-y-2">
                 {participants.map((p: Record<string, unknown>, i: number) => (
@@ -228,18 +325,18 @@ export default function ArenaDetailPage({
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="flex items-center justify-between py-3 px-4 rounded-xl bg-surface border border-border-light"
+                    className="flex items-center justify-between py-4 px-5 rounded-xl bg-surface border border-border-medium"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-mono text-text-tertiary w-6">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-mono text-text-tertiary w-6">
                         #{i + 1}
                       </span>
-                      <span className="text-sm text-text-primary font-medium">
+                      <span className="text-base text-text-primary font-medium">
                         {((p.users as { username?: string | null } | null)?.username) ??
                           (p.subaccount_address as string)?.slice(0, 8) ?? "..."}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                       {p.total_pnl_percent !== undefined && (
                         <span
                           className={`font-mono text-sm font-semibold ${
@@ -253,7 +350,7 @@ export default function ArenaDetailPage({
                         </span>
                       )}
                       <span
-                        className={`text-xs font-semibold uppercase ${
+                        className={`text-xs font-semibold uppercase tracking-wide ${
                           p.status === "active"
                             ? "text-success"
                             : p.status === "eliminated"
@@ -271,6 +368,7 @@ export default function ArenaDetailPage({
               </div>
             )}
           </div>
+
         </motion.div>
       </div>
     </main>
