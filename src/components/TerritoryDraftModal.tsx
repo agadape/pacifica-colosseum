@@ -74,9 +74,9 @@ export default function TerritoryDraftModal({
           transition={{ duration: 0.3 }}
           className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm pointer-events-auto"
         >
-          <div className="mx-4 bg-surface border border-border-light rounded-2xl shadow-xl overflow-hidden">
+          <div className="mx-4 bg-surface border border-border-medium rounded-2xl shadow-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border-light bg-surface/80">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border-medium bg-surface/80">
               <div className="flex items-center gap-2">
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}
@@ -112,10 +112,10 @@ export default function TerritoryDraftModal({
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-surface/60 border border-border-light"
+                      className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-surface/60 border border-border-medium"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-text-tertiary font-mono text-[10px]">
+                        <span className="text-text-tertiary font-mono text-xs">
                           #{draftEvents.length - i}
                         </span>
                         <span className="font-semibold text-text-primary truncate max-w-[120px]">{name}</span>
@@ -123,7 +123,7 @@ export default function TerritoryDraftModal({
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="font-mono text-text-primary font-bold">{label}</span>
                         {bonus !== undefined && bonus > 0 && (
-                          <span className="text-[9px] font-semibold text-emerald-600">
+                          <span className="text-xs font-semibold text-emerald-600">
                             +{bonus.toFixed(0)}%
                           </span>
                         )}
@@ -134,8 +134,8 @@ export default function TerritoryDraftModal({
               )}
             </div>
 
-            <div className="px-4 py-2 border-t border-border-light">
-              <p className="text-[10px] text-text-tertiary text-center">
+            <div className="px-4 py-2 border-t border-border-medium">
+              <p className="text-xs text-text-tertiary text-center">
                 Snake draft — best PnL picks first. Territories carry bonuses into the round.
               </p>
             </div>

@@ -83,7 +83,7 @@ export default function SpectatePage({
 
   if (!arena) {
     return (
-      <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
+      <main className="min-h-screen pt-20 px-6 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
       </main>
     );

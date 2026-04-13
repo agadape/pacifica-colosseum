@@ -99,7 +99,7 @@ export default function ProfilePage({
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-surface rounded-2xl border border-border-light p-5 text-center"
+                className="bg-surface rounded-2xl border border-border-medium p-5 text-center"
               >
                 <p className="font-mono text-2xl font-bold text-text-primary">
                   {stat.value}
@@ -112,7 +112,7 @@ export default function ProfilePage({
           </div>
 
           {/* Referral */}
-          <div className="bg-surface rounded-2xl border border-border-light p-5 mb-12">
+          <div className="bg-surface rounded-2xl border border-border-medium p-5 mb-12">
             <h2 className="font-display text-lg font-700 text-text-primary mb-2">
               Referral Link
             </h2>
@@ -120,7 +120,7 @@ export default function ProfilePage({
               <input
                 readOnly
                 value={`${typeof window !== "undefined" ? window.location.origin : ""}?ref=${user?.referral_code ?? address.slice(0, 8)}`}
-                className="flex-1 px-3 py-2 rounded-lg bg-bg-primary border border-border-light font-mono text-xs text-text-secondary"
+                className="flex-1 px-3 py-2 rounded-lg bg-bg-primary border border-border-medium font-mono text-xs text-text-secondary"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(`${window.location.origin}?ref=${user?.referral_code ?? address.slice(0, 8)}`)}

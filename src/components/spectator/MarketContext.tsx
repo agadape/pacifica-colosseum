@@ -50,7 +50,7 @@ export default function MarketContext({ arenaId, symbols }: MarketContextProps) 
   const sentiments = sentimentData ?? [];
 
   return (
-    <div className="bg-surface rounded-2xl border border-border-light p-5">
+    <div className="bg-surface rounded-2xl border border-border-medium p-5">
       <h3 className="font-display text-sm font-700 text-text-primary mb-3">
         Market Context
       </h3>

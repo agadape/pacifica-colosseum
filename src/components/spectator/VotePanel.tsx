@@ -64,10 +64,10 @@ export default function VotePanel({
 
   if (!votingOpen) {
     return (
-      <div className="bg-surface rounded-2xl border border-border-light p-5">
+      <div className="bg-surface rounded-2xl border border-border-medium p-5">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="font-display text-sm font-700 text-text-primary">Second Life Vote</h3>
-          <span className="text-[9px] font-mono text-text-tertiary bg-bg-primary rounded px-1.5 py-0.5 border border-border-light">
+          <span className="text-xs font-mono text-text-tertiary bg-bg-primary rounded px-1.5 py-0.5 border border-border-medium">
             last 5 min of round
           </span>
         </div>
@@ -91,7 +91,7 @@ export default function VotePanel({
         <motion.span
           animate={{ opacity: [1, 0.4, 1] }}
           transition={{ duration: 1.2, repeat: Infinity }}
-          className="text-[9px] font-mono text-accent-gold/70 flex items-center gap-1"
+          className="text-xs font-mono text-accent-gold/70 flex items-center gap-1"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent-gold inline-block" />
           OPEN
@@ -120,7 +120,7 @@ export default function VotePanel({
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left relative overflow-hidden ${
                 isMyVote
                   ? "border-accent-gold bg-accent-gold/5"
-                  : "border-border-light hover:border-accent-gold/30 disabled:cursor-default"
+                  : "border-border-medium hover:border-accent-gold/30 disabled:cursor-default"
               }`}
             >
               {/* Vote bar fill */}
@@ -151,7 +151,7 @@ export default function VotePanel({
       </div>
 
       {totalVotes > 0 && (
-        <p className="text-[10px] text-text-tertiary text-center mt-3 font-mono">
+        <p className="text-xs text-text-tertiary text-center mt-3 font-mono">
           {totalVotes} vote{totalVotes !== 1 ? "s" : ""} cast
         </p>
       )}

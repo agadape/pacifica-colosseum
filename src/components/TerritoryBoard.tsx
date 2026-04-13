@@ -50,8 +50,8 @@ function cellBg(cell: TerritoryCell, isMe: boolean, isTarget: boolean): string {
   if (isMe) return "bg-accent-primary/8 border-accent-primary shadow-sm";
   if (cell.isEliminationZone && !cell.holder) return "bg-rose-50/60 border-rose-200/60";
   if (cell.isEliminationZone) return "bg-rose-50 border-rose-300/60";
-  if (!cell.holder) return "bg-surface/40 border-border-light border-dashed";
-  return "bg-surface border-border-light";
+  if (!cell.holder) return "bg-surface/40 border-border-medium border-dashed";
+  return "bg-surface border-border-medium";
 }
 
 export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBoardProps) {
@@ -114,7 +114,7 @@ export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBo
 
   if (isLoading) {
     return (
-      <div className="bg-surface rounded-2xl border border-border-light p-6 flex items-center justify-center h-36">
+      <div className="bg-surface rounded-2xl border border-border-medium p-6 flex items-center justify-center h-36">
         <div className="w-5 h-5 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -122,20 +122,20 @@ export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBo
 
   if (!board) {
     return (
-      <div className="bg-surface rounded-2xl border border-border-light p-6 text-center">
+      <div className="bg-surface rounded-2xl border border-border-medium p-6 text-center">
         <p className="text-xs text-text-tertiary">Territory board not yet initialized</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface rounded-2xl border border-border-light p-4 space-y-3">
+    <div className="bg-surface rounded-2xl border border-border-medium p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-wider">
           Territory Board
         </h3>
-        <div className="flex items-center gap-3 text-[10px] text-text-tertiary">
+        <div className="flex items-center gap-3 text-xs text-text-tertiary">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-sm bg-rose-200 inline-block" />
             Elimination zone
@@ -177,22 +177,22 @@ export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBo
                 `}
               >
                 {/* Cell label */}
-                <span className="text-[9px] font-mono text-text-tertiary/70 leading-none">{cell.label}</span>
+                <span className="text-xs font-mono text-text-tertiary/70 leading-none">{cell.label}</span>
 
                 {cell.holder ? (
                   <>
                     {/* Username */}
-                    <span className={`text-[10px] font-semibold truncate leading-tight ${isMe ? "text-accent-primary" : "text-text-primary"}`}>
+                    <span className={`text-xs font-semibold truncate leading-tight ${isMe ? "text-accent-primary" : "text-text-primary"}`}>
                       {cell.holder.username ?? cell.holder.participantId.slice(0, 6)}
                     </span>
                     {/* PnL */}
-                    <span className={`text-[9px] font-mono leading-none ${pnlColor(cell.holder.currentPnlPercent)}`}>
+                    <span className={`text-xs font-mono leading-none ${pnlColor(cell.holder.currentPnlPercent)}`}>
                       {cell.holder.currentPnlPercent >= 0 ? "+" : ""}
                       {(cell.holder.currentPnlPercent * 100).toFixed(1)}%
                     </span>
                   </>
                 ) : (
-                  <span className="text-[9px] text-text-tertiary/50 italic">empty</span>
+                  <span className="text-xs text-text-tertiary/50 italic">empty</span>
                 )}
 
                 {/* Bonus indicator */}
@@ -223,11 +223,11 @@ export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBo
               </span>{" "}
               on {targetCell.label}?
             </p>
-            <p className="text-[10px] text-amber-700/70">
+            <p className="text-xs text-amber-700/70">
               You need ≥15% PnL lead over them to win. Declaration opens window — resolution happens next skirmish cycle.
             </p>
             {attackError && (
-              <p className="text-[10px] text-rose-600 font-semibold">{attackError}</p>
+              <p className="text-xs text-rose-600 font-semibold">{attackError}</p>
             )}
             <div className="flex gap-2">
               <button
@@ -263,18 +263,18 @@ export default function TerritoryBoard({ arenaId, myParticipantId }: TerritoryBo
       </AnimatePresence>
 
       {/* Legend: modifiers */}
-      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border-light">
+      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border-medium">
         <div className="text-center">
-          <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Top row</p>
-          <p className="text-[10px] font-semibold text-emerald-600">Best bonuses</p>
+          <p className="text-xs text-text-tertiary uppercase tracking-wider">Top row</p>
+          <p className="text-xs font-semibold text-emerald-600">Best bonuses</p>
         </div>
         <div className="text-center">
-          <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Middle</p>
-          <p className="text-[10px] font-semibold text-text-secondary">Balanced</p>
+          <p className="text-xs text-text-tertiary uppercase tracking-wider">Middle</p>
+          <p className="text-xs font-semibold text-text-secondary">Balanced</p>
         </div>
         <div className="text-center">
-          <p className="text-[9px] text-text-tertiary uppercase tracking-wider">Bottom row</p>
-          <p className="text-[10px] font-semibold text-rose-500">Elimination risk</p>
+          <p className="text-xs text-text-tertiary uppercase tracking-wider">Bottom row</p>
+          <p className="text-xs font-semibold text-rose-500">Elimination risk</p>
         </div>
       </div>
     </div>

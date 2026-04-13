@@ -91,7 +91,7 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 16 }}
-            className="bg-surface rounded-3xl border border-border-light shadow-2xl w-full max-w-sm p-8"
+            className="bg-surface rounded-3xl border border-border-medium shadow-2xl w-full max-w-sm p-8"
           >
             {/* Header */}
             <div className="text-center mb-6">
@@ -113,7 +113,7 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
             )}
 
             {/* Explanation */}
-            <div className="bg-bg-main rounded-2xl p-4 mb-6 space-y-2">
+            <div className="bg-bg-primary rounded-2xl p-4 mb-6 space-y-2">
               <div className="flex items-start gap-2">
                 <span className="text-sm">🤝</span>
                 <p className="text-xs text-text-secondary">

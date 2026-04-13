@@ -66,7 +66,7 @@ export default function CreateArenaPage() {
                 required
                 minLength={3}
                 maxLength={50}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-light text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
               />
             </div>
 
@@ -82,7 +82,7 @@ export default function CreateArenaPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Short description"
                 maxLength={200}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-light text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
               />
             </div>
 
@@ -100,7 +100,7 @@ export default function CreateArenaPage() {
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       preset === p.value
                         ? `${p.color} bg-surface`
-                        : "border-border-light text-text-secondary hover:border-border"
+                        : "border-border-medium text-text-secondary hover:border-border"
                     }`}
                   >
                     <span className="block text-sm font-semibold">{p.label}</span>
@@ -118,7 +118,7 @@ export default function CreateArenaPage() {
               <select
                 value={startsIn}
                 onChange={(e) => setStartsIn(Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-light text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
               >
                 <option value={1}>1 minute</option>
                 <option value={2}>2 minutes</option>

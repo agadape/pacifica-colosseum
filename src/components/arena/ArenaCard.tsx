@@ -120,7 +120,7 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           )}
 
           {isActive && (
-            <div className="flex items-center justify-between pt-2 border-t border-border-light">
+            <div className="flex items-center justify-between pt-2 border-t border-border-medium">
               <div className="flex items-center gap-2 text-xs text-accent-primary font-semibold">
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}

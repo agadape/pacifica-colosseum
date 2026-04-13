@@ -69,11 +69,11 @@ export default function TraderPopup({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 450, damping: 30 }}
-      className="absolute top-full left-0 mt-3 z-50 w-52 bg-surface rounded-2xl border border-border-light shadow-xl p-4"
+      className="absolute top-full left-0 mt-3 z-50 w-52 bg-surface rounded-2xl border border-border-medium shadow-xl p-4"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-primary border border-border-light flex-shrink-0">
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-bg-primary border border-border-medium flex-shrink-0">
           <img
             src={getAvatarUrl(seed)}
             alt={displayName}
@@ -84,7 +84,7 @@ export default function TraderPopup({
           <p className="text-sm font-semibold text-text-primary leading-tight truncate">
             {displayName}
           </p>
-          <p className={`text-[10px] font-bold uppercase tracking-wider ${statusInfo.color}`}>
+          <p className={`text-xs font-bold uppercase tracking-wider ${statusInfo.color}`}>
             {statusInfo.label}
           </p>
         </div>

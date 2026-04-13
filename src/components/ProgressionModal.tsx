@@ -186,7 +186,7 @@ export function ProgressionModal({ arenaId }: ProgressionModalProps) {
                     `}
                   >
                     {/* Category badge */}
-                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 ${style.badge}`}>
+                    <span className={`inline-block text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3 ${style.badge}`}>
                       {style.label}
                     </span>
 

@@ -103,7 +103,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
     : null;
 
   return (
-    <div className="bg-surface rounded-2xl border border-border-light p-4">
+    <div className="bg-surface rounded-2xl border border-border-medium p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-wider">Alliance</h3>
         {!myAlliance && !showPropose && (
@@ -174,7 +174,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
             <select
               value={selectedTarget}
               onChange={e => setSelectedTarget(e.target.value)}
-              className="w-full text-xs bg-bg-main border border-border-light rounded-lg px-2 py-1.5 text-text-primary"
+              className="w-full text-xs bg-bg-primary border border-border-medium rounded-lg px-2 py-1.5 text-text-primary"
             >
               <option value="">Select a trader...</option>
               {targets.map(t => (
@@ -193,7 +193,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
               </button>
               <button
                 onClick={() => { setShowPropose(false); setSelectedTarget(""); }}
-                className="text-xs px-3 py-1.5 rounded-lg border border-border-light text-text-secondary hover:text-text-primary transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-border-medium text-text-secondary hover:text-text-primary transition-colors"
               >
                 Cancel
               </button>
@@ -236,7 +236,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
 
       {/* Partner ID display for non-bot targets */}
       {myAlliance && myParticipantId && (
-        <p className="text-[10px] text-text-tertiary/40 mt-2">
+        <p className="text-xs text-text-tertiary/40 mt-2">
           Alliance #{myAlliance.id.slice(0, 8)}
         </p>
       )}

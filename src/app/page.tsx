@@ -186,45 +186,7 @@ export default function HomePage() {
               How It Works
             </a>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
-            className="mt-16 flex items-center justify-center gap-8 text-text-tertiary"
-          >
-            <div className="text-center">
-              <div className="font-mono text-2xl font-bold text-text-primary">$500K+</div>
-              <div className="text-xs uppercase tracking-wider mt-1">Prize Pool</div>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div className="text-center">
-              <div className="font-mono text-2xl font-bold text-text-primary">4</div>
-              <div className="text-xs uppercase tracking-wider mt-1">Rounds</div>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div className="text-center">
-              <div className="font-mono text-2xl font-bold text-text-primary">Apr 16</div>
-              <div className="text-xs uppercase tracking-wider mt-1">Deadline</div>
-            </div>
-          </motion.div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="text-xs text-text-tertiary uppercase tracking-widest">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-5 h-5 rounded-full border-2 border-text-tertiary flex items-center justify-center"
-          >
-            <div className="w-1 h-1 rounded-full bg-text-tertiary" />
-          </motion.div>
-        </motion.div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
@@ -293,28 +255,6 @@ export default function HomePage() {
                   </div>
                 </CardReveal>
               ))}
-            </div>
-          </SectionReveal>
-        </div>
-      </section>
-
-      {/* ── LIVE DEMO ── */}
-      <section className="py-24 px-6 md:px-10 bg-surface">
-        <div className="max-w-6xl mx-auto">
-          <SectionReveal>
-            <div className="text-center mb-12">
-              <p className="text-xs font-semibold uppercase tracking-widest text-accent-gold mb-3">Live Demo</p>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-text-primary">Watch the Battle</h2>
-              <p className="text-text-secondary mt-4 max-w-lg mx-auto">A demo arena is running right now with bot traders. No account needed.</p>
-            </div>
-
-            <div className="flex justify-center">
-              <Link
-                href="/arenas"
-                className="px-8 py-4 rounded-full bg-accent-gold text-white text-base font-semibold hover:bg-orange-600 transition-all hover:scale-105 shadow-md focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2"
-              >
-                Watch Live Arena →
-              </Link>
             </div>
           </SectionReveal>
         </div>

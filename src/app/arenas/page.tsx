@@ -74,7 +74,7 @@ export default function ArenasPage() {
               className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
                 filters.status === f.value
                   ? "bg-accent-primary text-white"
-                  : "bg-surface border border-border-light text-text-secondary hover:text-text-primary"
+                  : "bg-surface border border-border-medium text-text-secondary hover:text-text-primary"
               }`}
             >
               {f.label}

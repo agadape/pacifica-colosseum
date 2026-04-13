@@ -162,7 +162,7 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
                 >
                   <span>{effect.abilities?.icon ?? "✨"}</span>
                   <span>{label} active</span>
-                  <span className="ml-auto text-[10px] opacity-70">
+                  <span className="ml-auto text-xs opacity-70">
                     until {expiresAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
       {/* Used abilities (greyed out) */}
       {usedAbilities.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Used</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Used</p>
           {usedAbilities.map(a => (
             <AbilityCardWithToken
               key={`${a.ability_id}-${a.acquired_in_round}-used`}

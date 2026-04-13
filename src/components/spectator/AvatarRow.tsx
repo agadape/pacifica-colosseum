@@ -28,7 +28,7 @@ function getRingClass(pnlPercent: number, drawdown: number, maxDrawdown: number)
   if (dangerPct >= 0.8) return "ring-2 ring-danger shadow-sm shadow-danger/30";
   if (dangerPct >= 0.5) return "ring-2 ring-warning shadow-sm shadow-warning/20";
   if (pnlPercent > 0) return "ring-2 ring-success/50";
-  return "ring-1 ring-border-light";
+  return "ring-1 ring-border-medium";
 }
 
 export default function AvatarRow({ participants, maxDrawdown }: AvatarRowProps) {
@@ -103,7 +103,7 @@ export default function AvatarRow({ participants, maxDrawdown }: AvatarRowProps)
                 )}
               </div>
               <span
-                className={`text-[9px] font-medium max-w-[44px] truncate transition-colors ${
+                className={`text-xs font-medium max-w-[44px] truncate transition-colors ${
                   isEliminated
                     ? "text-text-tertiary"
                     : "text-text-secondary group-hover:text-text-primary"

@@ -204,7 +204,7 @@ export default function TradePage({
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-surface border border-border-light rounded-full px-5 py-2 shadow-lg pointer-events-none"
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-surface border border-border-medium rounded-full px-5 py-2 shadow-lg pointer-events-none"
           >
             <p className="text-sm font-semibold text-text-primary whitespace-nowrap">{roundEndMsg}</p>
           </motion.div>
@@ -256,7 +256,7 @@ export default function TradePage({
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
                     symbol === pair
                       ? "bg-accent-primary text-white"
-                      : "bg-surface border border-border-light text-text-secondary hover:text-text-primary"
+                      : "bg-surface border border-border-medium text-text-secondary hover:text-text-primary"
                   }`}
                 >
                   {pair}
@@ -345,7 +345,7 @@ export default function TradePage({
               )}
 
               {leaderboard.length > 0 && (
-                <div className="bg-surface rounded-2xl border border-border-light p-4">
+                <div className="bg-surface rounded-2xl border border-border-medium p-4">
                   <h3 className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3">Standings</h3>
                   <div className="space-y-1.5">
                     {leaderboard.slice(0, 6).map((p, i) => {
@@ -358,7 +358,7 @@ export default function TradePage({
                             <span className={`font-medium truncate max-w-[72px] ${p.user_id === currentUserId ? "text-accent-primary" : "text-text-primary"}`}>
                               {username ?? (p.subaccount_address as string)?.slice(0, 6) ?? "..."}
                             </span>
-                            {isBot && <span className="text-[9px] text-text-tertiary/40">🤖</span>}
+                            {isBot && <span className="text-xs text-text-tertiary/40">🤖</span>}
                           </div>
                           <span className={`font-mono font-semibold ${((p.total_pnl_percent as number) ?? 0) >= 0 ? "text-success" : "text-danger"}`}>
                             {((p.total_pnl_percent as number) ?? 0) >= 0 ? "+" : ""}{((p.total_pnl_percent as number) ?? 0).toFixed(1)}%

@@ -69,17 +69,17 @@ export default function LeaderboardPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-surface rounded-2xl border border-border-light py-20 text-center"
+            className="bg-surface rounded-2xl border border-border-medium py-20 text-center"
           >
             <p className="text-text-tertiary">No traders ranked yet</p>
             <p className="text-text-tertiary text-sm mt-1">Complete an arena to appear here</p>
           </motion.div>
         ) : (
-          <div className="bg-surface rounded-2xl border border-border-light overflow-hidden">
+          <div className="bg-surface rounded-2xl border border-border-medium overflow-hidden">
             {/* Column headers */}
-            <div className="grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-3 border-b border-border-light">
+            <div className="grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-3 border-b border-border-medium">
               {["#", "Trader", "Wins", "Played", "Best PnL", "Win Rate", "Streak"].map((col) => (
-                <span key={col} className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">
+                <span key={col} className="text-xs uppercase tracking-wider text-text-tertiary font-semibold">
                   {col}
                 </span>
               ))}
@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
                   <motion.div
                     key={user.id}
                     variants={rowVariant}
-                    className={`grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-4 items-center border-b border-border-light/50 last:border-0 transition-colors hover:bg-bg-primary/50 ${
+                    className={`grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-4 items-center border-b border-border-medium/50 last:border-0 transition-colors hover:bg-bg-primary/50 ${
                       i === 0 ? "bg-accent-gold/[0.03]" : ""
                     }`}
                   >
@@ -118,7 +118,7 @@ export default function LeaderboardPage() {
                           {name}
                         </span>
                         {user.total_rounds_survived > 0 && (
-                          <span className="text-[10px] text-text-tertiary">
+                          <span className="text-xs text-text-tertiary">
                             {user.total_rounds_survived} rounds survived
                           </span>
                         )}
