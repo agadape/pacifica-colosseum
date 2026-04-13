@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "cd engine && npm install && npm run build"
 
 [deploy]
-startCommand = "cd engine && node dist/engine/src/index.js"
+startCommand = "node -e \"setTimeout(()=>{},2147483647)\""
 healthcheckPath = "/health"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
