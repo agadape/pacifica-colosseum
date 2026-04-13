@@ -260,7 +260,7 @@ export default function HomePage() {
         }
       `}</style>
 
-      <div className="brut-grid fixed inset-0 pointer-events-none" style={{ zIndex: 0, opacity: 0.6 }} />
+      <div className="brut-grid fixed inset-0 pointer-events-none" style={{ zIndex: 0, opacity: 0.85 }} />
       <VelocityGlitchBars />
 
       {/* ── NAV ── */}
@@ -773,9 +773,9 @@ export default function HomePage() {
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: "9px",
-                  color: "#2a2a2a",
+                  color: "#555",
                   letterSpacing: "0.15em",
-                  border: "1px solid #1a1a1a",
+                  border: "1px solid #3a3a3a",
                   padding: "4px 10px",
                 }}
               >
@@ -795,13 +795,13 @@ export default function HomePage() {
                 <rect width="32" height="32" fill="#FF0000" opacity="0.2"/>
                 <rect x="8" y="8" width="16" height="16" fill="#FF0000"/>
               </svg>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#2a2a2a", letterSpacing: "0.2em" }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#555", letterSpacing: "0.2em" }}>
                 PACIFICA COLOSSEUM · HACKATHON 2026
               </span>
             </div>
             <div style={{ display: "flex", gap: "24px" }}>
               {[["ARENAS", "/arenas"], ["TRADE", "/trade"], ["SPECTATE", "/spectate"]].map(([label, href]) => (
-                <Link key={label} href={href} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#2a2a2a", letterSpacing: "0.1em", textDecoration: "none" }}>
+                <Link key={label} href={href} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#555", letterSpacing: "0.1em", textDecoration: "none" }}>
                   {label}
                 </Link>
               ))}

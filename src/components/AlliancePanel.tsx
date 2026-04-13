@@ -207,7 +207,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
-            <span className="text-xs text-text-primary font-medium">Allied with <span className="font-semibold">{partnerName}</span></span>
+            <span className="text-xs text-text-primary font-medium">Allied with <span className="font-semibold">{partnerName}</span>&apos;s</span>
           </div>
           <p className="text-xs text-text-tertiary leading-relaxed">
             Your PnL is averaged with your partner&apos;s for elimination ranking. Survive together.
