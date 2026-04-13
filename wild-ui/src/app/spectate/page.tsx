@@ -49,9 +49,9 @@ function RankBadge({ rank }: { rank: number }) {
       <div
         className="w-7 h-7 flex items-center justify-center text-xs font-bold"
         style={{
-          background: "#000",
-          border: "2px solid #888",
-          color: "#888",
+          background: "var(--color-void)",
+          border: "2px solid var(--color-text-muted)",
+          color: "var(--color-text-muted)",
           fontFamily: "'Clash Display', system-ui, sans-serif",
         }}
       >
@@ -64,7 +64,7 @@ function RankBadge({ rank }: { rank: number }) {
       <div
         className="w-7 h-7 flex items-center justify-center text-xs font-bold"
         style={{
-          background: "#000",
+          background: "var(--color-void)",
           border: "2px solid #CD7F32",
           color: "#CD7F32",
           fontFamily: "'Clash Display', system-ui, sans-serif",
@@ -78,7 +78,7 @@ function RankBadge({ rank }: { rank: number }) {
     <div
       className="w-7 h-7 flex items-center justify-center text-xs font-bold"
       style={{
-        color: "#555",
+        color: "var(--color-text-muted)",
         fontFamily: "'Clash Display', system-ui, sans-serif",
       }}
     >
@@ -102,7 +102,7 @@ export default function SpectatePage() {
         <div className="max-w-[1600px] mx-auto px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-xs font-medium tracking-widest" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+              <Link href="/" className="text-xs font-medium tracking-widest" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                 ← BACK
               </Link>
               <div className="h-4 w-px" style={{ background: "#fff" }} />
@@ -144,7 +144,7 @@ export default function SpectatePage() {
                     {survivors.length} ALIVE
                   </span>
                 </div>
-                <span className="mono text-xs" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="mono text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                   ROUND {currentRound} OF 4
                 </span>
               </div>
@@ -172,7 +172,7 @@ export default function SpectatePage() {
                         <span
                           className="text-sm font-semibold"
                           style={{
-                            color: trader.status === "eliminated" ? "#555" : "#fff",
+                            color: trader.status === "eliminated" ? "var(--color-text-muted)" : "#fff",
                             textDecoration: trader.status === "eliminated" ? "line-through" : "none",
                             fontFamily: "'Clash Display', system-ui, sans-serif",
                           }}
@@ -215,7 +215,7 @@ export default function SpectatePage() {
                         {trader.status === "eliminated" && (
                           <span
                             className="mono text-[8px] font-bold tracking-wider px-2 py-0.5"
-                            style={{ color: "#555", border: "1px solid #333", background: "transparent", fontFamily: "'JetBrains Mono', monospace" }}
+                            style={{ color: "var(--color-text-muted)", border: "1px solid var(--color-border-subtle)", background: "transparent", fontFamily: "'JetBrains Mono', monospace" }}
                           >
                             OUT
                           </span>

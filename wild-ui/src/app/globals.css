@@ -14,10 +14,13 @@
   --color-border: #FFFFFF;
   --color-border-dim: rgba(255, 255, 255, 0.15);
   --color-text-primary: #FFFFFF;
-  --color-text-secondary: #AAAAAA;
-  --color-text-muted: #555555;
-  --color-red: #FF0000;
-  --color-red-dim: rgba(255, 0, 0, 0.12);
+  --color-text-secondary: #BBBBBB;
+  --color-text-muted: #909090;
+  --color-red: #FF3333;
+  --color-red-dim: rgba(255, 51, 51, 0.15);
+  --color-green: #2ECC71;
+  --color-green-dim: rgba(46, 204, 113, 0.12);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 * {

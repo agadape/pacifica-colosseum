@@ -177,7 +177,7 @@ export default function ArenaDetailPage({
           {/* Registration phase */}
           {isRegistration && (
             <div className="bg-surface rounded-2xl border border-border-light p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-sm text-text-secondary">
                     {participants.length} / {arena.max_participants} traders
@@ -207,6 +207,9 @@ export default function ArenaDetailPage({
                   </motion.button>
                 ) : null}
               </div>
+              <p className="text-xs text-text-tertiary">
+                Minimum <span className="text-accent-primary font-semibold">2 traders</span> required to start
+              </p>
             </div>
           )}
 

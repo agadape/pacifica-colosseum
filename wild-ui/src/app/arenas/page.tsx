@@ -56,7 +56,7 @@ export default function ArenasPage() {
               <Link
                 href="/"
                 className="text-xs font-medium tracking-widest"
-                style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}
+                style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}
               >
                 ← BACK
               </Link>
@@ -82,9 +82,9 @@ export default function ArenasPage() {
                   className="px-3 py-1.5 text-xs font-semibold tracking-wider transition-all"
                   style={{
                     background: statusFilter === f.value ? "#fff" : "transparent",
-                    color: statusFilter === f.value ? "#000" : "#555",
+                    color: statusFilter === f.value ? "#000" : "var(--color-text-muted)",
                     border: "2px solid",
-                    borderColor: statusFilter === f.value ? "#fff" : "#333",
+                    borderColor: statusFilter === f.value ? "#fff" : "#3a3a3a",
                     fontFamily: "'JetBrains Mono', monospace",
                   }}
                 >
@@ -105,9 +105,9 @@ export default function ArenasPage() {
               className="px-4 py-2 text-xs font-semibold tracking-wider transition-all"
               style={{
                 background: presetFilter === "ALL" ? "#fff" : "transparent",
-                color: presetFilter === "ALL" ? "#000" : "#555",
-                border: "2px solid",
-                borderColor: presetFilter === "ALL" ? "#fff" : "#333",
+                  color: presetFilter === "ALL" ? "#000" : "var(--color-text-muted)",
+                  border: "2px solid",
+                  borderColor: presetFilter === "ALL" ? "#fff" : "#3a3a3a",
                 fontFamily: "'JetBrains Mono', monospace",
               }}
             >
@@ -120,9 +120,9 @@ export default function ArenasPage() {
                 className="px-4 py-2 text-xs font-semibold tracking-wider transition-all"
                 style={{
                   background: presetFilter === p.value ? "#fff" : "transparent",
-                  color: presetFilter === p.value ? "#000" : "#555",
+                  color: presetFilter === p.value ? "#000" : "var(--color-text-muted)",
                   border: "2px solid",
-                  borderColor: presetFilter === p.value ? "#fff" : "#333",
+                  borderColor: presetFilter === p.value ? "#fff" : "#3a3a3a",
                   fontFamily: "'JetBrains Mono', monospace",
                 }}
               >
@@ -135,7 +135,7 @@ export default function ArenasPage() {
         {filtered.length === 0 ? (
           <div className="text-center py-24">
             <div className="section-label mb-4">NO ARENAS FOUND</div>
-            <p className="text-sm" style={{ color: "#555" }}>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               Try adjusting your filters
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function ArenasPage() {
               >
                 Host Your Own Battle
               </h2>
-              <p className="text-sm" style={{ color: "#555", maxWidth: "360px" }}>
+              <p className="text-sm" style={{ color: "var(--color-text-muted)", maxWidth: "360px" }}>
                 Set the rules. Invite traders. The arena takes it from there.
               </p>
             </div>
@@ -176,9 +176,9 @@ export default function ArenasPage() {
                       className="px-3 py-2 text-xs font-bold transition-all"
                       style={{
                         background: createPreset === p ? "#FF0000" : "transparent",
-                        color: createPreset === p ? "#fff" : "#555",
+                        color: createPreset === p ? "#fff" : "var(--color-text-muted)",
                         border: "2px solid",
-                        borderColor: createPreset === p ? "#FF0000" : "#333",
+                        borderColor: createPreset === p ? "var(--color-red)" : "#3a3a3a",
                         fontFamily: "'JetBrains Mono', monospace",
                       }}
                     >

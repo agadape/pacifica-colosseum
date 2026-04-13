@@ -128,6 +128,9 @@ export default function CreateArenaPage() {
                 <option value={360}>6 hours</option>
                 <option value={1440}>24 hours</option>
               </select>
+              <p className="mt-2 text-xs text-text-tertiary">
+                Minimum <span className="text-accent-primary font-semibold">2 traders</span> required to start. Arena auto-cancels if not met.
+              </p>
             </div>
 
             {/* Submit */}

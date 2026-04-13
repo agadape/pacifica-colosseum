@@ -8,6 +8,8 @@ import { generateTerritories, executeTerritoryDraft } from "./territory-manager"
 import { startPeriodicSync } from "./periodic-sync";
 import { startLeaderboardUpdater } from "./leaderboard-updater";
 import { scheduleRoundEnd } from "../timers/round-timer";
+import { DEMO_MODE } from "../config";
+import { mockCreateSubaccount, mockTransferFunds } from "../mock/mock-pacifica";
 
 /**
  * Start an arena: verify participants, create subaccounts on Pacifica,
@@ -47,11 +49,16 @@ export async function startArena(arenaId: string): Promise<void> {
   const vaultKeypair = keypairFromBase58(
     decryptPrivateKey(arena.master_private_key_encrypted!, encryptionKey)
   );
-  const vaultClient = new PacificaClient({
-    secretKey: vaultKeypair.secretKey,
-    publicKey: vaultKeypair.publicKey,
-    testnet: true,
-  });
+  const vaultAddress = publicKeyToString(vaultKeypair.publicKey);
+
+  // Only instantiate real client when not in demo mode
+  const vaultClient = DEMO_MODE
+    ? null
+    : new PacificaClient({
+        secretKey: vaultKeypair.secretKey,
+        publicKey: vaultKeypair.publicKey,
+        testnet: true,
+      });
 
   // For each participant: create subaccount on Pacifica + fund
   for (const participant of participants) {
@@ -59,15 +66,20 @@ export async function startArena(arenaId: string): Promise<void> {
       const subKeypair = keypairFromBase58(
         decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
       );
+      const subAddress = publicKeyToString(subKeypair.publicKey);
 
-      // Create subaccount on Pacifica (vault → subaccount link)
-      await vaultClient.createSubaccount(subKeypair.secretKey, subKeypair.publicKey);
-
-      // Transfer starting capital
-      await vaultClient.transferFunds({
-        to_account: publicKeyToString(subKeypair.publicKey),
-        amount: STARTING_CAPITAL.toString(),
-      });
+      if (DEMO_MODE) {
+        // Mock mode — register accounts in-memory, no real Pacifica calls
+        mockCreateSubaccount(vaultAddress, subAddress);
+        mockTransferFunds(vaultAddress, subAddress, STARTING_CAPITAL);
+      } else {
+        // Real mode — create subaccount on Pacifica and fund from vault
+        await vaultClient!.createSubaccount(subKeypair.secretKey, subKeypair.publicKey);
+        await vaultClient!.transferFunds({
+          to_account: subAddress,
+          amount: STARTING_CAPITAL.toString(),
+        });
+      }
 
       // Update participant status + equity baseline
       await supabase
@@ -95,20 +107,22 @@ export async function startArena(arenaId: string): Promise<void> {
     })
     .eq("id", arenaId);
 
-  // Set leverage for all participants to round 1 max
-  for (const participant of participants) {
-    try {
-      const subKeypair = keypairFromBase58(
-        decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
-      );
-      const subClient = new PacificaClient({
-        secretKey: subKeypair.secretKey,
-        publicKey: subKeypair.publicKey,
-        testnet: true,
-      });
-      await subClient.updateLeverage({ symbol: "BTC", leverage: round1.maxLeverage });
-    } catch (err) {
-      console.error(`[Arena ${arenaId}] Failed to set leverage for ${participant.id}:`, err);
+  // Set leverage for all participants to round 1 max (real mode only — mock ignores leverage)
+  if (!DEMO_MODE) {
+    for (const participant of participants) {
+      try {
+        const subKeypair = keypairFromBase58(
+          decryptPrivateKey(participant.subaccount_private_key_encrypted!, encryptionKey)
+        );
+        const subClient = new PacificaClient({
+          secretKey: subKeypair.secretKey,
+          publicKey: subKeypair.publicKey,
+          testnet: true,
+        });
+        await subClient.updateLeverage({ symbol: "BTC", leverage: round1.maxLeverage });
+      } catch (err) {
+        console.error(`[Arena ${arenaId}] Failed to set leverage for ${participant.id}:`, err);
+      }
     }
   }
 

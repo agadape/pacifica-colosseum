@@ -114,7 +114,7 @@ export default function TradePage() {
         <div className="max-w-[1600px] mx-auto px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-xs font-medium tracking-widest" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+              <Link href="/" className="text-xs font-medium tracking-widest" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                 ← BACK
               </Link>
               <div className="h-4 w-px" style={{ background: "#fff" }} />
@@ -128,9 +128,9 @@ export default function TradePage() {
                   className="px-3 py-1.5 text-xs font-semibold tracking-wider transition-all"
                   style={{
                     background: selectedPair === pair ? "#FF0000" : "transparent",
-                    color: selectedPair === pair ? "#fff" : "#555",
+                    color: selectedPair === pair ? "#fff" : "var(--color-text-muted)",
                     border: "2px solid",
-                    borderColor: selectedPair === pair ? "#FF0000" : "#333",
+                    borderColor: selectedPair === pair ? "var(--color-red)" : "#3a3a3a",
                     fontFamily: "'JetBrains Mono', monospace",
                   }}
                 >
@@ -184,7 +184,7 @@ export default function TradePage() {
                       onClick={() => setInterval(iv)}
                       className="px-3 py-1 text-[10px] font-semibold tracking-wider"
                       style={{
-                        color: interval === iv ? "#FF0000" : "#555",
+                        color: interval === iv ? "var(--color-red)" : "var(--color-text-muted)",
                         fontFamily: "'JetBrains Mono', monospace",
                         background: "transparent",
                         border: "none",
@@ -207,10 +207,10 @@ export default function TradePage() {
                   <path d={areaPath} fill="url(#chartFill)" />
                   <path d={linePath} fill="none" stroke={lineColor} strokeWidth="0.8" vectorEffect="non-scaling-stroke" />
                 </svg>
-                <div className="absolute top-4 right-6 text-[9px] mono" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+                <div className="absolute top-4 right-6 text-[9px] mono" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                   {chartMax.toFixed(2)}
                 </div>
-                <div className="absolute bottom-6 right-6 text-[9px] mono" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+                <div className="absolute bottom-6 right-6 text-[9px] mono" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                   {chartMin.toFixed(2)}
                 </div>
               </div>
@@ -248,8 +248,8 @@ export default function TradePage() {
                             {pos.side}
                           </span>
                         </td>
-                        <td className="text-right mono" style={{ color: "#888", fontFamily: "'JetBrains Mono', monospace" }}>{pos.size}</td>
-                        <td className="text-right mono" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>${pos.entry.toFixed(2)}</td>
+                        <td className="text-right mono" style={{ color: "var(--color-text-secondary)", fontFamily: "'JetBrains Mono', monospace" }}>{pos.size}</td>
+                        <td className="text-right mono" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>${pos.entry.toFixed(2)}</td>
                         <td
                           className="text-right mono font-semibold"
                           style={{ color: pos.pnl >= 0 ? "#22C55E" : "#EF4444", fontFamily: "'JetBrains Mono', monospace" }}
@@ -286,7 +286,7 @@ export default function TradePage() {
                         {o.side.toUpperCase()}
                       </span>
                       <span className="text-xs flex-1" style={{ color: "#888" }}>{o.size}</span>
-                      <span className="mono text-xs" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>@ ${o.price.toFixed(2)}</span>
+                      <span className="mono text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>@ ${o.price.toFixed(2)}</span>
                       <span
                         className="text-[9px] font-semibold tracking-wider px-2 py-0.5"
                         style={{
@@ -314,7 +314,7 @@ export default function TradePage() {
                   className="flex-1 py-4 text-xs font-bold tracking-widest transition-all"
                   style={{
                     background: side === "long" ? "#22C55E" : "transparent",
-                    color: side === "long" ? "#000" : "#555",
+                    color: side === "long" ? "#000" : "var(--color-text-muted)",
                     border: "none",
                     fontFamily: "'JetBrains Mono', monospace",
                   }}
@@ -326,7 +326,7 @@ export default function TradePage() {
                   className="flex-1 py-4 text-xs font-bold tracking-widest transition-all"
                   style={{
                     background: side === "short" ? "#EF4444" : "transparent",
-                    color: side === "short" ? "#fff" : "#555",
+                    color: side === "short" ? "#fff" : "var(--color-text-muted)",
                     border: "none",
                     fontFamily: "'JetBrains Mono', monospace",
                   }}
@@ -364,8 +364,8 @@ export default function TradePage() {
                         className="py-2 text-[10px] font-bold"
                         style={{
                           background: leverage === lev ? "#FF0000" : "transparent",
-                          color: leverage === lev ? "#fff" : "#555",
-                          border: `2px solid ${leverage === lev ? "#FF0000" : "#333"}`,
+                          color: leverage === lev ? "#fff" : "var(--color-text-muted)",
+                          border: `2px solid ${leverage === lev ? "var(--color-red)" : "#3a3a3a"}`,
                           fontFamily: "'JetBrains Mono', monospace",
                         }}
                       >
@@ -443,10 +443,10 @@ export default function TradePage() {
               </div>
               <div className="p-4" style={{ borderTop: "2px solid #222" }}>
                 <div className="section-label mb-2">DRAWDOWN LIMIT</div>
-                <div style={{ height: 5, background: "#222", marginBottom: 4 }}>
+                <div style={{ height: 5, background: "#2a2a2a", marginBottom: 4 }}>
                   <div style={{ width: "21%", height: "100%", background: "#FF0000" }} />
                 </div>
-                <div className="flex justify-between text-[9px]" style={{ color: "#555" }}>
+                <div className="flex justify-between text-[9px]" style={{ color: "var(--color-text-muted)" }}>
                   <span>0%</span>
                   <span style={{ color: "#FF0000" }}>2.1% / 8%</span>
                   <span>8%</span>

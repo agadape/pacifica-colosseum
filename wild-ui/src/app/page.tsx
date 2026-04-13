@@ -90,7 +90,7 @@ function LivePriceFeed() {
     <div style={{ display: "flex", gap: "24px", marginBottom: "32px" }}>
       {prices.map((p) => (
         <div key={p.symbol} style={{ textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#444", letterSpacing: "0.2em", marginBottom: "4px" }}>{p.symbol}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.2em", marginBottom: "4px" }}>{p.symbol}</div>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px", fontWeight: 700, color: "#fff" }}>
             ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
@@ -147,7 +147,7 @@ function BattleStatusPanel() {
           { label: "ELIMINATED", value: elimCount.toLocaleString(), color: "#FF0000" },
         ].map((item) => (
           <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#444", letterSpacing: "0.15em" }}>{item.label}</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>{item.label}</span>
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "16px", fontWeight: 700, color: item.color }}>{item.value}</span>
           </div>
         ))}
@@ -155,7 +155,7 @@ function BattleStatusPanel() {
 
       <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#444", letterSpacing: "0.15em" }}>ROUND 3 OF 4</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>ROUND 3 OF 4</span>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#FF0000", letterSpacing: "0.1em" }}>75%</span>
         </div>
         <div style={{ height: "3px", background: "#1a1a1a" }}>
@@ -177,7 +177,7 @@ function ScanLineAnimation() {
         left: 0,
         right: 0,
         height: "1px",
-        background: "linear-gradient(90deg, transparent, #FF0000 20%, #FF0000 80%, transparent)",
+        background: "linear-gradient(90deg, transparent, var(--color-red) 20%, var(--color-red) 80%, transparent)",
         opacity: 0.3,
         animation: "scanDown 8s linear infinite",
         zIndex: 5,
@@ -281,7 +281,7 @@ export default function HomePage() {
                 <rect x="8" y="8" width="16" height="16" fill="#000"/>
               </svg>
               <div>
-                <div style={{ fontSize: "8px", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.3em", color: "#555" }}>PACIFICA</div>
+                <div style={{ fontSize: "8px", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.3em", color: "var(--color-text-muted)" }}>PACIFICA</div>
                 <div style={{ fontSize: "13px", fontFamily: "'Clash Display', system-ui", fontWeight: 700, color: "#fff", lineHeight: 1 }}>COLOSSEUM</div>
               </div>
             </Link>
@@ -370,8 +370,8 @@ export default function HomePage() {
                   <span className="pulse-dot" style={{ width: "6px", height: "6px", background: "#fff", display: "inline-block" }} />
                   LIVE
                 </span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#555", letterSpacing: "0.15em" }}>HACKATHON 2026</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#555", letterSpacing: "0.15em" }}>·</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>HACKATHON 2026</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>·</span>
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#FF0000", fontWeight: 700, letterSpacing: "0.1em" }}>$500,000+</span>
               </motion.div>
 
@@ -385,7 +385,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.5 }}
-                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "#444", lineHeight: 1.8, marginBottom: "40px", maxWidth: "420px", letterSpacing: "0.05em" }}
+                style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: "var(--color-text-muted)", lineHeight: 1.8, marginBottom: "40px", maxWidth: "420px", letterSpacing: "0.05em" }}
               >
                 BATTLE ROYALE TRADING PROTOCOL.
                 <br />
@@ -437,12 +437,12 @@ export default function HomePage() {
                 style={{ marginTop: "40px", padding: "16px 20px", border: "2px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)", display: "inline-flex", gap: "32px" }}
               >
                 <div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.25em", marginBottom: "6px" }}>NEXT ROUND STARTS IN</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.25em", marginBottom: "6px" }}>NEXT ROUND STARTS IN</div>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "20px", fontWeight: 700, color: "#FF0000", letterSpacing: "0.1em" }}>02:41:08</div>
                 </div>
                 <div style={{ width: "1px", background: "rgba(255,255,255,0.08)" }} />
                 <div>
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.25em", marginBottom: "6px" }}>HACKATHON ENDS IN</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.25em", marginBottom: "6px" }}>HACKATHON ENDS IN</div>
                   <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "20px", fontWeight: 700, color: "#fff", letterSpacing: "0.1em" }}>72H 14M 33S</div>
                 </div>
               </motion.div>
@@ -453,7 +453,7 @@ export default function HomePage() {
 
               {/* Top trader mini-panel */}
               <div style={{ marginTop: "16px", border: "2px solid rgba(255,255,255,0.06)", padding: "14px 16px", background: "rgba(0,0,0,0.2)" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.25em", marginBottom: "10px" }}>CURRENT LEADER</div>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.25em", marginBottom: "10px" }}>CURRENT LEADER</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <div style={{ width: "28px", height: "28px", border: "2px solid #FF0000", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Clash Display', system-ui", fontSize: "12px", fontWeight: 700, color: "#FF0000" }}>1</div>
                   <div style={{ flex: 1 }}>
@@ -462,13 +462,13 @@ export default function HomePage() {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "'Clash Display', system-ui", fontSize: "16px", fontWeight: 700, color: "#22C55E" }}>$1,842</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.1em" }}>EQUITY</div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.1em" }}>EQUITY</div>
                   </div>
                 </div>
               </div>
 
               <div style={{ marginTop: "24px", border: "2px solid rgba(255,255,255,0.1)", padding: "16px 20px", background: "rgba(0,0,0,0.3)" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#444", letterSpacing: "0.25em", marginBottom: "12px" }}>MISSION BRIEFING
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.25em", marginBottom: "12px" }}>MISSION BRIEFING
                 </div>
                 {[
                   { icon: "TARGET", text: "Eliminate competitors via drawdown breach" },
@@ -477,7 +477,7 @@ export default function HomePage() {
                 ].map((m) => (
                   <div key={m.icon} style={{ display: "flex", gap: "12px", marginBottom: "8px", alignItems: "flex-start" }}>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#FF0000", letterSpacing: "0.15em", flexShrink: 0, width: "50px", marginTop: "2px" }}>{m.icon}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#555", lineHeight: 1.5 }}>{m.text}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--color-text-muted)", lineHeight: 1.5 }}>{m.text}</span>
                   </div>
                 ))}
               </div>
@@ -486,7 +486,7 @@ export default function HomePage() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0" style={{ height: "2px", background: "linear-gradient(90deg, #FF0000, #fff, transparent)" }} />
-        <div style={{ position: "absolute", bottom: "8px", right: "24px", fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "#333", letterSpacing: "0.2em" }}>
+        <div style={{ position: "absolute", bottom: "8px", right: "24px", fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "var(--color-text-muted)", letterSpacing: "0.2em" }}>
           GRID://COLOSSEUM.ARENA.001
         </div>
       </section>
@@ -498,16 +498,16 @@ export default function HomePage() {
         <div className="ticker-anim flex whitespace-nowrap py-3">
           {["ACTIVE TRADERS: 1,452", "TOTAL ARENAS: 847", "PRIZE DISTRIBUTED: $124,500", "ELIMINATIONS TODAY: 3,291", "AVG ROUND TIME: 4M 32S", "TOP PNL: +412%"].map((item, i) => (
             <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: "16px", paddingRight: "48px" }}>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#444", letterSpacing: "0.15em", textTransform: "uppercase" }}>{item.split(":")[0]}</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "var(--color-text-muted)", letterSpacing: "0.15em", textTransform: "uppercase" }}>{item.split(":")[0]}</span>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "#FF0000", fontWeight: 700 }}>{item.split(":")[1]}</span>
-              <span style={{ width: "4px", height: "4px", background: "#333", display: "inline-block" }} />
+              <span style={{ width: "4px", height: "4px", background: "var(--color-border-subtle)", display: "inline-block" }} />
             </div>
           ))}
           {["ACTIVE TRADERS: 1,452", "TOTAL ARENAS: 847", "PRIZE DISTRIBUTED: $124,500", "ELIMINATIONS TODAY: 3,291", "AVG ROUND TIME: 4M 32S", "TOP PNL: +412%"].map((item, i) => (
             <div key={`dup-${i}`} style={{ display: "inline-flex", alignItems: "center", gap: "16px", paddingRight: "48px" }}>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "#444", letterSpacing: "0.15em", textTransform: "uppercase" }}>{item.split(":")[0]}</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "var(--color-text-muted)", letterSpacing: "0.15em", textTransform: "uppercase" }}>{item.split(":")[0]}</span>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "#FF0000", fontWeight: 700 }}>{item.split(":")[1]}</span>
-              <span style={{ width: "4px", height: "4px", background: "#333", display: "inline-block" }} />
+              <span style={{ width: "4px", height: "4px", background: "var(--color-border-subtle)", display: "inline-block" }} />
             </div>
           ))}
         </div>
@@ -516,8 +516,8 @@ export default function HomePage() {
       {/* ── LIVE ARENAS ── */}
       <section style={{ background: "var(--color-base)", borderBottom: "2px solid #fff", padding: "80px 0", position: "relative" }}>
         <SectionMarker num="01" />
-        <div style={{ position: "absolute", top: "24px", right: "24px", fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#222", letterSpacing: "0.2em" }}>
-          // ARENA.ACTIVE.3
+        <div style={{ position: "absolute", top: "24px", right: "24px", fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.2em" }}>
+          {">"} ARENA.ACTIVE.3
         </div>
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px" }}>
@@ -525,7 +525,7 @@ export default function HomePage() {
               <div style={{ width: "8px", height: "8px", background: "#FF0000", animation: "pulse-dot 1s step-end infinite" }} />
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: 700, color: "#FF0000", letterSpacing: "0.25em" }}>LIVE ARENAS</span>
               <div style={{ width: "1px", height: "12px", background: "rgba(255,255,255,0.1)" }} />
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#333", letterSpacing: "0.15em" }}>3 ACTIVE · BLITZ SPRINT DAILY</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>3 ACTIVE · BLITZ SPRINT DAILY</span>
             </div>
             <Link href="/arenas" className="brut-btn-ghost" style={{ fontSize: "11px", padding: "8px 20px" }}>VIEW ALL →</Link>
           </div>
@@ -553,8 +553,8 @@ export default function HomePage() {
                 <div style={{ padding: "28px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "7px", color: "#2a2a2a", letterSpacing: "0.2em" }}>#{arena.id.split("-")[1]}</span>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: arena.status === "live" ? "#FF0000" : "#333", letterSpacing: "0.2em", border: `1px solid ${arena.status === "live" ? "rgba(255,0,0,0.3)" : "rgba(255,255,255,0.05)"}`, padding: "2px 6px" }}>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "7px", color: "var(--color-text-muted)", letterSpacing: "0.2em" }}>#{arena.id.split("-")[1]}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: arena.status === "live" ? "var(--color-red)" : "var(--color-text-muted)", letterSpacing: "0.2em", border: `1px solid ${arena.status === "live" ? "var(--color-red-dim)" : "rgba(255,255,255,0.05)"}`, padding: "2px 6px" }}>
                         {arena.status === "live" ? `R${arena.currentRound}/4` : "REGISTERING"}
                       </span>
                     </div>
@@ -577,7 +577,7 @@ export default function HomePage() {
         <SectionMarker num="02" />
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ marginBottom: "48px" }}>
-            <div className="section-label" style={{ color: "#555", marginBottom: "8px" }}>THE PROTOCOL</div>
+            <div className="section-label" style={{ color: "var(--color-text-muted)", marginBottom: "8px" }}>THE PROTOCOL</div>
             <h2 style={{ fontFamily: "'Clash Display', system-ui", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>
               HOW IT <span style={{ color: "#FF0000" }}>WORKS</span>
             </h2>
@@ -605,7 +605,7 @@ export default function HomePage() {
                 )}
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "48px", fontWeight: 700, color: "rgba(255,255,255,0.04)", lineHeight: 1, marginBottom: "16px" }}>{item.step}</div>
                 <div style={{ fontFamily: "'Clash Display', system-ui", fontSize: "18px", fontWeight: 700, color: "#fff", marginBottom: "8px", letterSpacing: "0.02em" }}>{item.label}</div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#444", lineHeight: 1.6, letterSpacing: "0.05em" }}>{item.sub}</div>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--color-text-muted)", lineHeight: 1.6, letterSpacing: "0.05em" }}>{item.sub}</div>
               </motion.div>
             ))}
           </div>
@@ -651,7 +651,7 @@ export default function HomePage() {
                     transition={{ duration: 0.25, delay: pi * 0.08 }}
                     style={{ display: "flex", alignItems: "center", gap: "0", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "14px 0" }}
                   >
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "#333", letterSpacing: "0.2em", width: "120px", flexShrink: 0 }}>{param.label}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "var(--color-text-muted)", letterSpacing: "0.2em", width: "120px", flexShrink: 0 }}>{param.label}</span>
                     <div style={{ display: "flex", gap: "4px" }}>
                       {param.values.map((v, i) => (
                         <span
@@ -662,7 +662,7 @@ export default function HomePage() {
                             fontWeight: 600,
                             padding: "4px 10px",
                             background: i === 0 ? "rgba(255,255,255,0.02)" : i === param.values.length - 1 ? "rgba(255,0,0,0.15)" : "transparent",
-                            color: i === 0 ? "#333" : i === param.values.length - 1 ? "#FF0000" : "#666",
+                            color: i === 0 ? "var(--color-text-muted)" : i === param.values.length - 1 ? "var(--color-red)" : "var(--color-text-secondary)",
                             border: `1px solid ${i === 0 ? "rgba(255,255,255,0.05)" : i === param.values.length - 1 ? "rgba(255,0,0,0.3)" : "rgba(255,255,255,0.08)"}`,
                           }}
                         >
@@ -677,13 +677,13 @@ export default function HomePage() {
               <div style={{ marginTop: "32px", padding: "20px", border: "2px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#FF0000", letterSpacing: "0.3em", marginBottom: "12px" }}>ELIMINATION THRESHOLDS</div>
                 {[
-                  { elim: "30%", round: "R1 — OPEN FIELD", color: "#444" },
+                  { elim: "30%", round: "R1 — OPEN FIELD", color: "var(--color-text-muted)" },
                   { elim: "40%", round: "R2 — THE STORM", color: "#E57C03" },
                   { elim: "50%", round: "R3 — FINAL CIRCLE", color: "#fff" },
                   { elim: "WINNER", round: "R4 — SUDDEN DEATH", color: "#FF0000" },
                 ].map((e) => (
                   <div key={e.round} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "#333", letterSpacing: "0.1em" }}>{e.round}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "var(--color-text-muted)", letterSpacing: "0.1em" }}>{e.round}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: 700, color: e.color }}>{e.elim}</span>
                   </div>
                 ))}
@@ -691,23 +691,23 @@ export default function HomePage() {
 
               {/* Live standings mini-table */}
               <div style={{ marginTop: "20px", padding: "16px", border: "2px solid rgba(255,255,255,0.04)", background: "rgba(0,0,0,0.2)" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.3em", marginBottom: "12px" }}>TOP 4 SURVIVORS</div>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.3em", marginBottom: "12px" }}>TOP 4 SURVIVORS</div>
                 {[
                   { rank: "1", trader: "0xMnemonic...4x2k", pnl: "+84.2%", dd: "8%", color: "#fff" },
-                  { rank: "2", trader: "0xPhoenix...9z3m", pnl: "+61.5%", dd: "12%", color: "#888" },
-                  { rank: "3", trader: "0xCipher...2j8p", pnl: "+43.1%", dd: "18%", color: "#555" },
-                  { rank: "4", trader: "0xNeon...7v5n", pnl: "+29.7%", dd: "22%", color: "#555" },
+                  { rank: "2", trader: "0xPhoenix...9z3m", pnl: "+61.5%", dd: "12%", color: "var(--color-text-muted)" },
+                  { rank: "3", trader: "0xCipher...2j8p", pnl: "+43.1%", dd: "18%", color: "var(--color-text-muted)" },
+                  { rank: "4", trader: "0xNeon...7v5n", pnl: "+29.7%", dd: "22%", color: "var(--color-text-muted)" },
                 ].map((t) => (
                   <div key={t.rank} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                    <div style={{ width: "20px", height: "20px", border: `1px solid ${t.rank === "1" ? "#FF0000" : t.rank === "2" ? "#444" : "#222"}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", fontWeight: 700, color: t.color }}>{t.rank}</div>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "#444", letterSpacing: "0.05em", flex: 1 }}>{t.trader}</span>
+                    <div style={{ width: "20px", height: "20px", border: `1px solid ${t.rank === "1" ? "var(--color-red)" : t.rank === "2" ? "var(--color-text-muted)" : "var(--color-border-subtle)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", fontWeight: 700, color: t.color }}>{t.rank}</div>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", color: "var(--color-text-muted)", letterSpacing: "0.05em", flex: 1 }}>{t.trader}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "9px", fontWeight: 700, color: "#22C55E" }}>{t.pnl}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333" }}>DD {t.dd}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)" }}>DD {t.dd}</span>
                   </div>
                 ))}
                 <div style={{ marginTop: "10px", padding: "8px", background: "rgba(255,0,0,0.05)", border: "1px solid rgba(255,0,0,0.1)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#333", letterSpacing: "0.15em" }}>DANGER ZONE</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "var(--color-text-muted)", letterSpacing: "0.15em" }}>DANGER ZONE</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "8px", color: "#FF0000", letterSpacing: "0.1em" }}>2 TRADERS ABOVE 20% DD</span>
                   </div>
                 </div>
@@ -750,7 +750,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "#444", marginBottom: "40px", letterSpacing: "0.15em" }}
+            style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "var(--color-text-muted)", marginBottom: "40px", letterSpacing: "0.15em" }}
           >
             PRIZE POOL. HACKATHON DEADLINE.
           </motion.p>
@@ -773,7 +773,7 @@ export default function HomePage() {
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: "9px",
-                  color: "#555",
+                  color: "var(--color-text-muted)",
                   letterSpacing: "0.15em",
                   border: "1px solid #3a3a3a",
                   padding: "4px 10px",
@@ -795,13 +795,13 @@ export default function HomePage() {
                 <rect width="32" height="32" fill="#FF0000" opacity="0.2"/>
                 <rect x="8" y="8" width="16" height="16" fill="#FF0000"/>
               </svg>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#555", letterSpacing: "0.2em" }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--color-text-muted)", letterSpacing: "0.2em" }}>
                 PACIFICA COLOSSEUM · HACKATHON 2026
               </span>
             </div>
             <div style={{ display: "flex", gap: "24px" }}>
               {[["ARENAS", "/arenas"], ["TRADE", "/trade"], ["SPECTATE", "/spectate"]].map(([label, href]) => (
-                <Link key={label} href={href} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "#555", letterSpacing: "0.1em", textDecoration: "none" }}>
+                <Link key={label} href={href} style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", color: "var(--color-text-muted)", letterSpacing: "0.1em", textDecoration: "none" }}>
                   {label}
                 </Link>
               ))}

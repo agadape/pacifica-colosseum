@@ -61,7 +61,7 @@ export default function ArenaDetailPage() {
         <div className="max-w-[1600px] mx-auto px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <Link href="/arenas" className="text-xs font-medium tracking-widest" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+              <Link href="/arenas" className="text-xs font-medium tracking-widest" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                 ← ARENAS
               </Link>
               <div className="h-4 w-px" style={{ background: "#fff" }} />
@@ -91,7 +91,7 @@ export default function ArenaDetailPage() {
                 <span className="section-label">
                   SURVIVORS — {activeTraders.length}
                 </span>
-                <span className="mono text-xs" style={{ color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="mono text-xs" style={{ color: "var(--color-text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                   ROUND {currentRound} OF 4
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function ArenaDetailPage() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="section-label">ELIMINATED — {eliminatedTraders.length}</span>
-                  <div className="flex-1 h-px" style={{ background: "#222" }} />
+                  <div className="flex-1 h-px" style={{ background: "var(--color-border-subtle)" }} />
                 </div>
                 <motion.div
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
@@ -193,7 +193,7 @@ export default function ArenaDetailPage() {
                   {myDrawdown.toFixed(1)}%
                 </div>
               </div>
-              <div style={{ height: 5, background: "#222" }}>
+              <div style={{ height: 5, background: "var(--color-border-subtle)" }}>
                 <div
                   style={{
                     width: `${myDrawdown}%`,
