@@ -37,22 +37,21 @@ export default function SurvivorGrid({ participants, maxDrawdown, arenaId, curre
       .filter((s: EquitySnapshot) => s.round_number === currentRound);
     if (snaps.length < 2) return [];
     const base = snaps[0].equity;
-    // last 10 points, normalized as pnl%
     return snaps.slice(-10).map((s: EquitySnapshot) => ((s.equity - base) / base) * 100);
   }
 
   return (
     <div>
-      <h3 className="font-display text-sm font-700 text-text-primary mb-4">
+      <h3 className="font-display text-sm font-bold text-text-primary mb-4">
         Survivors
-        <span className="ml-2 text-text-tertiary font-normal">
+        <span className="ml-2 text-text-tertiary font-normal text-sm">
           {sorted.filter((p) => p.status === "active").length} active
         </span>
       </h3>
 
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         <AnimatePresence>
           {sorted.map((p, i) => (

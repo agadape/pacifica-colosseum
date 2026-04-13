@@ -54,15 +54,15 @@ function timeAgo(dateStr: string): string {
 
 export default function ActivityFeed({ events }: ActivityFeedProps) {
   return (
-    <div className="bg-surface rounded-2xl border border-border-light p-5">
-      <h3 className="font-display text-sm font-700 text-text-primary mb-4">
+    <div className="bg-surface rounded-2xl border border-border p-5">
+      <h3 className="font-display text-sm font-bold text-text-primary mb-4">
         Activity
       </h3>
 
       <div className="space-y-1 max-h-[400px] overflow-y-auto">
         <AnimatePresence initial={false}>
           {events.length === 0 ? (
-            <p className="text-sm text-text-tertiary">No events yet</p>
+            <p className="text-sm text-text-tertiary py-4">No events yet</p>
           ) : (
             events.map((event) => (
               <motion.div
@@ -70,7 +70,7 @@ export default function ActivityFeed({ events }: ActivityFeedProps) {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0 }}
-                className="flex items-start gap-2 py-2 border-b border-border-light last:border-0"
+                className="flex items-start gap-2.5 py-2.5 border-b border-border last:border-0"
               >
                 <span className={`text-sm ${typeColors[event.event_type] ?? "text-text-secondary"}`}>
                   {typeIcons[event.event_type] ?? "•"}
@@ -78,7 +78,7 @@ export default function ActivityFeed({ events }: ActivityFeedProps) {
                 <p className="text-xs text-text-secondary flex-1 leading-relaxed">
                   {event.message}
                 </p>
-                <span className="text-[10px] text-text-tertiary font-mono whitespace-nowrap">
+                <span className="text-xs text-text-tertiary font-mono whitespace-nowrap">
                   {timeAgo(event.created_at)}
                 </span>
               </motion.div>

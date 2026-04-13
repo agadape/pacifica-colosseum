@@ -17,7 +17,7 @@ function Sparkline({ data }: { data: number[] }) {
   return (
     <svg width={w} height={h} className="opacity-60" style={{ overflow: "visible" }}>
       <polyline points={points} fill="none"
-        stroke={isUp ? "#10B981" : "#EF4444"} strokeWidth="1.5"
+        stroke={isUp ? "#22C55E" : "#EF4444"} strokeWidth="1.5"
         strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -69,18 +69,17 @@ export default function TraderCard({
           : isTop3
           ? "border-accent-primary/20 shadow-md"
           : isEliminated
-          ? "border-border-light"
-          : "border-border-light hover:border-accent-primary/20 hover:shadow-md"
+          ? "border-border"
+          : "border-border hover:shadow-md hover:border-accent-primary/20"
       }`}
     >
-      {/* Rank badge */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-sm font-bold ${
-            rank === 1 ? "bg-accent-gold/10 text-accent-gold" :
-            rank === 2 ? "bg-text-secondary/10 text-text-secondary" :
-            rank === 3 ? "bg-orange-500/10 text-orange-500" :
-            "bg-bg-primary text-text-tertiary"
+            rank === 1 ? "bg-amber-50 text-accent-gold border border-amber-200" :
+            rank === 2 ? "bg-gray-100 text-text-secondary border border-gray-200" :
+            rank === 3 ? "bg-orange-50 text-orange-status border border-orange-200" :
+            "bg-bg-primary text-text-tertiary border border-border"
           }`}>
             {rank}
           </div>
@@ -88,13 +87,12 @@ export default function TraderCard({
             <span className={`text-sm font-semibold ${isEliminated ? "text-text-tertiary line-through" : "text-text-primary"}`}>
               {displayName ?? `${address.slice(0, 6)}...${address.slice(-4)}`}
             </span>
-            <p className="text-[10px] text-text-tertiary mt-0.5">{trades} trades</p>
+            <p className="text-xs text-text-tertiary mt-0.5">{trades} trades</p>
           </div>
         </div>
         <StatusBadge drawdown={drawdown} maxDrawdown={maxDrawdown} isEliminated={isEliminated} />
       </div>
 
-      {/* PnL + sparkline */}
       <div className="flex items-end justify-between mb-4">
         <span className={`font-mono text-3xl font-bold tracking-tight ${
           isEliminated ? "text-text-tertiary" :
@@ -110,18 +108,19 @@ export default function TraderCard({
       <DrawdownMeter current={drawdown} max={maxDrawdown} />
 
       {(hasWideZone || hasSecondLife) && (
-        <div className="flex gap-1.5 mt-4">
+        <div className="flex gap-2 mt-4 flex-wrap">
           {hasWideZone && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-              className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+              className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-accent-primary border border-indigo-200">
               Wide Zone
             </motion.span>
           )}
           {hasSecondLife && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                secondLifeUsed ? "bg-text-tertiary/10 text-text-tertiary border-text-tertiary/20 line-through"
-                  : "bg-accent-gold/10 text-accent-gold border-accent-gold/20"
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                secondLifeUsed
+                  ? "bg-gray-100 text-text-tertiary border-gray-200 line-through"
+                  : "bg-amber-50 text-accent-gold border-amber-200"
               }`}>
               2nd Life {secondLifeUsed ? "used" : ""}
             </motion.span>

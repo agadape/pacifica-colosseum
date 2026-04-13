@@ -1,344 +1,381 @@
 "use client";
 
-import { motion, useScroll, useTransform, useInView, animate } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { useRef, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import ConnectButton from "@/components/shared/ConnectButton";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
-const HeroModel = dynamic(() => import("@/components/shared/HeroModel"), { ssr: false });
-const TrophyModel = dynamic(() => import("@/components/shared/TrophyModel"), { ssr: false });
-
-const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } };
-const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease } } };
-
-function Counter({ target, prefix = "" }: { target: number; prefix?: string }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (!inView) return;
-    const ctrl = animate(0, target, { duration: 1.8, ease: "easeOut", onUpdate: (v) => setVal(Math.floor(v)) });
-    return () => ctrl.stop();
-  }, [inView, target]);
-  return <span ref={ref} className="font-mono tabular-nums">{prefix}{val.toLocaleString()}</span>;
-}
-
-const rounds = [
-  { num: 1, name: "Open Field", leverage: "20x", drawdown: "20%", elim: "Bottom 30%", color: "#22c55e" },
-  { num: 2, name: "The Storm", leverage: "10x", drawdown: "15%", elim: "Bottom 40%", color: "#eab308" },
-  { num: 3, name: "Final Circle", leverage: "5x", drawdown: "10%", elim: "Top 5 only", color: "#f97316" },
-  { num: 4, name: "Sudden Death", leverage: "3x", drawdown: "8%", elim: "Any breach", color: "#ef4444" },
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    title: "Enter the Arena",
+    description: "Register with your wallet, fund your sub-account, and join a battle royale arena.",
+  },
+  {
+    step: "02",
+    title: "Trade to Survive",
+    description: "Open positions on BTC, ETH, SOL perpetual futures. Make profits to stay ahead.",
+  },
+  {
+    step: "03",
+    title: "Climb the Ranks",
+    description: "Each round tightens the rules — leverage drops, drawdown shrinks. Outlast your rivals.",
+  },
+  {
+    step: "04",
+    title: "Win it All",
+    description: "Last trader standing takes the crown. Claim the prize pool.",
+  },
 ];
 
-export default function Home() {
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+const ROUNDS = [
+  { name: "Open Field", leverage: "20x", drawdown: "20%", elim: "30%", color: "bg-emerald-500" },
+  { name: "The Storm", leverage: "10x", drawdown: "15%", elim: "40%", color: "bg-amber-500" },
+  { name: "Final Circle", leverage: "5x", drawdown: "10%", elim: "50%", color: "bg-orange-500" },
+  { name: "Sudden Death", leverage: "3x", drawdown: "8%", elim: "Winner", color: "bg-red-500" },
+];
+
+function GridBackground() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: "64px 64px",
+        maskImage: "radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 100%)",
+        WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 100%)",
+      }}
+    />
+  );
+}
+
+function FloatingOrb({ className, size }: { className: string; size: string }) {
+  return (
+    <div
+      className={`absolute rounded-full pointer-events-none ${className}`}
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+function SectionReveal({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      variants={stagger}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function CardReveal({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <motion.div variants={fadeUp} className={className}>{children}</motion.div>;
+}
+
+export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-text-tertiary font-mono text-sm">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <main className="overflow-x-hidden bg-[#0a0a1a] text-white">
-
-      {/* ═══ HERO ═══ */}
-      <motion.section
-        ref={heroRef}
-        style={{ opacity: heroOpacity }}
-        className="relative min-h-screen flex items-center justify-center"
-      >
-        {/* Arena background image */}
-        <div className="absolute inset-0">
-          <Image
-            src="/images/Hero_Background.png"
-            alt="Arena"
-            fill
-            className="object-cover opacity-60"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a]/40 via-transparent to-[#0a0a1a]/80" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-transparent to-transparent" />
+    <div className="min-h-screen bg-bg-primary">
+      {/* ── NAV ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-5 bg-surface/80 backdrop-blur-md border-b border-border">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-accent-primary flex items-center justify-center">
+            <span className="text-white font-display font-bold text-sm">C</span>
+          </div>
+          <span className="font-display text-lg font-bold text-text-primary">COLOSSEUM</span>
+        </Link>
+        <div className="flex items-center gap-8">
+          <Link href="/arenas" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors hidden md:block">
+            Arenas
+          </Link>
+          <Link href="/leaderboard" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors hidden md:block">
+            Leaderboard
+          </Link>
+          <Link
+            href="/arenas"
+            className="px-5 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-all hover:scale-105 shadow-sm focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+          >
+            Enter the Arena →
+          </Link>
         </div>
+      </nav>
 
-        {/* Ripple rings */}
-        {[0, 1, 2].map((i) => (
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-16 px-6 md:px-10 overflow-hidden">
+        <GridBackground />
+        <FloatingOrb className="top-20 right-10 bg-indigo-200/30" size="400px" />
+        <FloatingOrb className="bottom-20 left-10 bg-amber-100/30" size="300px" />
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
           <motion.div
-            key={i}
-            initial={{ scale: 0.2, opacity: 0.2 }}
-            animate={{ scale: [0.2, 1.5], opacity: [0.15, 0] }}
-            transition={{ duration: 4, delay: i * 1.3, repeat: Infinity, ease: "easeOut" }}
-            className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-indigo-400/20"
-          />
-        ))}
-
-        {/* 3D Model — floating sword */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, delay: 0.5, ease }}
-          className="absolute inset-0 z-[5] pointer-events-none"
-        >
-          <HeroModel />
-        </motion.div>
-
-        {/* Content */}
-        <motion.div variants={stagger} initial="hidden" animate="visible" className="relative z-10 text-center px-6 max-w-3xl">
-          <motion.div variants={fadeUp} className="mb-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
-              </span>
-              <span className="text-[11px] tracking-[0.15em] uppercase text-white/60 font-medium">Battle Royale Trading</span>
-            </span>
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-primary/10 text-accent-primary text-xs font-semibold uppercase tracking-wider mb-8"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
+            Battle Royale Trading
           </motion.div>
 
-          <motion.h1 variants={fadeUp} className="font-display font-800 tracking-[-0.03em] leading-[0.88] text-4xl md:text-6xl lg:text-7xl">
-            <span className="block text-white">Survive.</span>
-            <motion.span
-              className="block bg-[length:200%_auto] bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(90deg, #818cf8, #a78bfa, #e879f9, #818cf8)" }}
-              animate={{ backgroundPosition: ["0% center", "200% center"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            >
-              Adapt.
-            </motion.span>
-            <span className="block text-white">Trade.</span>
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-6xl md:text-8xl lg:text-9xl font-bold text-text-primary leading-[0.9] tracking-tight mb-8"
+          >
+            THE LAST
+            <br />
+            <span className="text-accent-primary">TRADER</span>
+            <br />
+            STANDING
           </motion.h1>
 
-          <motion.p variants={fadeUp} className="mt-4 text-sm md:text-base text-white/50 max-w-md mx-auto leading-relaxed">
-            Compete in perpetual futures arenas. Rounds shrink. Leverage drops. Only one trader survives.
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="text-lg md:text-xl text-text-secondary max-w-xl mx-auto leading-relaxed mb-12"
+          >
+            4 rounds. Progressive eliminations. Last trader standing wins the prize pool.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/arenas">
-              <motion.span whileHover={{ scale: 1.04, boxShadow: "0 8px 40px rgba(99,102,241,0.35)" }} whileTap={{ scale: 0.97 }}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 transition-all">
-                Enter the Arena
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </motion.span>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Link
+              href="/arenas"
+              className="px-8 py-4 rounded-full bg-accent-primary text-white text-base font-semibold hover:bg-accent-hover transition-all hover:scale-105 shadow-md focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            >
+              Enter the Arena →
             </Link>
-            <Link href="#rounds">
-              <motion.span whileHover={{ scale: 1.03 }}
-                className="inline-block px-6 py-3.5 rounded-full text-white/40 text-sm font-medium hover:text-white/70 transition-colors">
-                See the rounds ↓
-              </motion.span>
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Scroll hint */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.3 }} transition={{ delay: 2 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2">
-          <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-            <svg width="20" height="30" viewBox="0 0 20 30" fill="none">
-              <rect x="1" y="1" width="18" height="28" rx="9" stroke="white" strokeWidth="1.5" opacity="0.3"/>
-              <circle cx="10" cy="9" r="2" fill="white" opacity="0.4"/>
-            </svg>
-          </motion.div>
-        </motion.div>
-      </motion.section>
-
-      {/* ═══ HOW IT WORKS ═══ */}
-      <section className="pt-24 pb-20 md:pt-28 md:pb-24 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a] via-[#0d0d24] to-[#0a0a1a]" />
-
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}
-          className="relative max-w-5xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <p className="text-[11px] tracking-[0.3em] uppercase text-white/30 mb-3">How it works</p>
-            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-white">Three steps to glory</h2>
+            <a
+              href="#how-it-works"
+              className="px-8 py-4 rounded-full border-2 border-border text-text-secondary font-semibold hover:border-accent-primary hover:text-accent-primary transition-all text-base"
+            >
+              How It Works
+            </a>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { num: "01", title: "Join", desc: "Pick an arena. Connect your wallet. Minimum 4 traders to start the battle.", img: "/images/Join.png", accent: "from-indigo-500/20 to-indigo-500/0", borderHover: "hover:border-indigo-400/30", numColor: "text-indigo-400" },
-              { num: "02", title: "Trade", desc: "Open positions on BTC, ETH, SOL perpetuals. Manage leverage. Stay above the drawdown limit.", img: "/images/Trade.png", accent: "from-amber-500/20 to-amber-500/0", borderHover: "hover:border-amber-400/30", numColor: "text-amber-400" },
-              { num: "03", title: "Win", desc: "Survive 4 rounds of increasing pressure. Last trader standing takes the crown.", img: "/images/Win.png", accent: "from-orange-500/20 to-orange-500/0", borderHover: "hover:border-orange-400/30", numColor: "text-orange-400" },
-            ].map((step) => (
-              <motion.div key={step.num} variants={fadeUp} whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ duration: 0.25 }}
-                className={`group relative bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] p-7 ${step.borderHover} hover:bg-white/[0.06] transition-all duration-300`}>
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-b ${step.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
-                <div className="relative">
-                  <div className="relative w-20 h-20 mb-6 rounded-2xl overflow-hidden bg-white/[0.05] border border-white/[0.06] shadow-lg">
-                    <Image src={step.img} alt={step.title} fill className="object-contain p-2.5 group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  <p className={`font-mono text-[10px] tracking-widest uppercase mb-1 ${step.numColor}`}>{step.num}</p>
-                  <h3 className="font-display text-xl font-700 text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-white/50 leading-relaxed">{step.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ═══ TRUST SIGNALS ═══ */}
-      <section className="py-10 px-6">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 py-6 border-t border-b border-white/[0.06]">
-            <span className="text-[11px] tracking-[0.2em] uppercase text-white/25">Powered by</span>
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
-                  <span className="text-[8px] font-bold text-white">P</span>
-                </div>
-                <span className="text-sm font-medium text-white/60">Pacifica Exchange</span>
-              </div>
-              <div className="hidden sm:block w-px h-4 bg-white/[0.08]" />
-              <div className="hidden sm:flex items-center gap-3">
-                {["BTC", "ETH", "SOL"].map((asset) => (
-                  <span key={asset} className="text-[11px] font-mono font-medium text-white/30 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
-                    {asset}
-                  </span>
-                ))}
-              </div>
-              <div className="hidden sm:block w-px h-4 bg-white/[0.08]" />
-              <span className="text-[11px] font-mono text-white/25 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/50">Testnet</span>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ═══ ROUNDS ═══ */}
-      <section id="rounds" className="py-16 md:py-20 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.02] to-transparent" />
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={stagger}
-          className="relative max-w-4xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <p className="text-[11px] tracking-[0.3em] uppercase text-white/30 mb-3">The gauntlet</p>
-            <h2 className="font-display text-3xl md:text-5xl font-800 tracking-tight text-white">Each round gets harder</h2>
-          </motion.div>
-
-          <div className="space-y-3">
-            {rounds.map((r) => (
-              <motion.div key={r.num} variants={fadeUp} whileHover={{ x: 4 }}
-                className="group bg-white/[0.03] rounded-xl border border-white/[0.06] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.1] transition-all">
-                <div className="flex items-center">
-                  <div className="w-1.5 self-stretch transition-all group-hover:w-2" style={{ backgroundColor: r.color }} />
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-4">
-                    <div className="flex items-center gap-4">
-                      <span className="font-mono text-2xl font-900 w-8" style={{ color: r.color }}>{r.num}</span>
-                      <h3 className="font-display text-base font-700 text-white">{r.name}</h3>
-                    </div>
-                    <div className="flex items-center gap-6 ml-12 sm:ml-0">
-                      <div className="text-center">
-                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Leverage</p>
-                        <p className="font-mono text-sm font-bold text-white/90">{r.leverage}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Max DD</p>
-                        <p className="font-mono text-sm font-bold" style={{ color: r.color }}>{r.drawdown}</p>
-                      </div>
-                      <div className="text-center hidden sm:block">
-                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-medium">Cut</p>
-                        <p className="font-mono text-sm font-semibold text-white/70">{r.elim}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* ═══ STATS — glass card with dividers ═══ */}
-          <motion.div variants={fadeUp} className="mt-12">
-            <div className="bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/[0.06] overflow-hidden">
-              <div className="grid grid-cols-2 md:grid-cols-4">
-                {[
-                  { label: "Max Traders", value: 100, prefix: "" },
-                  { label: "Starting Capital", value: 1000, prefix: "$" },
-                  { label: "Rounds", value: 4, prefix: "" },
-                  { label: "Survival Rate", value: 12, prefix: "", suffix: "%" },
-                ].map((s, i) => (
-                  <div key={s.label} className={`text-center py-6 px-3 border-white/[0.06] ${
-                    i % 2 === 0 ? "border-r" : ""
-                  } ${
-                    i < 2 ? "border-b md:border-b-0" : ""
-                  } ${
-                    i < 3 ? "md:border-r" : "md:border-r-0"
-                  }`}>
-                    <p className="text-2xl md:text-3xl font-bold text-white">
-                      <Counter target={s.value} prefix={s.prefix} />{s.suffix ?? ""}
-                    </p>
-                    <p className="text-[11px] text-white/40 uppercase tracking-wider mt-1.5 font-medium">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ═══ CTA ═══ */}
-      <section className="py-10 px-4 md:px-8">
-        <div className="relative rounded-[2rem] overflow-hidden py-20 md:py-28">
-          <div className="absolute inset-0">
-            <Image src="/images/Hero_Background.png" alt="" fill className="object-cover opacity-30" />
-            <div className="absolute inset-0 bg-[#0a0a1a]/70" />
-          </div>
-
-          {/* 3D Trophy */}
           <motion.div
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="absolute inset-0 z-[1] pointer-events-none"
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            className="mt-16 flex items-center justify-center gap-8 text-text-tertiary"
           >
-            <TrophyModel />
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-text-primary">$500K+</div>
+              <div className="text-xs uppercase tracking-wider mt-1">Prize Pool</div>
+            </div>
+            <div className="w-px h-10 bg-border" />
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-text-primary">4</div>
+              <div className="text-xs uppercase tracking-wider mt-1">Rounds</div>
+            </div>
+            <div className="w-px h-10 bg-border" />
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-text-primary">Apr 16</div>
+              <div className="text-xs uppercase tracking-wider mt-1">Deadline</div>
+            </div>
           </motion.div>
+        </div>
 
-          {/* Ripple rings */}
-          {[0, 1, 2].map((i) => (
-            <motion.div key={i}
-              initial={{ scale: 0.2, opacity: 0.15 }}
-              animate={{ scale: [0.2, 1], opacity: [0.1, 0] }}
-              transition={{ duration: 3, delay: i * 1, repeat: Infinity, ease: "easeOut" }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-indigo-400/15"
-            />
-          ))}
-
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
-            className="relative z-10 text-center px-6">
-            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-6xl font-800 tracking-tight leading-tight">
-              <span className="text-white">Ready to </span>
-              <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,191,36,0.35)]">compete?</span>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-white/50 text-base max-w-md mx-auto">
-              Connect your wallet and enter the arena.
-            </motion.p>
-            <motion.div variants={fadeUp} className="mt-8">
-              <Link href="/arenas">
-                <motion.span whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(255,255,255,0.15)" }} whileTap={{ scale: 0.97 }}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white text-[#0a0a1a] font-semibold text-sm shadow-xl transition-all">
-                  Enter the Arena
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </motion.span>
-              </Link>
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        >
+          <span className="text-xs text-text-tertiary uppercase tracking-widest">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-5 h-5 rounded-full border-2 border-text-tertiary flex items-center justify-center"
+          >
+            <div className="w-1 h-1 rounded-full bg-text-tertiary" />
           </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-24 px-6 md:px-10 bg-surface">
+        <div className="max-w-6xl mx-auto">
+          <SectionReveal>
+            <div className="text-center mb-16">
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent-primary mb-3">The Protocol</p>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-text-primary">How It Works</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {HOW_IT_WORKS.map((step) => (
+                <CardReveal
+                  key={step.step}
+                  className="bg-bg-primary rounded-2xl border border-border p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="font-mono text-5xl font-bold text-accent-primary/20 mb-6">{step.step}</div>
+                  <h3 className="font-display text-xl font-bold text-text-primary mb-3">{step.title}</h3>
+                  <p className="text-sm text-text-secondary leading-relaxed">{step.description}</p>
+                </CardReveal>
+              ))}
+            </div>
+          </SectionReveal>
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className="py-10 px-6 border-t border-white/[0.06]">
+      {/* ── ROUND PROGRESSION ── */}
+      <section className="py-24 px-6 md:px-10 bg-bg-primary">
+        <div className="max-w-5xl mx-auto">
+          <SectionReveal>
+            <div className="text-center mb-16">
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent-primary mb-3">Escalation</p>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-text-primary">4 Rounds of Hell</h2>
+              <p className="text-text-secondary mt-4 max-w-lg mx-auto">Each round tightens the noose. Leverage drops. Drawdown shrinks. The weak fall.</p>
+            </div>
+
+            <div className="space-y-4">
+              {ROUNDS.map((round, i) => (
+                <CardReveal
+                  key={round.name}
+                  className="bg-surface rounded-2xl border border-border p-6 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className={`w-3 h-12 rounded-full ${round.color}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-display text-lg font-bold text-text-primary">{round.name}</h3>
+                        <span className="font-mono text-xs text-text-tertiary uppercase tracking-wider">Round {i + 1}</span>
+                      </div>
+                      <div className="flex gap-8">
+                        <div>
+                          <span className="text-xs text-text-tertiary uppercase tracking-wide block">Max Leverage</span>
+                          <span className="font-mono text-lg font-bold text-text-primary">{round.leverage}</span>
+                        </div>
+                        <div>
+                          <span className="text-xs text-text-tertiary uppercase tracking-wide block">Max Drawdown</span>
+                          <span className="font-mono text-lg font-bold text-text-primary">{round.drawdown}</span>
+                        </div>
+                        <div>
+                          <span className="text-xs text-text-tertiary uppercase tracking-wide block">Elimination</span>
+                          <span className="font-mono text-lg font-bold text-danger">{round.elim}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardReveal>
+              ))}
+            </div>
+          </SectionReveal>
+        </div>
+      </section>
+
+      {/* ── LIVE DEMO ── */}
+      <section className="py-24 px-6 md:px-10 bg-surface">
+        <div className="max-w-6xl mx-auto">
+          <SectionReveal>
+            <div className="text-center mb-12">
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent-gold mb-3">Live Demo</p>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-text-primary">Watch the Battle</h2>
+              <p className="text-text-secondary mt-4 max-w-lg mx-auto">A demo arena is running right now with bot traders. No account needed.</p>
+            </div>
+
+            <div className="flex justify-center">
+              <Link
+                href="/arenas"
+                className="px-8 py-4 rounded-full bg-accent-gold text-white text-base font-semibold hover:bg-orange-600 transition-all hover:scale-105 shadow-md focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2"
+              >
+                Watch Live Arena →
+              </Link>
+            </div>
+          </SectionReveal>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="py-32 px-6 md:px-10 bg-bg-primary relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, rgba(99, 102, 241, 0.3) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(99, 102, 241, 0.3) 1px, transparent 1px)
+              `,
+              backgroundSize: "48px 48px",
+            }}
+          />
+        </div>
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <SectionReveal>
+            <h2 className="font-display text-5xl md:text-7xl font-bold text-text-primary leading-tight mb-6">
+              Ready to <span className="text-accent-primary">Compete</span>?
+            </h2>
+            <p className="text-lg text-text-secondary mb-10 max-w-xl mx-auto leading-relaxed">
+              Join hundreds of traders battling for the top spot. The arena awaits.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/arenas"
+                className="px-10 py-4 rounded-full bg-accent-primary text-white text-base font-semibold hover:bg-accent-hover transition-all hover:scale-105 shadow-md"
+              >
+                Enter the Arena →
+              </Link>
+              <a
+                href="/leaderboard"
+                className="px-10 py-4 rounded-full border-2 border-border text-text-secondary font-semibold hover:border-accent-primary hover:text-accent-primary transition-all text-base"
+              >
+                View Leaderboard
+              </a>
+            </div>
+          </SectionReveal>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="py-8 px-6 md:px-10 bg-surface border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="font-display text-base font-800 tracking-tight text-white">COLOSSEUM</span>
-          <div className="flex items-center gap-6 text-xs text-white/30">
-            <Link href="/arenas" className="hover:text-white/60 transition-colors">Arenas</Link>
-            <Link href="/leaderboard" className="hover:text-white/60 transition-colors">Leaderboard</Link>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-accent-primary/20 flex items-center justify-center">
+              <span className="text-accent-primary font-display font-bold text-xs">C</span>
+            </div>
+            <span className="font-display text-sm font-bold text-text-tertiary">PACIFICA COLOSSEUM</span>
+          </div>
+          <div className="flex items-center gap-6 text-xs text-text-tertiary">
+            <Link href="/arenas" className="hover:text-text-primary transition-colors">Arenas</Link>
+            <Link href="/leaderboard" className="hover:text-text-primary transition-colors">Leaderboard</Link>
             <span>Built on Pacifica</span>
           </div>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }

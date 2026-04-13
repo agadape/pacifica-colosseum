@@ -20,10 +20,10 @@ interface ArenaCardProps {
 }
 
 const presetStyles: Record<string, { bg: string; text: string; border: string }> = {
-  blitz: { bg: "bg-danger/5", text: "text-danger", border: "border-danger/20" },
-  sprint: { bg: "bg-accent-primary/5", text: "text-accent-primary", border: "border-accent-primary/20" },
-  daily: { bg: "bg-success/5", text: "text-success", border: "border-success/20" },
-  weekly: { bg: "bg-accent-gold/5", text: "text-accent-gold", border: "border-accent-gold/20" },
+  blitz: { bg: "bg-red-50", text: "text-danger", border: "border-red-200" },
+  sprint: { bg: "bg-indigo-50", text: "text-accent-primary", border: "border-indigo-200" },
+  daily: { bg: "bg-emerald-50", text: "text-success-dark", border: "border-emerald-200" },
+  weekly: { bg: "bg-amber-50", text: "text-accent-gold", border: "border-amber-200" },
 };
 
 const statusConfig: Record<string, { label: string; color: string; pulse: boolean }> = {
@@ -56,31 +56,30 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
   return (
     <Link href={href}>
       <motion.div
-        whileHover={isCompleted ? {} : { y: -6, scale: 1.02 }}
-        whileTap={isCompleted ? {} : { scale: 0.98 }}
+        whileHover={isCompleted ? {} : { y: -4, scale: 1.01 }}
+        whileTap={isCompleted ? {} : { scale: 0.99 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={`group relative bg-surface rounded-2xl border overflow-hidden cursor-pointer transition-shadow ${
+        className={`group relative bg-surface rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 ${
           isActive
-            ? "border-accent-primary/30 shadow-lg hover:shadow-xl"
+            ? "border-accent-primary/30 shadow-md hover:shadow-lg"
             : isCompleted
-            ? "border-border-light opacity-50"
-            : "border-border-light hover:shadow-xl"
+            ? "border-border opacity-60"
+            : "border-border hover:shadow-md"
         }`}
       >
-        {/* Top color accent bar */}
-        <div className={`h-1 ${isActive ? "bg-accent-primary" : isCompleted ? "bg-border-light" : preset.bg}`} />
+        <div className={`h-1.5 ${isActive ? "bg-accent-primary" : isCompleted ? "bg-border" : preset.bg.replace("-50", "-500")}`} />
 
         <div className="p-6">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <h3 className={`font-display text-lg font-700 transition-colors ${isCompleted ? "text-text-tertiary" : "text-text-primary group-hover:text-accent-primary"}`}>
+              <h3 className={`font-display text-lg font-bold transition-colors ${isCompleted ? "text-text-tertiary" : "text-text-primary group-hover:text-accent-primary"}`}>
                 {arena.name}
               </h3>
-              <span className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${preset.bg} ${preset.text} ${preset.border}`}>
+              <span className={`inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${preset.bg} ${preset.text} ${preset.border}`}>
                 {arena.preset}
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {statusInfo.pulse && (
                 <span className={`w-2 h-2 rounded-full ${statusInfo.color === "text-success" ? "bg-success" : statusInfo.color === "text-danger" ? "bg-danger" : "bg-accent-primary"} animate-pulse`} />
               )}
@@ -90,9 +89,8 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
             </div>
           </div>
 
-          {/* Starting capital */}
           {arena.starting_capital && (
-            <div className="flex items-center justify-between text-xs mb-3">
+            <div className="flex items-center justify-between text-xs mb-4">
               <span className="text-text-tertiary">Prize Pool</span>
               <span className="font-mono font-semibold text-accent-gold">
                 ${(arena.starting_capital * (arena.max_participants ?? 8)).toLocaleString()}
@@ -100,15 +98,14 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
             </div>
           )}
 
-          {/* Progress bar for participants */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between text-xs mb-1">
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-text-tertiary">Traders</span>
-              <span className="font-mono text-text-secondary">
+              <span className="font-mono text-text-secondary font-medium">
                 {count}/{arena.max_participants}
               </span>
             </div>
-            <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden">
+            <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((count / arena.max_participants) * 100, 100)}%` }}
@@ -123,16 +120,16 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           )}
 
           {isActive && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs text-accent-primary font-semibold">
+            <div className="flex items-center justify-between pt-2 border-t border-border-light">
+              <div className="flex items-center gap-2 text-xs text-accent-primary font-semibold">
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
                   className="w-2 h-2 rounded-full bg-accent-primary inline-block"
                 />
-                Live Now
+                Live
               </div>
-              <span className="text-[10px] text-accent-primary font-medium uppercase tracking-wider">
+              <span className="text-xs text-accent-primary font-medium uppercase tracking-wider">
                 Watch →
               </span>
             </div>

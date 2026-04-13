@@ -105,11 +105,11 @@ function HazardItem({ hazard }: { hazard: ActiveHazard }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           {isWarning ? (
-            <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${styles.badge}`}>
+            <span className={`text-xs font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${styles.badge}`}>
               ⚠ INCOMING — {warningSecondsLeft}s
             </span>
           ) : (
-            <span className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${styles.badge}`}>
+            <span className={`text-xs font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${styles.badge}`}>
               {severity.toUpperCase()} — ACTIVE
             </span>
           )}

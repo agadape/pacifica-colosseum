@@ -21,25 +21,25 @@ export default function DrawdownMeter({ current, max, className = "" }: Drawdown
     bgColor = "bg-success/10";
   } else if (ratio < 0.75) {
     color = "bg-warning";
-    bgColor = "bg-warning/10";
+    bgColor = "bg-amber-50";
   } else if (ratio < 0.9) {
-    color = "bg-orange-500";
-    bgColor = "bg-orange-500/10";
+    color = "bg-orange-status";
+    bgColor = "bg-orange-50";
   } else {
     color = "bg-danger";
-    bgColor = "bg-danger/10";
+    bgColor = "bg-red-50";
     pulse = true;
   }
 
   return (
     <div className={`${className}`}>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-text-tertiary">Drawdown</span>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-text-tertiary uppercase tracking-wide">Drawdown</span>
         <span className="font-mono text-xs font-semibold text-text-primary">
           {current.toFixed(1)}% / {max}%
         </span>
       </div>
-      <div className={`h-2 rounded-full ${bgColor} overflow-hidden`}>
+      <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
         <motion.div
           className={`h-full rounded-full ${color} ${pulse ? "animate-pulse" : ""}`}
           initial={{ width: 0 }}

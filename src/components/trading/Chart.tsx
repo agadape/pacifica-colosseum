@@ -15,7 +15,6 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const { prices } = useWSStore();
 
-  // Create chart — destroy and recreate when symbol changes
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -23,12 +22,12 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
         textColor: "#6B7280",
-        fontFamily: "Inter, sans-serif",
+        fontFamily: "JetBrains Mono, monospace",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "#F3F4F6" },
-        horzLines: { color: "#F3F4F6" },
+        vertLines: { color: "#E5E7EB" },
+        horzLines: { color: "#E5E7EB" },
       },
       crosshair: {
         vertLine: { color: "#6366f140", width: 1, style: 2 },
@@ -74,7 +73,6 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
     };
   }, [symbol]);
 
-  // Update data from WS prices
   useEffect(() => {
     const price = prices.get(symbol);
     if (!price || !seriesRef.current) return;
@@ -86,11 +84,11 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
   }, [prices, symbol]);
 
   return (
-    <div className={`bg-surface rounded-2xl border border-border-light overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border-light">
-        <div className="flex items-center gap-2">
-          <span className="font-display text-sm font-700 text-text-primary">{symbol}-PERP</span>
-          <span className="font-mono text-sm text-accent-primary font-semibold">
+    <div className={`bg-surface rounded-2xl border border-border overflow-hidden ${className}`}>
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+        <div className="flex items-center gap-3">
+          <span className="font-display text-sm font-bold text-text-primary">{symbol}-PERP</span>
+          <span className="font-mono text-sm font-bold text-accent-primary">
             {prices.get(symbol)?.markPrice.toFixed(2) ?? "—"}
           </span>
         </div>

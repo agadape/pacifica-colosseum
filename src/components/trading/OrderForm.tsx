@@ -63,17 +63,16 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border-light p-5">
-      <h3 className="font-display text-sm font-700 text-text-primary mb-4">Order</h3>
+    <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border p-5">
+      <h3 className="font-display text-sm font-bold text-text-primary mb-4">Order</h3>
 
-      {/* Type tabs */}
-      <div className="flex gap-1 mb-4 bg-bg-primary rounded-lg p-0.5">
+      <div className="flex gap-1 mb-5 bg-bg-primary rounded-lg p-0.5">
         {(["market", "limit"] as const).map((type) => (
           <button
             key={type}
             type="button"
             onClick={() => setOrderType(type)}
-            className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent-primary ${
               orderType === type
                 ? "bg-surface text-text-primary shadow-sm"
                 : "text-text-tertiary hover:text-text-secondary"
@@ -84,15 +83,14 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         ))}
       </div>
 
-      {/* Side buttons */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-5">
         <button
           type="button"
           onClick={() => setSide("bid")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-success ${
             side === "bid"
-              ? "bg-success/10 text-success border-2 border-success"
-              : "bg-bg-primary text-text-tertiary border-2 border-transparent"
+              ? "bg-success text-white shadow-sm"
+              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary"
           }`}
         >
           Long
@@ -100,20 +98,19 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         <button
           type="button"
           onClick={() => setSide("ask")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-danger ${
             side === "ask"
-              ? "bg-danger/10 text-danger border-2 border-danger"
-              : "bg-bg-primary text-text-tertiary border-2 border-transparent"
+              ? "bg-danger text-white shadow-sm"
+              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary"
           }`}
         >
           Short
         </button>
       </div>
 
-      {/* Size */}
-      <div className="mb-1">
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-xs text-text-tertiary">Size (USD)</label>
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs text-text-secondary font-medium">Size (USD)</label>
           {contracts > 0 && (
             <span className="text-xs font-mono text-text-tertiary">
               ≈ {contracts.toFixed(4)} {symbol}
@@ -125,43 +122,42 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           value={size}
           onChange={(e) => setSize(e.target.value)}
           placeholder="100"
-          className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-light text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary"
+          className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
         />
       </div>
 
-      {/* Quick size presets */}
-      <div className="flex gap-1 mb-3">
+      <div className="flex gap-2 mb-4">
         {["25", "50", "100", "250"].map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => setSize(v)}
-            className="flex-1 py-1 rounded-md text-[10px] font-semibold text-text-tertiary hover:text-accent-primary bg-bg-primary border border-border-light transition-colors"
+            className="flex-1 py-2 rounded-lg text-xs font-semibold text-text-secondary bg-bg-primary border border-border hover:border-accent-primary hover:text-accent-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             ${v}
           </button>
         ))}
       </div>
 
-      {/* Price (limit only) */}
       {orderType === "limit" && (
-        <div className="mb-3">
-          <label className="block text-xs text-text-tertiary mb-1">Price</label>
+        <div className="mb-4">
+          <label className="block text-xs text-text-secondary font-medium mb-2">Price</label>
           <input
             type="text"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="0.00"
-            className="w-full px-3 py-2 rounded-lg bg-bg-primary border border-border-light text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary"
+            className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
           />
         </div>
       )}
 
-      {/* Leverage slider */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-1">
-          <label className="text-xs text-text-tertiary">Leverage <span className="text-text-tertiary/50">(max {maxLeverage}x)</span></label>
-          <span className="font-mono text-xs font-semibold text-text-primary">{leverage}x</span>
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs text-text-secondary font-medium">
+            Leverage <span className="text-text-tertiary">(max {maxLeverage}x)</span>
+          </label>
+          <span className="font-mono text-sm font-bold text-accent-primary">{leverage}x</span>
         </div>
         <input
           type="range"
@@ -173,32 +169,29 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         />
       </div>
 
-      {/* Net position hint */}
-      <p className="text-[10px] text-text-tertiary/60 mb-2">
+      <p className="text-xs text-text-tertiary mb-4 leading-relaxed">
         Opposite side closes existing position (net mode)
       </p>
 
-      {/* Reduce only */}
-      <label className="flex items-center gap-2 mb-4 cursor-pointer">
+      <label className="flex items-center gap-2.5 mb-5 cursor-pointer group">
         <input
           type="checkbox"
           checked={reduceOnly}
           onChange={(e) => setReduceOnly(e.target.checked)}
-          className="accent-accent-primary"
+          className="accent-accent-primary w-4 h-4 rounded"
         />
-        <span className="text-xs text-text-secondary">Reduce only</span>
+        <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors">Reduce only</span>
       </label>
 
-      {/* Submit */}
       <motion.button
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         type="submit"
         disabled={submitOrder.isPending}
-        className={`w-full py-3 rounded-xl font-semibold text-sm text-white transition-colors disabled:opacity-50 ${
+        className={`w-full py-3.5 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-50 shadow-sm focus-visible:ring-2 ${
           side === "bid"
-            ? "bg-success hover:bg-success/90"
-            : "bg-danger hover:bg-danger/90"
+            ? "bg-success hover:bg-emerald-600 focus-visible:ring-success"
+            : "bg-danger hover:bg-red-600 focus-visible:ring-danger"
         }`}
       >
         {submitOrder.isPending
@@ -210,7 +203,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         <motion.p
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-3 text-xs text-success text-center"
+          className="mt-3 text-xs text-success text-center font-medium"
         >
           Order placed ✓
         </motion.p>

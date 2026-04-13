@@ -21,9 +21,8 @@ export default function Navbar() {
     setScrolled(latest > 50);
   });
 
-  // On homepage: transparent at top, solid on scroll
-  // On other pages: always solid
   const isTransparent = isHome && !scrolled;
+  const showDark = isHome && scrolled;
 
   return (
     <motion.nav
@@ -33,14 +32,19 @@ export default function Navbar() {
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 transition-all duration-300 ${
         isTransparent
           ? "bg-transparent border-b border-transparent"
-          : isHome
-            ? "bg-[#0a0a1a]/80 backdrop-blur-md border-b border-white/[0.06]"
-            : "bg-bg-primary/80 backdrop-blur-md border-b border-border-light"
+          : showDark
+            ? "bg-[#0a0a1a]/90 backdrop-blur-md border-b border-white/10"
+            : "bg-surface/95 backdrop-blur-md border-b border-border"
       }`}
     >
-      <Link href="/" className="flex items-center gap-2">
-        <span className={`font-display text-xl font-800 tracking-tight transition-colors duration-300 ${
-          isHome ? "text-white" : "text-text-primary"
+      <Link href="/" className="flex items-center gap-3">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          showDark || isHome && !scrolled ? "bg-accent-primary" : "bg-accent-primary"
+        }`}>
+          <span className="text-white font-display font-bold text-sm">C</span>
+        </div>
+        <span className={`font-display text-lg font-bold tracking-tight ${
+          showDark || (isHome && !scrolled) ? "text-white" : "text-text-primary"
         }`}>
           COLOSSEUM
         </span>
@@ -54,11 +58,11 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative text-sm font-medium transition-colors duration-300 ${
+                className={`relative text-sm font-medium transition-colors duration-200 ${
                   isActive
                     ? "text-accent-primary"
-                    : isHome
-                    ? "text-white/60 hover:text-white"
+                    : showDark || (isHome && !scrolled)
+                    ? "text-white/70 hover:text-white"
                     : "text-text-secondary hover:text-text-primary"
                 }`}
               >

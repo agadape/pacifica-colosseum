@@ -95,12 +95,12 @@ export function AbilityCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-sm text-gray-900">{ability.name}</span>
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full uppercase tracking-wide ${badgeClass}`}>
+            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${badgeClass}`}>
               {ability.rarity}
             </span>
-            <span className="text-[10px] text-gray-400 ml-auto">Rd {acquiredInRound}</span>
+            <span className="text-xs text-text-tertiary ml-auto">Rd {acquiredInRound}</span>
           </div>
-          <p className="text-xs text-gray-600 mt-0.5 leading-snug">{ability.description}</p>
+          <p className="text-xs text-text-secondary mt-0.5 leading-snug">{ability.description}</p>
         </div>
       </div>
 
@@ -115,16 +115,16 @@ export function AbilityCard({
             </button>
           ) : ability.requires_target && showTargetPicker ? (
             <div className="space-y-1">
-              <p className="text-[11px] text-gray-500 font-medium">Choose target:</p>
+              <p className="text-xs text-text-tertiary font-medium">Choose target:</p>
               {targets.length === 0 ? (
-                <p className="text-xs text-gray-400">No targets available</p>
+                <p className="text-xs text-text-tertiary">No targets available</p>
               ) : (
                 targets.map(t => (
                   <button
                     key={t.participantId}
                     disabled={loading}
                     onClick={() => activate(t.participantId)}
-                    className="w-full text-left text-xs py-1 px-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors truncate"
+                    className="w-full text-left text-xs py-1.5 px-2.5 rounded-lg bg-surface border border-border hover:bg-bg-primary transition-colors truncate"
                   >
                     {t.username}
                   </button>
@@ -132,7 +132,7 @@ export function AbilityCard({
               )}
               <button
                 onClick={() => setShowTargetPicker(false)}
-                className="text-[11px] text-gray-400 hover:text-gray-600"
+                className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
               >
                 Cancel
               </button>
