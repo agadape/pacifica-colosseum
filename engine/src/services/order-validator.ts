@@ -155,10 +155,10 @@ export async function validateOrder(
   }
 
   // Check active hazard overrides (read from ArenaState — no DB query)
-  const arenaState = getArenaState(arenaId);
-  if (arenaState) {
+  const hazardArenaState = getArenaState(arenaId);
+  if (hazardArenaState) {
     // Hazard: Short Ban — block ask (short) orders
-    if (arenaState.activeHazardSideRestriction === order.side) {
+    if (hazardArenaState.activeHazardSideRestriction === order.side) {
       return {
         valid: false,
         error: `Short orders are currently banned — Short Ban hazard active`,
@@ -166,11 +166,11 @@ export async function validateOrder(
     }
 
     // Hazard: Leverage Emergency — cap at hazard override (only if tighter than current effective max)
-    if (order.leverage && arenaState.activeHazardLeverageCap !== null) {
-      if (order.leverage > arenaState.activeHazardLeverageCap) {
+    if (order.leverage && hazardArenaState.activeHazardLeverageCap !== null) {
+      if (order.leverage > hazardArenaState.activeHazardLeverageCap) {
         return {
           valid: false,
-          error: `Leverage ${order.leverage}x blocked — Leverage Emergency active (max ${arenaState.activeHazardLeverageCap}x)`,
+          error: `Leverage ${order.leverage}x blocked — Leverage Emergency active (max ${hazardArenaState.activeHazardLeverageCap}x)`,
         };
       }
     }
@@ -180,6 +180,25 @@ export async function validateOrder(
   if (round.margin_mode === "isolated" && order.type === "market") {
     // Margin mode is enforced at the account level via Pacifica API
     // We just validate the intent here — actual enforcement happens on Pacifica side
+  }
+
+  // Check sufficient balance to open the position (margin requirement)
+  if (hazardArenaState && order.leverage) {
+    const trader = hazardArenaState.traders.get(participant.id);
+    if (trader) {
+      const pos = trader.positions.get(order.symbol);
+      const price = pos?.entryPrice ?? 1;
+      const sizeInContracts = parseFloat(order.size) / price;
+      const requiredMargin = sizeInContracts / order.leverage;
+      const availableBalance = trader.balance;
+
+      if (availableBalance < requiredMargin) {
+        return {
+          valid: false,
+          error: `Insufficient margin. Need $${requiredMargin.toFixed(2)}, have $${availableBalance.toFixed(2)}`,
+        };
+      }
+    }
   }
 
   return { valid: true, arena, participant, round };

@@ -54,7 +54,7 @@ async function syncArena(arenaId: string): Promise<void> {
   for (const [, trader] of state.traders) {
     if (trader.status !== "active") continue;
 
-    // Reconcile with Pacifica REST (optional — may fail without beta)
+    // Reconcile balance AND positions with Pacifica REST
     try {
       const { data: participants } = await supabase
         .from("arena_participants")
@@ -72,14 +72,33 @@ async function syncArena(arenaId: string): Promise<void> {
           testnet: true,
         });
 
+        // Sync balance
         const { data: accInfo } = await client.getAccountInfo() as {
           data: { balance?: string } | null;
         };
-
         if (accInfo?.balance) {
           const parsed = parseFloat(accInfo.balance);
           if (!isNaN(parsed) && parsed >= 0) {
             trader.balance = parsed;
+          }
+        }
+
+        // Sync positions from Pacifica (replaces potentially stale in-memory state)
+        const { data: positions } = await client.getPositions() as {
+          data: Array<{ symbol: string; side: string; size: string; entry_price: string; leverage: number }> | null;
+        };
+        if (positions) {
+          trader.positions.clear();
+          for (const pos of positions) {
+            // Pacifica uses "bid"/"ask" internally but we store "long"/"short"
+            const longShort: "long" | "short" = pos.side === "bid" || pos.side === "buy" ? "long" : "short";
+            trader.positions.set(pos.symbol, {
+              symbol: pos.symbol,
+              side: longShort,
+              size: parseFloat(pos.size),
+              entryPrice: parseFloat(pos.entry_price),
+              leverage: pos.leverage,
+            });
           }
         }
       }
@@ -87,7 +106,7 @@ async function syncArena(arenaId: string): Promise<void> {
       // Reconciliation failed — continue with cached state
     }
 
-    // Calculate current equity from cached state
+    // Calculate current equity from synced state
     const equity = calcEquity(trader, allPrices);
     const drawdown = calcDrawdownPercent(equity, trader.equityBaseline);
 

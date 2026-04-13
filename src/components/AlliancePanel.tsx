@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface AllianceState {
   data: {
@@ -43,11 +44,12 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
   const queryClient = useQueryClient();
   const [selectedTarget, setSelectedTarget] = useState("");
   const [showPropose, setShowPropose] = useState(false);
+  const { getAccessToken } = usePrivy();
 
   const { data } = useQuery({
     queryKey: ["alliances", arenaId],
     queryFn: () => fetchAlliances(arenaId),
-    refetchInterval: 5_000,
+    refetchInterval: 10_000,
   });
 
   const allianceData = data?.data;
@@ -56,9 +58,10 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
 
   const proposeMutation = useMutation({
     mutationFn: async (targetId: string) => {
+      const token = await getAccessToken();
       const res = await fetch(`/api/arenas/${arenaId}/alliances/propose`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ targetParticipantId: targetId }),
       });
       return res.json();
@@ -71,9 +74,10 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
 
   const acceptMutation = useMutation({
     mutationFn: async (allianceId: string) => {
+      const token = await getAccessToken();
       const res = await fetch(`/api/arenas/${arenaId}/alliances/accept`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ allianceId }),
       });
       return res.json();
@@ -83,9 +87,10 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
 
   const declineMutation = useMutation({
     mutationFn: async (allianceId: string) => {
+      const token = await getAccessToken();
       const res = await fetch(`/api/arenas/${arenaId}/alliances/decline`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ allianceId }),
       });
       return res.json();
@@ -205,7 +210,7 @@ export function AlliancePanel({ arenaId, myParticipantId, targets }: AlliancePan
             <span className="text-xs text-text-primary font-medium">Allied with <span className="font-semibold">{partnerName}</span></span>
           </div>
           <p className="text-xs text-text-tertiary leading-relaxed">
-            Your PnL is averaged with your partner's for elimination ranking. Survive together.
+            Your PnL is averaged with your partner&apos;s for elimination ranking. Survive together.
           </p>
         </div>
       )}

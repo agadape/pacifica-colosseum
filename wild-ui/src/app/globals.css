@@ -1,0 +1,381 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700,800&f[]=satoshi@400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-clash: "Clash Display", system-ui, sans-serif;
+  --font-satoshi: "Satoshi", system-ui, sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+
+  --color-void: #2A2A2A;
+  --color-base: #2D2D2D;
+  --color-surface: #323232;
+  --color-elevated: #383838;
+  --color-border: #FFFFFF;
+  --color-border-dim: rgba(255, 255, 255, 0.15);
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #AAAAAA;
+  --color-text-muted: #555555;
+  --color-red: #FF0000;
+  --color-red-dim: rgba(255, 0, 0, 0.12);
+}
+
+* {
+  cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><rect x='2' y='2' width='12' height='12' fill='%23FF0000'/></svg>") 8 8, crosshair;
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-text-primary);
+  font-family: var(--font-satoshi), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-red);
+  color: #000;
+}
+
+::-webkit-scrollbar { width: 4px; background: var(--color-base); }
+::-webkit-scrollbar-thumb { background: #fff; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-red); }
+
+/* ═══════════════════════════════════════════
+   BRUTALIST TOKENS
+═══════════════════════════════════════════ */
+
+.brut-border {
+  border: 2px solid #fff;
+}
+
+.brut-border-red {
+  border: 2px solid var(--color-red);
+}
+
+.brut-border-top-red {
+  border-top: 3px solid var(--color-red);
+}
+
+/* ── BRUTAL CARD ── */
+.brut-card {
+  background: var(--color-surface);
+  border: 2px solid #fff;
+}
+
+.brut-card:hover {
+  border-color: var(--color-red);
+}
+
+/* ── BRUTAL BUTTON ── */
+.brut-btn {
+  background: #fff;
+  color: #000;
+  font-family: var(--font-clash), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.brut-btn:hover {
+  background: var(--color-red);
+  border-color: var(--color-red);
+  color: #fff;
+}
+
+.brut-btn:active {
+  transform: translate(2px, 2px);
+}
+
+.brut-btn-ghost {
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-clash), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  border: 2px solid rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.brut-btn-ghost:hover {
+  border-color: #fff;
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── BADGE ── */
+.badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-red);
+  color: #fff;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--color-red);
+}
+
+.badge-muted {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── NAV LINK ── */
+.nav-link {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  transition: color 0.1s;
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-red);
+  transition: width 0.15s;
+}
+
+.nav-link:hover {
+  color: #fff;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* ── MONO ── */
+.mono {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ── GRID LINES ── */
+.brut-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.brut-grid-heavy {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Brutal corner mark */
+.brut-corner {
+  position: relative;
+}
+.brut-corner::before,
+.brut-corner::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: #FF0000;
+  border-style: solid;
+}
+.brut-corner::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+}
+.brut-corner::after {
+  top: 0; right: 0;
+  border-width: 2px 2px 0 0;
+}
+
+/* Section marker */
+.brut-section-marker {
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: #FF0000;
+  margin-right: 12px;
+  vertical-align: middle;
+}
+
+/* Horizontal brutal rule */
+.brut-rule {
+  height: 1px;
+  background: linear-gradient(90deg, #FF0000 0%, rgba(255,255,255,0.15) 30%, transparent 100%);
+}
+
+/* Noise grain overlay */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ═══════════════════════════════════════════
+   GLITCH EFFECTS
+═══════════════════════════════════════════ */
+
+@keyframes glitch-clip-1 {
+  0%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  10% { clip-path: inset(20% 0 60% 0); transform: translate(-4px, 1px); }
+  20% { clip-path: inset(50% 0 30% 0); transform: translate(3px, -1px); }
+  30% { clip-path: inset(70% 0 10% 0); transform: translate(-2px, 2px); }
+  40% { clip-path: inset(10% 0 80% 0); transform: translate(4px, -2px); }
+  50% { clip-path: inset(40% 0 50% 0); transform: translate(-3px, 1px); }
+  60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -1px); }
+  70% { clip-path: inset(5% 0 85% 0); transform: translate(-4px, 2px); }
+  80% { clip-path: inset(60% 0 20% 0); transform: translate(3px, -2px); }
+  90% { clip-path: inset(30% 0 55% 0); transform: translate(-2px, 1px); }
+}
+
+@keyframes glitch-clip-2 {
+  0%, 100% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+  10% { clip-path: inset(65% 0 15% 0); transform: translate(4px, -1px); }
+  20% { clip-path: inset(25% 0 55% 0); transform: translate(-3px, 2px); }
+  30% { clip-path: inset(85% 0 5% 0); transform: translate(2px, -2px); }
+  40% { clip-path: inset(15% 0 70% 0); transform: translate(-4px, 1px); }
+  50% { clip-path: inset(50% 0 35% 0); transform: translate(3px, -1px); }
+  60% { clip-path: inset(5% 0 80% 0); transform: translate(-2px, 2px); }
+  70% { clip-path: inset(75% 0 10% 0); transform: translate(4px, -2px); }
+  80% { clip-path: inset(35% 0 45% 0); transform: translate(-3px, 1px); }
+  90% { clip-path: inset(90% 0 3% 0); transform: translate(2px, -1px); }
+}
+
+@keyframes glitch-bar {
+  0% { left: -5%; opacity: 1; width: 0; }
+  10% { opacity: 1; width: 25%; }
+  90% { opacity: 1; width: 25%; }
+  100% { left: 105%; opacity: 0; width: 0; }
+}
+
+@keyframes rgb-split {
+  0%, 100% { text-shadow: -2px 0 #ff0000, 2px 0 #ffffff; }
+  25% { text-shadow: 3px 0 #ff0000, -3px 0 #ffffff; }
+  50% { text-shadow: -3px 2px #ff0000, 3px -2px #ffffff; }
+  75% { text-shadow: 2px -2px #ff0000, -2px 2px #ffffff; }
+}
+
+.glitch-text {
+  position: relative;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.glitch-text.active::before {
+  opacity: 0.85;
+  color: #ff0000;
+  animation: glitch-clip-1 0.4s steps(2) infinite;
+  transform: translate(-2px, 0);
+}
+
+.glitch-text.active::after {
+  opacity: 0.85;
+  color: #ffffff;
+  animation: glitch-clip-2 0.4s steps(2) infinite;
+  transform: translate(2px, 0);
+}
+
+.chromatic {
+  animation: rgb-split 5s ease-in-out infinite;
+}
+
+/* Velocity glitch bar */
+.glitch-bar {
+  position: fixed;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FF0000, #fff, transparent);
+  animation: glitch-bar 0.5s linear forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Scanline overlay — subtle */
+.brut-scanlines {
+  position: relative;
+}
+
+.brut-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-anim {
+  animation: ticker 25s linear infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1s step-end infinite;
+}

@@ -41,35 +41,41 @@ export function mockCreateMarketOrder(
   symbol: string,
   side: "bid" | "ask",
   size: number,
-  currentPrice: number
+  currentPrice: number,
+  slippagePercent: number = 0.1
 ): { data: unknown } {
   const account = accounts.get(address);
   if (!account) return { data: null };
+
+  // Apply slippage: market orders execute worse than mid price
+  // Buy (bid) = worse price (higher), Sell (ask) = worse price (lower)
+  const slippageMultiplier = side === "bid" ? (1 + slippagePercent / 100) : (1 - slippagePercent / 100);
+  const executionPrice = currentPrice * slippageMultiplier;
 
   const existing = account.positions.get(symbol);
   if (existing && existing.side === side) {
     // Increase position
     const totalSize = existing.size + size;
-    existing.entryPrice = (existing.entryPrice * existing.size + currentPrice * size) / totalSize;
+    existing.entryPrice = (existing.entryPrice * existing.size + executionPrice * size) / totalSize;
     existing.size = totalSize;
   } else if (existing && existing.side !== side) {
     // Reduce/close
     if (size >= existing.size) {
-      const pnl = (currentPrice - existing.entryPrice) * existing.size * (existing.side === "bid" ? 1 : -1);
+      const pnl = (executionPrice - existing.entryPrice) * existing.size * (existing.side === "bid" ? 1 : -1);
       account.balance += pnl;
       account.positions.delete(symbol);
       const remaining = size - existing.size;
       if (remaining > 0) {
-        account.positions.set(symbol, { symbol, side, size: remaining, entryPrice: currentPrice, leverage: 5 });
+        account.positions.set(symbol, { symbol, side, size: remaining, entryPrice: executionPrice, leverage: 5 });
       }
     } else {
-      const pnl = (currentPrice - existing.entryPrice) * size * (existing.side === "bid" ? 1 : -1);
+      const pnl = (executionPrice - existing.entryPrice) * size * (existing.side === "bid" ? 1 : -1);
       account.balance += pnl;
       existing.size -= size;
     }
   } else {
     // New position
-    account.positions.set(symbol, { symbol, side, size, entryPrice: currentPrice, leverage: 5 });
+    account.positions.set(symbol, { symbol, side, size, entryPrice: executionPrice, leverage: 5 });
   }
 
   return { data: { order_id: Math.floor(Math.random() * 100000) } };

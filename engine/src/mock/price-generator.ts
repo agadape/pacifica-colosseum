@@ -68,7 +68,10 @@ export class MockPriceGenerator extends EventEmitter {
           // Normal random walk — apply volatility multiplier if active
           const effectiveVol = this.volatility * this.volatilityMultiplier;
           const change = price * effectiveVol * (Math.random() * 2 - 1);
-          newPrice = Math.max(price * 0.5, price + change);
+          // Clamp: max 20% move per tick up or down (circuit breaker)
+          const maxMove = price * 0.2;
+          const clampedChange = Math.max(-maxMove, Math.min(maxMove, change));
+          newPrice = Math.max(price * 0.5, price + clampedChange);
         }
 
         this.prices.set(symbol, newPrice);

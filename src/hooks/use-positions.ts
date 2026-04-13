@@ -24,7 +24,8 @@ export function usePositions(arenaId: string) {
     },
     enabled: authenticated && !!arenaId,
     staleTime: 8000,
-    refetchInterval: 15000,
+    gcTime: 30000,
+    refetchInterval: 30000,
   });
 }
 
@@ -40,6 +41,7 @@ export function useOpenOrders(arenaId: string) {
     },
     enabled: authenticated && !!arenaId,
     staleTime: 8000,
-    refetchInterval: 15000,
+    gcTime: 30000,
+    refetchInterval: 30000,
   });
 }

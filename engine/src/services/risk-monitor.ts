@@ -264,6 +264,9 @@ async function handleDrawdownBreach(
   // Eliminate trader
   trader.status = "eliminated";
 
+  // Dissolve alliance so partner survives independently
+  await dissolveAllianceOnElimination(state.arenaId, trader.participantId);
+
   await supabase
     .from("arena_participants")
     .update({
@@ -291,6 +294,14 @@ async function handleDrawdownBreach(
     drawdown_at_elimination: trader.currentDrawdownPercent,
     positions_snapshot: positionsSnapshot,
   });
+
+  // Release territory if any (drawdown elimination doesn't call processTerritoryElimination)
+  await supabase
+    .from("participant_territories")
+    .update({ is_active: false })
+    .eq("arena_id", state.arenaId)
+    .eq("participant_id", trader.participantId)
+    .eq("is_active", true);
 
   // Create event
   await supabase.from("events").insert({
@@ -405,12 +416,13 @@ export function updateArenaRound(
     if (trader.status === "active") {
       trader.equityBaseline = trader.currentEquity;
       trader.currentDrawdownPercent = 0;
+      trader.maxDrawdownHit = 0; // reset per-round so loot uses THIS round's drawdown
       trader.hasWideZone = false;
       trader.hasSecondLife = false;
       trader.secondLifeUsed = false;
       trader.isInGracePeriod = false;
-      trader.abilityDrawdownBuffer = 0; // Fortress resets per round
-      trader.abilityShieldUntil = null; // Shield resets per round
+      trader.abilityDrawdownBuffer = 0;
+      trader.abilityShieldUntil = null;
     }
   }
 }

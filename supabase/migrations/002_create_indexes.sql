@@ -17,9 +17,17 @@ CREATE INDEX idx_events_arena
 CREATE INDEX idx_participants_arena_status
     ON arena_participants(arena_id, status);
 
+-- Arena participants: composite for equity rankings (arena + status + equity_final for sorting)
+CREATE INDEX idx_participants_arena_equity
+    ON arena_participants(arena_id, status, equity_final DESC);
+
 -- Arenas: filter by status (for listing active/registration arenas)
 CREATE INDEX idx_arenas_status
     ON arenas(status);
+
+-- Arenas: composite index for listing active arenas (status + created_at for efficient sorting)
+CREATE INDEX idx_arenas_status_created
+    ON arenas(status, created_at DESC);
 
 -- Eliminations: lookup by arena + round
 CREATE INDEX idx_eliminations_arena_round

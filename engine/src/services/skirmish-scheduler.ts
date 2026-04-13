@@ -42,14 +42,22 @@ interface SkirmishPhase {
 
 const activePhases = new Map<string, SkirmishPhase>();
 
+let skirmishIntervalId: ReturnType<typeof setInterval> | null = null;
+
 /**
  * Start the global skirmish scheduler.
  * Called by engine/src/index.ts during startup.
+ * Idempotent — safe to call multiple times, only one interval runs.
  */
 export function startSkirmishScheduler(): void {
+  if (skirmishIntervalId !== null) {
+    console.log("[Skirmish] Scheduler already running, skipping");
+    return;
+  }
+
   console.log("[Skirmish] Scheduler started");
 
-  setInterval(async () => {
+  skirmishIntervalId = setInterval(async () => {
     const supabase = getSupabase();
 
     const { data: arenas } = await supabase
@@ -75,12 +83,23 @@ export function startSkirmishScheduler(): void {
         phase.resolved = true;
       }
 
-      // 10s cooldown after resolution before opening next phase
       if (now >= phase.resolutionAt + 10_000) {
         activePhases.delete(arena.id);
       }
     }
   }, POLL_INTERVAL_MS);
+}
+
+/**
+ * Stop the global skirmish scheduler.
+ * Called on engine shutdown to prevent interval buildup.
+ */
+export function stopSkirmishScheduler(): void {
+  if (skirmishIntervalId !== null) {
+    clearInterval(skirmishIntervalId);
+    skirmishIntervalId = null;
+    console.log("[Skirmish] Scheduler stopped");
+  }
 }
 
 function openSkirmishPhase(arenaId: string, isBlitz: boolean): void {

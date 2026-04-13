@@ -25,5 +25,5 @@ export async function GET(
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json({ data });
+  return Response.json({ data: data ?? [] });
 }

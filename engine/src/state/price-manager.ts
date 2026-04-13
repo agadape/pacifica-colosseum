@@ -10,11 +10,14 @@ export interface PriceUpdate {
 /**
  * Manages real-time mark prices from Pacifica WebSocket.
  * Maintains an in-memory Map<symbol, markPrice> and emits "price" events.
+ * Includes staleness detection — if no update for >10s, marks price as stale.
  */
 export class PriceManager extends EventEmitter {
   private ws: PacificaWS;
   private prices: Map<string, number> = new Map();
+  private priceTimestamps: Map<string, number> = new Map();
   private connected = false;
+  private stalenessThresholdMs = 10_000;
 
   constructor() {
     super();
@@ -45,15 +48,17 @@ export class PriceManager extends EventEmitter {
 
       if (msg.channel !== "prices" || !Array.isArray(msg.data)) return;
 
+      const now = Date.now();
       for (const item of msg.data) {
         const markPrice = parseFloat(item.mark);
         if (isNaN(markPrice)) continue;
 
         this.prices.set(item.symbol, markPrice);
+        this.priceTimestamps.set(item.symbol, now);
         this.emit("price", {
           symbol: item.symbol,
           markPrice,
-          timestamp: item.timestamp,
+          timestamp: now,
         } satisfies PriceUpdate);
       }
     });
@@ -62,10 +67,23 @@ export class PriceManager extends EventEmitter {
   stop(): void {
     this.ws.disconnect();
     this.prices.clear();
+    this.priceTimestamps.clear();
   }
 
   getPrice(symbol: string): number | undefined {
     return this.prices.get(symbol);
+  }
+
+  /**
+   * Returns price only if fresh (updated within stalenessThresholdMs).
+   * Returns undefined if stale — caller should use last known price cautiously.
+   */
+  getFreshPrice(symbol: string): { price: number; stale: boolean } | undefined {
+    const price = this.prices.get(symbol);
+    if (price === undefined) return undefined;
+    const ts = this.priceTimestamps.get(symbol);
+    const stale = ts === undefined || (Date.now() - ts) > this.stalenessThresholdMs;
+    return { price, stale };
   }
 
   getAllPrices(): Map<string, number> {
@@ -74,6 +92,17 @@ export class PriceManager extends EventEmitter {
 
   get isConnected(): boolean {
     return this.connected;
+  }
+
+  /**
+   * Check if any price is stale (used for alerts/monitoring).
+   */
+  hasStalePrices(): boolean {
+    const now = Date.now();
+    for (const [, ts] of this.priceTimestamps) {
+      if ((now - ts) > this.stalenessThresholdMs) return true;
+    }
+    return false;
   }
 }
 

@@ -39,9 +39,9 @@ export async function calculateLoot(
     if (trader.status !== "active") continue;
 
     const equity = calcEquity(trader, allPrices);
-    const pnl = equity - trader.equityBaseline;
+    const pnlThisRound = equity - trader.equityBaseline;
     const pnlPercent = trader.equityBaseline > 0
-      ? (pnl / trader.equityBaseline) * 100
+      ? (pnlThisRound / trader.equityBaseline) * 100
       : 0;
 
     survivors.push({

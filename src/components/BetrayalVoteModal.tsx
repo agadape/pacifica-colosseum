@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface AllianceState {
   data: {
@@ -27,10 +28,11 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
   const queryClient = useQueryClient();
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const { getAccessToken } = usePrivy();
 
   const { data } = useQuery<AllianceState>({
     queryKey: ["alliances", arenaId],
-    refetchInterval: 3_000,
+    refetchInterval: 10_000,
   });
 
   const alliance = data?.data?.myAlliance;
@@ -52,9 +54,10 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
 
   const voteMutation = useMutation({
     mutationFn: async (vote: "stay" | "betray") => {
+      const token = await getAccessToken();
       const res = await fetch(`/api/arenas/${arenaId}/alliances/vote`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ allianceId: alliance?.id, vote }),
       });
       const json = await res.json() as { error?: string };

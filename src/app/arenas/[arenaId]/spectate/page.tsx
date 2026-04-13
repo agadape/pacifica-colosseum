@@ -128,11 +128,16 @@ export default function SpectatePage({
   const activeTraders = leaderboard.filter((p: Record<string, unknown>) => p.status === "active");
   const bottom50 = activeTraders.slice(Math.floor(activeTraders.length / 2));
 
-  // Voting: open for the entire round (blitz rounds are 90s — no point limiting to last 5min)
+  // Voting: open in the last 5 minutes of the round (or for entire round in blitz if < 5min)
   const roundEndsAt = currentRound?.ends_at ? new Date(currentRound.ends_at as string) : null;
   const now = Date.now();
   const isZombieArena = !isCompleted && roundEndsAt !== null && roundEndsAt.getTime() < now;
-  const votingOpen = !isCompleted && !isZombieArena && roundEndsAt !== null && roundEndsAt.getTime() > now;
+  const FIVE_MIN = 5 * 60 * 1000;
+  const roundDurationMs = currentRound?.ends_at && currentRound?.starts_at
+    ? new Date(currentRound.ends_at as string).getTime() - new Date(currentRound.starts_at as string).getTime()
+    : FIVE_MIN + 1;
+  const votingWindowStart = roundEndsAt !== null ? roundEndsAt.getTime() - Math.min(FIVE_MIN, roundDurationMs * 0.2) : null;
+  const votingOpen = !isCompleted && !isZombieArena && votingWindowStart !== null && now >= votingWindowStart;
 
   const eliminationPercent = getEliminationPercent(currentRoundNumber);
 

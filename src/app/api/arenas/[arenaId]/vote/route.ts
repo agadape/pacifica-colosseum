@@ -97,26 +97,31 @@ export async function POST(
     return Response.json({ error: "Can only vote for the current round" }, { status: 400 });
   }
 
-  // Check not already voted this round
-  const { data: existingVote } = await supabase
-    .from("spectator_votes")
+  // Validate voted_for_id is an active participant in this arena (prevents voting for strangers)
+  const { data: targetParticipant } = await supabase
+    .from("arena_participants")
     .select("id")
     .eq("arena_id", arenaId)
-    .eq("round_number", round_number)
-    .eq("voter_id", user.id)
+    .eq("id", voted_for_id)
+    .eq("status", "active")
     .single();
 
-  if (existingVote) {
-    return Response.json({ error: "Already voted this round" }, { status: 409 });
+  if (!targetParticipant) {
+    return Response.json({ error: "Can only vote for active participants in this arena" }, { status: 400 });
   }
 
-  // Insert vote
-  const { error } = await supabase.from("spectator_votes").insert({
-    arena_id: arenaId,
-    round_number,
-    voter_id: user.id,
-    voted_for_id,
-  });
+  // Atomic upsert — race condition safe (DB handles uniqueness constraint)
+  const { error } = await supabase
+    .from("spectator_votes")
+    .upsert(
+      {
+        arena_id: arenaId,
+        round_number,
+        voter_id: user.id,
+        voted_for_id,
+      },
+      { onConflict: "arena_id,round_number,voter_id" }
+    );
 
   if (error) {
     if (error.code === "23505") {
@@ -125,16 +130,20 @@ export async function POST(
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  // Create event
-  await supabase.from("events").insert({
-    arena_id: arenaId,
-    round_number,
-    event_type: "vote_cast",
-    actor_id: user.id,
-    target_id: voted_for_id,
-    message: "Spectator cast a Second Life vote",
-    data: { voter: user.id, voted_for: voted_for_id },
-  });
+  // Create event (non-critical — don't fail the vote if this errors)
+  try {
+    await supabase.from("events").insert({
+      arena_id: arenaId,
+      round_number,
+      event_type: "vote_cast",
+      actor_id: user.id,
+      target_id: voted_for_id,
+      message: "Spectator cast a Second Life vote",
+      data: { voter: user.id, voted_for: voted_for_id },
+    });
+  } catch {
+    // Event logging failure is non-critical — vote already recorded
+  }
 
   return Response.json({ data: { message: "Vote cast" } }, { status: 201 });
 }

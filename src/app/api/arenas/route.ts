@@ -131,27 +131,25 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 50);
   const offset = (page - 1) * limit;
 
-  // Public list endpoint — anon key is sufficient if RLS allows it;
-  // service role bypasses RLS (preferred when available).
-  const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
-    ? createServerClient()
-    : createPublicClient();
-
-  let query = supabase
-    .from("arenas")
-    .select(ARENA_PUBLIC_COLUMNS, { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+  const supabase = createServerClient();
 
   const ACTIVE_STATUSES = ["round_1", "round_2", "round_3", "sudden_death"];
   const ALL_LIVE_STATUSES = ["registration", "starting", "round_1", "round_2", "round_3", "sudden_death"];
+
+  let query = supabase
+    .from("arenas")
+    .select(ARENA_PUBLIC_COLUMNS)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
   if (status === "active") query = query.in("status", ACTIVE_STATUSES);
   else if (status === "completed") query = query.eq("status", "completed");
   else if (status) query = query.eq("status", status);
-  else query = query.in("status", ALL_LIVE_STATUSES); // default: hide completed
+  else query = query.in("status", ALL_LIVE_STATUSES);
+
   if (preset) query = query.eq("preset", preset);
 
-  const { data, error, count } = await query;
+  const { data, error } = await query;
 
   if (error) {
     console.error("[GET /api/arenas] Supabase error:", error.message, error);
@@ -159,7 +157,7 @@ export async function GET(request: NextRequest) {
   }
 
   return Response.json({
-    data,
-    pagination: { page, limit, total: count ?? 0 },
+    data: data ?? [],
+    pagination: { page, limit, total: data?.length ?? 0 },
   });
 }

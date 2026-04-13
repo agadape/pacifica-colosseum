@@ -1,6 +1,6 @@
 import { MockPriceGenerator } from "./price-generator";
 import { getSupabase } from "../db";
-import { mockCreateMarketOrder } from "./mock-pacifica";
+import { mockCreateMarketOrder, getAccount } from "./mock-pacifica";
 import { resolveSkirmish } from "../services/territory-manager";
 import { activateAbility } from "../services/ability-manager";
 
@@ -73,6 +73,40 @@ export function startBotTraders(
 }
 
 /**
+ * Check all open positions for stop-loss trigger.
+ * Close position if unrealized PnL is below -5% (configurable per bot personality).
+ * Returns number of positions closed.
+ */
+async function checkAndCloseStopLosses(
+  bot: ActiveBot,
+  priceGenerator: MockPriceGenerator
+): Promise<number> {
+  const account = getAccount(bot.subaccountAddress);
+  if (!account || account.positions.size === 0) return 0;
+
+  const stopLossThreshold = -0.05; // -5% unrealized PnL triggers full exit
+  let closed = 0;
+
+  for (const [symbol, pos] of account.positions) {
+    const currentPrice = priceGenerator.getPrice(symbol);
+    if (!currentPrice) continue;
+
+    const direction = pos.side === "bid" ? 1 : -1;
+    const unrealizedPnlPct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100 * direction;
+
+    if (unrealizedPnlPct < stopLossThreshold * 100) {
+      // Close FULL position at current price (with slippage)
+      const closeSide: "bid" | "ask" = pos.side === "bid" ? "ask" : "bid";
+      mockCreateMarketOrder(bot.subaccountAddress, symbol, closeSide, pos.size, currentPrice);
+      account.positions.delete(symbol);
+      closed++;
+    }
+  }
+
+  return closed;
+}
+
+/**
  * Execute a single bot trade.
  */
 async function executeBotTrade(
@@ -84,6 +118,13 @@ async function executeBotTrade(
   const symbol = allowedPairs[Math.floor(Math.random() * allowedPairs.length)];
   const currentPrice = priceGenerator.getPrice(symbol);
   if (!currentPrice) return;
+
+  // Stop-loss check: close losing positions before opening new ones
+  await checkAndCloseStopLosses(bot, priceGenerator);
+
+  // Check position limit — don't open new position if at max
+  const account = getAccount(bot.subaccountAddress);
+  if (account && account.positions.size >= bot.personality.maxPositions) return;
 
   const side: "bid" | "ask" = Math.random() < bot.personality.longBias ? "bid" : "ask";
   const size = bot.personality.positionSize * (0.5 + Math.random());
@@ -284,8 +325,8 @@ export async function runBotAbilityChecks(arenaId: string): Promise<void> {
 
   const maxDrawdown = round?.max_drawdown_percent ?? 20;
 
-  // Sort by PnL to identify leader
-  const sorted = [...participants].sort((a, b) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0));
+  // Sort by THIS round's max_drawdown (now reset per-round) to identify leader
+  const sorted = [...participants].sort((a, b) => (a.max_drawdown_hit ?? 0) - (b.max_drawdown_hit ?? 0));
   const leader = sorted[0];
 
   for (const bot of bots) {

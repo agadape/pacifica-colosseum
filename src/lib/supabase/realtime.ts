@@ -3,8 +3,18 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export type RealtimeCallback = (payload: Record<string, unknown>) => void;
 
+let sharedClient: ReturnType<typeof createClient> | null = null;
+
+function getClient(): ReturnType<typeof createClient> {
+  if (!sharedClient) {
+    sharedClient = createClient();
+  }
+  return sharedClient;
+}
+
 /**
  * Subscribe to changes on a Supabase table filtered by arena_id.
+ * Reuses a single Supabase client instance across all subscriptions.
  */
 export function subscribeToTable(
   channelName: string,
@@ -12,7 +22,7 @@ export function subscribeToTable(
   arenaId: string,
   callback: RealtimeCallback
 ): RealtimeChannel {
-  const supabase = createClient();
+  const supabase = getClient();
 
   const channel = supabase
     .channel(channelName)
@@ -37,6 +47,6 @@ export function subscribeToTable(
  * Unsubscribe from a Supabase Realtime channel.
  */
 export function unsubscribeChannel(channel: RealtimeChannel): void {
-  const supabase = createClient();
+  const supabase = getClient();
   supabase.removeChannel(channel);
 }

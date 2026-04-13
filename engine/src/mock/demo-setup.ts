@@ -241,6 +241,7 @@ function scheduleDemoRounds(
         .from("arenas")
         .update({ status: "completed", ended_at: new Date().toISOString() })
         .eq("id", arenaId);
+      await awardDemoBadges(arenaId);
       return;
     }
 
@@ -309,6 +310,9 @@ function scheduleDemoRounds(
     });
 
     console.log(`[Demo] Arena complete! Winner: ${winner.bot.name} ($${finalEquity.toFixed(2)})`);
+
+    // Award badges
+    await awardDemoBadges(arenaId);
 
     // Auto-restart: start a fresh demo arena after 60s cooldown
     console.log("[Demo] New arena starting in 60s...");
@@ -617,6 +621,7 @@ function scheduleTraderDemoRounds_DEAD(
         .update({ status: "completed", ended_at: new Date().toISOString() })
         .eq("id", arenaId);
       console.log("[Trader Demo] No survivors — arena completed");
+      await awardDemoBadges(arenaId);
       setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
       return;
     }
@@ -798,6 +803,7 @@ function scheduleTraderRoundsFrom(
 
     if (!survivors || survivors.length === 0) {
       await supabase.from("arenas").update({ status: "completed", ended_at: new Date().toISOString() }).eq("id", arenaId);
+      await awardDemoBadges(arenaId);
       runningArenas.delete(arenaId);
       setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
       return;
@@ -848,6 +854,10 @@ function scheduleTraderRoundsFrom(
     });
 
     console.log(`[Trader Demo] Arena complete! Winner: ${winner.name} (PnL: ${winner.pnlPct.toFixed(1)}%)`);
+
+    // Award badges
+    await awardDemoBadges(arenaId);
+
     runningArenas.delete(arenaId);
     setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
   }, cumulativeMs);
@@ -870,6 +880,7 @@ async function startTraderArenaFromRegistration(arenaId: string): Promise<void> 
   if (!registered || registered.length === 0) {
     console.log("[Trader Demo] No registered participants — completing and restarting");
     await supabase.from("arenas").update({ status: "completed", ended_at: new Date().toISOString() }).eq("id", arenaId);
+    await awardDemoBadges(arenaId);
     setTimeout(() => setupTraderDemoArena().catch(console.error), 10_000);
     return;
   }
@@ -1252,6 +1263,7 @@ async function _setupTraderDemoArena(): Promise<void> {
         .update({ status: "completed", ended_at: new Date().toISOString() })
         .eq("id", arena.id);
       console.log("[Trader Demo] No participants registered — skipping, restarting in 60s");
+      await awardDemoBadges(arena.id);
       setTimeout(() => setupTraderDemoArena().catch(console.error), 60_000);
       return;
     }
@@ -1369,6 +1381,7 @@ async function _setupDemoArena(): Promise<void> {
       .from("arenas")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", existing.id);
+    await awardDemoBadges(existing.id);
   }
 
   // Create a "system" user for demo (or find existing)
@@ -1594,4 +1607,207 @@ async function _setupDemoArena(): Promise<void> {
     runningArenas.add(arena.id);
     console.log("[Demo] Arena running! Bots trading, rounds scheduled.");
   }, 30_000);
+}
+
+// ── Badge Awarding for Demo Arenas ────────────────────────────────────────────
+
+/**
+ * Award all badges for a completed demo arena.
+ */
+async function awardDemoBadges(arenaId: string): Promise<void> {
+  const supabase = getSupabase();
+
+  // Get final rankings from arena_participants
+  const { data: allParticipants } = await supabase
+    .from("arena_participants")
+    .select("id, user_id, status, equity_final, total_pnl_percent, max_drawdown_hit, has_second_life, second_life_used")
+    .eq("arena_id", arenaId);
+
+  if (!allParticipants || allParticipants.length === 0) return;
+
+  const badgeInserts: Array<{ user_id: string; badge_id: string; arena_id: string }> = [];
+  const userStatUpdates: Map<string, { total_arenas_entered?: number; total_arenas_won?: number; current_win_streak?: number }> = new Map();
+
+  // Sort by equity_final descending to get rankings
+  const ranked = [...allParticipants].sort((a, b) => (b.equity_final ?? 0) - (a.equity_final ?? 0));
+  const survivors = ranked.filter(p => p.status === "survived" || p.status === "winner");
+  const winner = ranked.find(p => p.status === "winner");
+
+  // === POSITION-BASED BADGES ===
+  if (survivors.length >= 1) {
+    badgeInserts.push({ user_id: survivors[0].user_id, badge_id: "champion", arena_id: arenaId });
+    updateDemoUserStat(survivors[0].user_id, { total_arenas_won: 1, current_win_streak: 1 }, userStatUpdates);
+  }
+  if (survivors.length >= 2) {
+    badgeInserts.push({ user_id: survivors[1].user_id, badge_id: "gladiator", arena_id: arenaId });
+  }
+  if (survivors.length >= 3) {
+    badgeInserts.push({ user_id: survivors[2].user_id, badge_id: "warrior", arena_id: arenaId });
+  }
+
+  // All survivors get survivor badge
+  for (const s of survivors) {
+    badgeInserts.push({ user_id: s.user_id, badge_id: "survivor", arena_id: arenaId });
+  }
+
+  // === "ALMOST" BADGE — 4th place ===
+  if (ranked.length >= 4) {
+    const fourthPlace = ranked.find(p => p.status === "eliminated");
+    if (fourthPlace) {
+      badgeInserts.push({ user_id: fourthPlace.user_id, badge_id: "almost", arena_id: arenaId });
+    }
+  }
+
+  // === FIRST BLOOD — first elimination ===
+  const { data: firstElimination } = await supabase
+    .from("eliminations")
+    .select("participant_id")
+    .eq("arena_id", arenaId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single();
+
+  if (firstElimination) {
+    const { data: firstBloodParticipant } = await supabase
+      .from("arena_participants")
+      .select("user_id")
+      .eq("id", firstElimination.participant_id)
+      .single();
+    if (firstBloodParticipant) {
+      badgeInserts.push({ user_id: firstBloodParticipant.user_id, badge_id: "first_blood", arena_id: arenaId });
+    }
+  }
+
+  // === ZERO DD BADGE ===
+  const { data: zeroDdParticipants } = await supabase
+    .from("arena_participants")
+    .select("user_id")
+    .eq("arena_id", arenaId)
+    .eq("max_drawdown_hit", 0)
+    .in("status", ["survived", "winner"]);
+
+  if (zeroDdParticipants && zeroDdParticipants.length > 0) {
+    for (const p of zeroDdParticipants) {
+      badgeInserts.push({ user_id: p.user_id, badge_id: "zero_dd", arena_id: arenaId });
+    }
+  }
+
+  // === IRON WILL — used Second Life and survived ===
+  const { data: ironWillRecipients } = await supabase
+    .from("arena_participants")
+    .select("user_id")
+    .eq("arena_id", arenaId)
+    .eq("has_second_life", true)
+    .eq("second_life_used", true)
+    .in("status", ["active", "survived", "winner"]);
+
+  if (ironWillRecipients && ironWillRecipients.length > 0) {
+    for (const r of ironWillRecipients) {
+      badgeInserts.push({ user_id: r.user_id, badge_id: "iron_will", arena_id: arenaId });
+    }
+  }
+
+  // === STRATEGIST — highest PnL/DD ratio ===
+  const strategistCandidates = allParticipants.filter(p =>
+    (p.status === "survived" || p.status === "winner") && (p.total_pnl_percent ?? 0) !== 0
+  );
+  if (strategistCandidates.length > 0) {
+    let bestScore = -Infinity;
+    let bestStrategist: string | null = null;
+    for (const c of strategistCandidates) {
+      const score = Math.abs(c.total_pnl_percent ?? 0) / ((c.max_drawdown_hit ?? 0) + 1);
+      if (score > bestScore) {
+        bestScore = score;
+        bestStrategist = c.user_id;
+      }
+    }
+    if (bestStrategist) {
+      badgeInserts.push({ user_id: bestStrategist, badge_id: "strategist", arena_id: arenaId });
+    }
+  }
+
+  // === FAN FAVORITE — most Second Life votes (from events) ===
+  const { data: secondLifeVotes } = await supabase
+    .from("events")
+    .select("actor_id")
+    .eq("arena_id", arenaId)
+    .eq("event_type", "second_life_vote");
+
+  if (secondLifeVotes && secondLifeVotes.length > 0) {
+    const voteCounts: Map<string, number> = new Map();
+    for (const vote of secondLifeVotes) {
+      if (vote.actor_id) {
+        voteCounts.set(vote.actor_id, (voteCounts.get(vote.actor_id) ?? 0) + 1);
+      }
+    }
+    let maxVotes = 0;
+    let fanFavoriteId: string | null = null;
+    for (const [userId, votes] of voteCounts) {
+      if (votes > maxVotes) {
+        maxVotes = votes;
+        fanFavoriteId = userId;
+      }
+    }
+    if (fanFavoriteId && maxVotes > 0) {
+      badgeInserts.push({ user_id: fanFavoriteId, badge_id: "fan_favorite", arena_id: arenaId });
+    }
+  }
+
+  // === INSERT ALL BADGES ===
+  if (badgeInserts.length > 0) {
+    const { error } = await supabase.from("user_badges").insert(badgeInserts);
+    if (error) {
+      console.error("[Demo Badge] Failed to insert badges:", error.message);
+    } else {
+      console.log(`[Demo Badge] Awarded ${badgeInserts.length} badges for arena ${arenaId}`);
+    }
+  }
+
+  // === UPDATE USER STATS ===
+  for (const [userId, stats] of userStatUpdates) {
+    const updateData: Record<string, number | string> = {};
+    if (stats.total_arenas_entered) updateData.total_arenas_entered = stats.total_arenas_entered;
+    if (stats.total_arenas_won) updateData.total_arenas_won = stats.total_arenas_won;
+    if (stats.current_win_streak) updateData.current_win_streak = stats.current_win_streak;
+    updateData.updated_at = new Date().toISOString();
+
+    if (Object.keys(updateData).length > 1) {
+      await supabase.from("users").update(updateData).eq("id", userId);
+    }
+  }
+
+  // === VETERAN BADGES ===
+  const { data: veteranUsers } = await supabase
+    .from("users")
+    .select("id, total_arenas_entered")
+    .gte("total_arenas_entered", 10);
+
+  if (veteranUsers) {
+    for (const u of veteranUsers) {
+      if (u.total_arenas_entered >= 50) {
+        await supabase.from("user_badges").upsert(
+          { user_id: u.id, badge_id: "veteran_50", arena_id: arenaId },
+          { onConflict: "user_id,badge_id,arena_id" }
+        );
+      } else if (u.total_arenas_entered >= 10) {
+        await supabase.from("user_badges").upsert(
+          { user_id: u.id, badge_id: "veteran_10", arena_id: arenaId },
+          { onConflict: "user_id,badge_id,arena_id" }
+        );
+      }
+    }
+  }
+}
+
+function updateDemoUserStat(
+  userId: string,
+  updates: { total_arenas_entered?: number; total_arenas_won?: number; current_win_streak?: number },
+  userStatUpdates: Map<string, { total_arenas_entered?: number; total_arenas_won?: number; current_win_streak?: number }>
+) {
+  const existing = userStatUpdates.get(userId) || {};
+  userStatUpdates.set(userId, {
+    total_arenas_entered: (existing.total_arenas_entered || 0) + (updates.total_arenas_entered || 0),
+    total_arenas_won: (existing.total_arenas_won || 0) + (updates.total_arenas_won || 0),
+    current_win_streak: updates.current_win_streak ?? existing.current_win_streak,
+  });
 }

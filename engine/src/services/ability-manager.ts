@@ -53,6 +53,8 @@ export async function awardAbilitiesForRound(
   }
 
   // Get active participants with metrics
+  // max_drawdown_hit is now RESET per-round in risk-monitor.ts updateArenaRound()
+  // so this correctly reflects THIS round's drawdown (not career)
   const { data: participants } = await supabase
     .from("arena_participants")
     .select("id, total_pnl_percent, max_drawdown_hit, trades_this_round")
@@ -67,6 +69,7 @@ export async function awardAbilitiesForRound(
   const highestPnl = [...sorted].sort((a, b) => (b.total_pnl_percent ?? 0) - (a.total_pnl_percent ?? 0))[0];
 
   // Achievement 2: Lowest drawdown → Fortress (defensive play rewarded)
+  // max_drawdown_hit is now reset per-round, so this is THIS round's lowest drawdown
   const lowestDrawdown = [...sorted].sort((a, b) => (a.max_drawdown_hit ?? 0) - (b.max_drawdown_hit ?? 0))[0];
 
   // Achievement 3: Most trades → Shield (most active gets protection)

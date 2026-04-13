@@ -15,7 +15,7 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const { prices } = useWSStore();
 
-  // Create chart
+  // Create chart — destroy and recreate when symbol changes
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -72,7 +72,7 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, []);
+  }, [symbol]);
 
   // Update data from WS prices
   useEffect(() => {

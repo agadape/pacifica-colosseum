@@ -29,8 +29,9 @@ export function useArenas(filters?: { status?: string; preset?: string; page?: n
   return useQuery({
     queryKey: ["arenas", filters],
     queryFn: () => fetchWithAuth(`/api/arenas?${params.toString()}`),
-    staleTime: 15000,
-    refetchInterval: 30000,
+    staleTime: 30000,
+    gcTime: 60000,
+    refetchInterval: 60000,
   });
 }
 
@@ -40,7 +41,8 @@ export function useArena(arenaId: string) {
     queryFn: () => fetchWithAuth(`/api/arenas/${arenaId}`),
     enabled: !!arenaId,
     staleTime: 10000,
-    refetchInterval: 60000, // realtime handles live updates; this is a safety fallback only
+    gcTime: 30000,
+    refetchInterval: 120000,
   });
 }
 

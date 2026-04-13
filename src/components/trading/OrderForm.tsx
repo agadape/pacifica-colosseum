@@ -37,6 +37,11 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
       return;
     }
 
+    if (leverage > maxLeverage) {
+      setError(`Leverage capped at ${maxLeverage}x`);
+      return;
+    }
+
     const result = await submitOrder.mutateAsync({
       type: orderType,
       symbol,

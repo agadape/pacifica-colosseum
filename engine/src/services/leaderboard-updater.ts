@@ -75,9 +75,12 @@ async function updateLeaderboard(arenaId: string): Promise<void> {
 
   if (updates.length === 0) return;
 
-  // Fire all updates concurrently — parallel, not sequential
-  await Promise.all(
-    updates.map(u =>
+  const chunkSize = 5;
+  const errors: string[] = [];
+
+  for (let i = 0; i < updates.length; i += chunkSize) {
+    const chunk = updates.slice(i, i + chunkSize);
+    const results = await Promise.allSettled(chunk.map(u =>
       supabase
         .from("arena_participants")
         .update({
@@ -86,8 +89,15 @@ async function updateLeaderboard(arenaId: string): Promise<void> {
           max_drawdown_hit: u.max_drawdown_hit,
         })
         .eq("id", u.id)
-    )
-  );
+    ));
+    for (const r of results) {
+      if (r.status === "rejected") errors.push(r.reason);
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error(`[Leaderboard] ${errors.length} updates failed for arena ${arenaId}`);
+  }
 }
 
 /**

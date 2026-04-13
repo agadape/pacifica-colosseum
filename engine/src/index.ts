@@ -10,7 +10,7 @@ import { setupDemoArena, setupTraderDemoArena } from "./mock/demo-setup";
 import { executeOrder, cancelOrder, getPositions, getAccountInfo } from "./services/order-relay";
 import { getSupabase } from "./db";
 import type { OrderInput } from "./services/order-validator";
-import { startSkirmishScheduler, declareAttack, getSkirmishPhase } from "./services/skirmish-scheduler";
+import { startSkirmishScheduler, stopSkirmishScheduler, declareAttack, getSkirmishPhase } from "./services/skirmish-scheduler";
 import { getTerritoryBoardState } from "./services/territory-manager";
 import { activateAbility, getParticipantAbilities, getArenaActiveEffects } from "./services/ability-manager";
 import { getActiveHazards } from "./services/hazard-manager";
@@ -318,4 +318,17 @@ server.listen(PORT, async () => {
     // Initialize arena timers from DB (real mode only)
     await initArenaTimers();
   }
+});
+
+// Graceful shutdown — clean up all intervals
+process.on("SIGINT", () => {
+  console.log("[Engine] Shutting down...");
+  stopSkirmishScheduler();
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  console.log("[Engine] Shutting down...");
+  stopSkirmishScheduler();
+  process.exit(0);
 });
