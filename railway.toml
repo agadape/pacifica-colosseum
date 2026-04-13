@@ -1,4 +1,4 @@
-[build]
+# Railway deployment config
 builder = "NIXPACKS"
 buildCommand = "cd engine && npm install && npm run build"
 
