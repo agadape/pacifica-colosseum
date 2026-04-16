@@ -1282,44 +1282,6 @@ function BreachFin() {
 }
 
 
-// ── RIGHT-SIDE LABEL (ranks 1-4) ─────────────────────────────────────────────
-// Rendered inside a dedicated absolute inset-0 overflow-hidden rounded-xl
-// wrapper at z:4 — the card's rounded corners clip it naturally.
-// The image is anchored right:0 top:0 bottom:0 so it fills the full height
-// with zero gap, and objectFit:cover fills the width slot completely.
-const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; w: number; anim: string; glow: string; pos: string }> = {
-  1: { src: "/creatures/LabelNumber1RightSide.png", w: 240, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.20)", pos: "left center"   },
-  2: { src: "/creatures/LabelNumber2RightSide.png", w: 220, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "right center"  },
-  3: { src: "/creatures/LabelNumber3RightSide.png", w: 220, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.20)", pos: "center"        },
-  4: { src: "/creatures/LabelNumber4RightSide.png", w: 230, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "left center"   },
-};
-
-function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
-  const c = RIGHT_LABEL_CFG[rank];
-  return (
-    <div
-      className="absolute right-0 top-0 bottom-0 pointer-events-none select-none"
-      style={{ width: c.w }}
-      aria-hidden
-    >
-      <img
-        src={c.src}
-        alt=""
-        draggable={false}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: c.pos,
-          filter: `drop-shadow(0 3px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${c.glow})`,
-          animation: c.anim,
-        }}
-      />
-    </div>
-  );
-}
-
-
 // ── Wave layer SVG paths ──────────────────────────────────────────────────────
 function WaveLayer({ y, opacity, dur, color }: { y: number; opacity: number; dur: string; color: string }) {
   // Two identical wave segments side by side so the loop is seamless
@@ -1512,17 +1474,6 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
       {rank === 4 && <BreachDolphin />}
       {rank === 5 && <BreachFin />}
 
-      {/* ══ LAYER 2.5: Right-side image — clipped to card boundary (z:4) ══ */}
-      {/* absolute inset-0 overflow-hidden rounded-xl clips the image to the   */}
-      {/* card's rounded corners, anchored right:0 top:0 bottom:0 = no gap    */}
-      {rank <= 4 && (
-        <div
-          className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none hidden md:block"
-          style={{ zIndex: 4 }}
-        >
-          <RightSideLabel rank={rank as 1 | 2 | 3 | 4} />
-        </div>
-      )}
 
       {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
       <div
@@ -1613,7 +1564,6 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
             <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
 
-          {/* Right-side label rendered as absolute overlay (z:4 wrapper above) */}
         </div>
       </div>
     </motion.div>
