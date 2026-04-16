@@ -1449,7 +1449,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           background: `linear-gradient(135deg, ${bgTop}, ${bgBot})`,
           border: `1px solid ${accent}${Math.round(borderOpacity * 255).toString(16).padStart(2, "0")}`,
           boxShadow: `0 0 ${waves * 8}px ${glow}, 0 0 ${waves * 16}px ${glow.replace(/[\d.]+\)$/, "0.2)")}, 0 4px 24px rgba(0,0,0,0.7)`,
-          zIndex: 2,
+          zIndex: 4, // above creature PNG (z:3) so card content is never covered
         }}
         whileHover={{
           scale: 1.008,
