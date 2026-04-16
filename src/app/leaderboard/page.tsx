@@ -1282,23 +1282,24 @@ function BreachFin() {
 }
 
 
-// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child, stretches full row height ──────
-// Container stretches to the full card row height via alignSelf:stretch.
-// Width is set large enough that the image fills and slightly overflows —
-// overflow:hidden clips it to a clean edge, which looks intentional.
+// ── RIGHT-SIDE LABEL (ranks 1-4) ─────────────────────────────────────────────
+// Rendered inside a dedicated absolute inset-0 overflow-hidden rounded-xl
+// wrapper at z:4 — the card's rounded corners clip it naturally.
+// The image is anchored right:0 top:0 bottom:0 so it fills the full height
+// with zero gap, and objectFit:cover fills the width slot completely.
 const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; w: number; anim: string; glow: string; pos: string }> = {
-  1: { src: "/creatures/LabelNumber1RightSide.png", w: 200, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.20)", pos: "left center"   },
-  2: { src: "/creatures/LabelNumber2RightSide.png", w: 185, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "right center"  },
-  3: { src: "/creatures/LabelNumber3RightSide.png", w: 185, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.20)", pos: "center"        },
-  4: { src: "/creatures/LabelNumber4RightSide.png", w: 195, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "left center"   },
+  1: { src: "/creatures/LabelNumber1RightSide.png", w: 240, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.20)", pos: "left center"   },
+  2: { src: "/creatures/LabelNumber2RightSide.png", w: 220, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "right center"  },
+  3: { src: "/creatures/LabelNumber3RightSide.png", w: 220, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.20)", pos: "center"        },
+  4: { src: "/creatures/LabelNumber4RightSide.png", w: 230, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "left center"   },
 };
 
 function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
   const c = RIGHT_LABEL_CFG[rank];
   return (
     <div
-      className="hidden md:block flex-shrink-0 pointer-events-none select-none overflow-hidden"
-      style={{ width: c.w, alignSelf: "stretch" }}
+      className="absolute right-0 top-0 bottom-0 pointer-events-none select-none"
+      style={{ width: c.w }}
       aria-hidden
     >
       <img
@@ -1505,12 +1506,23 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
       </div>
 
       {/* ══ LAYER 2: Left-side PNG creatures — float over card background (z:3) ══ */}
-      {/* Right-side labels are inside the content row as flex children (see below) */}
       {rank === 1 && <BreachWhaleSide />}
       {rank === 2 && <BreachShark />}
       {rank === 3 && <BreachWave />}
       {rank === 4 && <BreachDolphin />}
       {rank === 5 && <BreachFin />}
+
+      {/* ══ LAYER 2.5: Right-side image — clipped to card boundary (z:4) ══ */}
+      {/* absolute inset-0 overflow-hidden rounded-xl clips the image to the   */}
+      {/* card's rounded corners, anchored right:0 top:0 bottom:0 = no gap    */}
+      {rank <= 4 && (
+        <div
+          className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none hidden md:block"
+          style={{ zIndex: 4 }}
+        >
+          <RightSideLabel rank={rank as 1 | 2 | 3 | 4} />
+        </div>
+      )}
 
       {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
       <div
@@ -1601,8 +1613,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
             <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
 
-          {/* Right-side label — flex child, card grid adjusts around it */}
-          {rank <= 4 && <RightSideLabel rank={rank as 1 | 2 | 3 | 4} />}
+          {/* Right-side label rendered as absolute overlay (z:4 wrapper above) */}
         </div>
       </div>
     </motion.div>
