@@ -1282,23 +1282,23 @@ function BreachFin() {
 }
 
 
-// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child of card content row ────────────
-// Lives inside the card grid so the layout naturally adjusts around it.
-// The image vertically overflows the row (taller than card height) but the
-// parent has overflow:visible so it shows above and below.
-const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; slot: number; imgH: number; anim: string; glow: string }> = {
-  1: { src: "/creatures/LabelNumber1RightSide.png", slot: 110, imgH: 220, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.18)" },
-  2: { src: "/creatures/LabelNumber2RightSide.png", slot: 100, imgH: 215, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.16)" },
-  3: { src: "/creatures/LabelNumber3RightSide.png", slot: 110, imgH: 200, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.18)" },
-  4: { src: "/creatures/LabelNumber4RightSide.png", slot: 130, imgH: 165, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.15)" },
+// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child fully contained within row ─────
+// The image is sized to the card row height (no overflow above/below or beyond).
+// Card flex grid naturally reserves the slot.
+const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; maxH: number; anim: string; glow: string }> = {
+  // Per-rank max-height tuned to each row's actual height (rowPy + content).
+  // Rank 1 row ≈ 100px, rank 2 ≈ 92px, rank 3 ≈ 84px, rank 4 ≈ 76px.
+  1: { src: "/creatures/LabelNumber1RightSide.png", maxH: 92, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.18)" },
+  2: { src: "/creatures/LabelNumber2RightSide.png", maxH: 84, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.16)" },
+  3: { src: "/creatures/LabelNumber3RightSide.png", maxH: 78, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.18)" },
+  4: { src: "/creatures/LabelNumber4RightSide.png", maxH: 70, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.15)" },
 };
 
 function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
   const c = RIGHT_LABEL_CFG[rank];
   return (
     <div
-      className="hidden md:block flex-shrink-0 relative pointer-events-none select-none"
-      style={{ width: c.slot, alignSelf: "stretch" }}
+      className="hidden md:flex flex-shrink-0 items-center justify-center pointer-events-none select-none"
       aria-hidden
     >
       <img
@@ -1306,15 +1306,12 @@ function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
         alt=""
         draggable={false}
         style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          height: c.imgH,
+          maxHeight: c.maxH,
+          height: "auto",
           width: "auto",
           maxWidth: "none",
           objectFit: "contain",
-          filter: `drop-shadow(0 8px 20px rgba(0,0,0,0.55)) drop-shadow(0 0 16px ${c.glow})`,
+          filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.45)) drop-shadow(0 0 12px ${c.glow})`,
           animation: c.anim,
         }}
       />
