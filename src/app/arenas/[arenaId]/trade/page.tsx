@@ -9,6 +9,7 @@ import { usePacificaWS } from "@/hooks/use-websocket";
 import { useArenaRealtime } from "@/hooks/use-arena-realtime";
 import RoundIndicator from "@/components/arena/RoundIndicator";
 import Chart from "@/components/trading/Chart";
+import SharkCandleCanvas from "@/components/shared/SharkCandleCanvas";
 import OrderForm from "@/components/trading/OrderForm";
 import PositionList from "@/components/trading/PositionList";
 import OrderList from "@/components/trading/OrderList";
@@ -93,13 +94,34 @@ export default function TradePage({
 
   if (!arena) {
     return (
-      <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-10 h-10 rounded-full border-2 border-[var(--color-neon-cyan)] border-t-transparent"
-          style={{ boxShadow: "0 0 20px rgba(0,240,255,0.4)" }}
+      <main className="relative min-h-screen overflow-hidden">
+        {/* Shark swims across a simulated candlestick chart while the arena loads */}
+        <SharkCandleCanvas className="absolute inset-0 w-full h-full" showStats basePrice={45000} />
+
+        {/* Dark vignette so the loading text is readable */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 50% 50%, transparent 20%, rgba(3,8,16,0.65) 100%)",
+          }}
         />
+
+        {/* Centered loading label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-20">
+          <motion.div
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            className="text-[10px] font-bold tracking-[0.35em] uppercase"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: "var(--color-neon-cyan)",
+              textShadow: "0 0 20px rgba(77,191,255,0.6)",
+            }}
+          >
+            Entering the Arena…
+          </motion.div>
+        </div>
       </main>
     );
   }

@@ -447,3 +447,60 @@ a, button {
 .elemental-bg-pyro { background-color: var(--color-pyro-bg); }
 .elemental-bg-electro { background-color: var(--color-electro-bg); }
 .elemental-bg-hydro { background-color: var(--color-hydro-bg); }
+
+@keyframes wave-drift {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes fish-swim {
+  0%   { transform: translateX(110%); }
+  100% { transform: translateX(-20%); }
+}
+@keyframes bubble-rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0.6; }
+  100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+}
+@keyframes biolum-pulse {
+  0%, 100% { opacity: 0.3; r: 3; }
+  50%       { opacity: 0.9; r: 5; }
+}
+
+/* ── BREACH CREATURE ANIMATIONS ──────────────────────────────────────────── */
+@keyframes whale-breach {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35%      { transform: translateY(-8px) rotate(-1.5deg); }
+  65%      { transform: translateY(-4px) rotate(1deg); }
+}
+@keyframes shark-circle {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-6px, -4px) rotate(-2deg); }
+}
+@keyframes wave-roll {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-4px) scale(1.02); }
+}
+@keyframes dolphin-leap {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes fin-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* ── SharkCandleCanvas swim animations ─────────────────────── */
+@keyframes shark-swim {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%      { transform: translateY(-5px) rotate(1.5deg); }
+}
+@keyframes shark-tail {
+  0%, 100% { transform: rotate(-5deg); }
+  50%      { transform: rotate(15deg); }
+}
+.shark-swim-anim {
+  animation: shark-swim 1.8s ease-in-out infinite;
+}
+.shark-tail-anim {
+  transform-origin: 77px 74px;
+  animation: shark-tail 0.9s ease-in-out infinite alternate;
+}

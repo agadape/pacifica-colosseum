@@ -18,6 +18,12 @@ const Dither = dynamic(
   { ssr: false }
 );
 
+// Load SharkCandleCanvas client-side only (canvas animation)
+const SharkCandleCanvas = dynamic(
+  () => import("@/components/shared/SharkCandleCanvas"),
+  { ssr: false }
+);
+
 // ── Palette tokens (match globals.css new palette) ──────────────────────────
 const SKY   = "#4DBFFF";
 const SKY2  = "#2A9FE8";
@@ -1196,6 +1202,58 @@ export default function HomePage() {
                 />
               </AnimatePresence>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          LIVE DEMO — Shark rides the market
+      ══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ height: "500px", background: "var(--color-bg-primary)" }}>
+        {/* Full-bleed shark canvas */}
+        <SharkCandleCanvas className="absolute inset-0 w-full h-full" showStats basePrice={45000} />
+
+        {/* Top fade from previous section */}
+        <div
+          className="absolute top-0 left-0 right-0 h-24 pointer-events-none z-20"
+          style={{ background: "linear-gradient(to bottom, var(--color-bg-primary), transparent)" }}
+        />
+        {/* Bottom fade into CTA */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-20"
+          style={{ background: "linear-gradient(to top, var(--color-bg-primary), transparent)" }}
+        />
+
+        {/* Section label — bottom-right */}
+        <div className="absolute bottom-8 right-6 z-30 text-right scroll-reveal" data-delay="0">
+          <p
+            className="text-[9px] font-bold tracking-[0.35em] uppercase mb-1"
+            style={{ fontFamily: "var(--font-display)", color: SKY, opacity: 0.75 }}
+          >
+            Live Simulation
+          </p>
+          <p
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}
+          >
+            This is what trading in the arena feels like
+          </p>
+        </div>
+
+        {/* Center badge */}
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <div
+            className="px-5 py-2 rounded-full border text-[10px] font-bold tracking-[0.3em] uppercase"
+            style={{
+              fontFamily: "var(--font-display)",
+              color: SKY,
+              borderColor: `rgba(77,191,255,0.25)`,
+              background: "rgba(3,8,16,0.55)",
+              backdropFilter: "blur(8px)",
+              textShadow: `0 0 14px rgba(77,191,255,0.5)`,
+            }}
+          >
+            The Arena Is Always Live
           </div>
         </div>
       </section>

@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import { createChart, type IChartApi, type ISeriesApi, ColorType, LineSeries } from "lightweight-charts";
 import { useWSStore } from "@/stores/ws-store";
+import dynamic from "next/dynamic";
+
+const SharkCandleCanvas = dynamic(() => import("@/components/shared/SharkCandleCanvas"), { ssr: false });
 
 interface ChartProps {
   symbol: string;
@@ -84,16 +87,26 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
   }, [prices, symbol]);
 
   return (
-    <div className={`bg-surface rounded-2xl border border-border overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-        <div className="flex items-center gap-3">
-          <span className="font-display text-sm font-bold text-text-primary">{symbol}-PERP</span>
-          <span className="font-mono text-sm font-bold text-neon-cyan drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]">
-            {prices.get(symbol)?.markPrice.toFixed(2) ?? "—"}
-          </span>
+    <div className={`relative bg-surface rounded-2xl border border-border overflow-hidden ${className}`}>
+      {/* Shark + simulated candles — subtle atmospheric background */}
+      <SharkCandleCanvas
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        overlayMode
+        opacity={0.13}
+      />
+
+      {/* Chart content sits above the shark layer */}
+      <div className="relative z-10">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <span className="font-display text-sm font-bold text-text-primary">{symbol}-PERP</span>
+            <span className="font-mono text-sm font-bold text-neon-cyan drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]">
+              {prices.get(symbol)?.markPrice.toFixed(2) ?? "—"}
+            </span>
+          </div>
         </div>
+        <div ref={containerRef} className="w-full h-[300px] md:h-[400px]" />
       </div>
-      <div ref={containerRef} className="w-full h-[300px] md:h-[400px]" />
     </div>
   );
 }
