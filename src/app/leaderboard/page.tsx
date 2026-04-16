@@ -1454,12 +1454,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           <WaveLayer key={i} y={45 - i * 8} opacity={0.4 - i * 0.06} dur={waveDurs[i]} color={accent} />
         ))}
         {rank === 1 && <BiolumOrbs count={5} color={accent} />}
-        {fc.delay.map((dur, i) => (
-          <div key={i} className="absolute pointer-events-none"
-            style={{ top: `${20 + (i % 3) * 22}%`, right: 0, animation: `fish-swim ${dur} linear infinite`, animationDelay: `${i * -4}s`, filter: `drop-shadow(0 0 4px ${accent})`, opacity: 0.45 }}>
-            <FishSvg color={accent} size={rank === 1 ? 1.3 : rank === 2 ? 1.1 : 0.9} />
-          </div>
-        ))}
+        {/* fish removed */}
         {/* Depth label */}
         <div className="absolute bottom-1 right-3">
           <span className="text-[8px] font-bold uppercase tracking-[0.2em]"
@@ -1522,41 +1517,46 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           </div>
         </div>
 
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-5 flex-shrink-0">
+          {/* Wins */}
           <div className="text-right">
-            <div className="flex items-center justify-end gap-1">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <div className="flex items-center justify-end gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 10 10" fill="none">
                 <path d="M5 0L6.2 3.5H10L7 5.8L8.2 9.5L5 7L1.8 9.5L3 5.8L0 3.5H3.8Z"
                   fill={GOLD} fillOpacity={user.total_arenas_won > 0 ? 1 : 0.3} />
               </svg>
-              <span className="font-mono text-sm font-bold"
-                style={{ color: user.total_arenas_won > 0 ? GOLD : "var(--color-text-tertiary)", fontFamily: "var(--font-mono)", textShadow: user.total_arenas_won > 0 ? `0 0 8px rgba(232,200,122,0.4)` : "none" }}>
+              <span className="font-mono text-base font-bold"
+                style={{ color: user.total_arenas_won > 0 ? GOLD : "var(--color-text-tertiary)", fontFamily: "var(--font-mono)", textShadow: user.total_arenas_won > 0 ? `0 0 10px rgba(232,200,122,0.5)` : "none" }}>
                 {user.total_arenas_won}
               </span>
             </div>
-            <span className="text-[9px] uppercase tracking-wider" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>Wins</span>
+            <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>Wins</span>
           </div>
 
-          <div className="text-right min-w-[72px]">
-            <div className="font-mono text-sm font-bold"
-              style={{ color: pnlPos ? "#4ECBA3" : "#E85353", fontFamily: "var(--font-mono)", textShadow: pnlPos ? `0 0 8px rgba(78,203,163,0.4)` : `0 0 8px rgba(232,83,83,0.4)` }}>
+          {/* Best PnL */}
+          <div className="text-right min-w-[80px]">
+            <div className="font-mono text-base font-bold"
+              style={{ color: pnlPos ? "#4ECBA3" : "#E85353", fontFamily: "var(--font-mono)", textShadow: pnlPos ? `0 0 10px rgba(78,203,163,0.5)` : `0 0 10px rgba(232,83,83,0.5)` }}>
               {pnlPos ? "+" : ""}{user.best_pnl_percent.toFixed(1)}%
             </div>
-            <span className="text-[9px] uppercase tracking-wider" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>Best PnL</span>
+            <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>Best PnL</span>
           </div>
 
-          <div className="text-right min-w-[48px] hidden sm:block">
-            <div className="font-mono text-sm font-semibold" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-mono)" }}>
+          {/* Rate */}
+          <div className="text-right min-w-[52px] hidden sm:block">
+            <div className="font-mono text-base font-bold" style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-mono)" }}>
               {winRate(user.total_arenas_won, user.total_arenas_entered)}
             </div>
-            <span className="text-[9px] uppercase tracking-wider" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>Rate</span>
+            <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>Rate</span>
           </div>
 
-          <div className="text-right min-w-[40px] hidden md:block">
-            <div style={{ color: user.current_win_streak > 0 ? CORAL : "var(--color-text-tertiary)", fontFamily: "var(--font-mono)", fontSize: "14px", fontWeight: "bold" }}>
+          {/* Streak */}
+          <div className="text-right min-w-[44px] hidden md:block">
+            <div className="font-mono text-base font-bold"
+              style={{ color: user.current_win_streak > 0 ? CORAL : "var(--color-text-tertiary)", fontFamily: "var(--font-mono)", textShadow: user.current_win_streak > 0 ? `0 0 10px rgba(255,107,74,0.5)` : "none" }}>
               {user.current_win_streak > 0 ? `⚡${user.current_win_streak}` : "—"}
             </div>
-            <span className="text-[9px] uppercase tracking-wider" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>Streak</span>
+            <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>Streak</span>
           </div>
 
           <svg className="w-4 h-4 flex-shrink-0" style={{ opacity: 0.4, color: accent }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
