@@ -79,7 +79,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Challenger",
     rankName: "Silver Warrior",
     icon: (
-      <Image src="/badges/Badge1.png" alt="Silver Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge1.png" alt="Silver Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
   gold: {
@@ -94,7 +94,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Warrior",
     rankName: "Gold Champion",
     icon: (
-      <Image src="/badges/Badge2.png" alt="Gold Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge2.png" alt="Gold Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
   epic: {
@@ -109,7 +109,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Elite",
     rankName: "Epic Master",
     icon: (
-      <Image src="/badges/Badge3.png" alt="Epic Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge3.png" alt="Epic Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
   legend: {
@@ -124,7 +124,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Master",
     rankName: "Legendary Champion",
     icon: (
-      <Image src="/badges/Badge4.png" alt="Legend Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge4.png" alt="Legend Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
   mythic: {
@@ -139,7 +139,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Supreme",
     rankName: "Mythic Overlord",
     icon: (
-      <Image src="/badges/Badge5.png" alt="Mythic Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge5.png" alt="Mythic Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
   champion: {
@@ -154,7 +154,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Colosseum Legend",
     rankName: "Supreme Champion",
     icon: (
-      <Image src="/badges/Badge6.png" alt="Champion Badge" width={100} height={100} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge6.png" alt="Champion Badge" width={300} height={300} className="w-full h-full object-contain" />
     ),
   },
 };
@@ -335,12 +335,9 @@ function RankBadge({ tier, wins }: { tier: TierKey; wins: number }) {
                     </svg>
                   </motion.div>
 
-                  <motion.div
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-                  >
+                  <div className="w-full h-full">
                     {config.icon}
-                  </motion.div>
+                  </div>
                 </div>
               </div>
 
@@ -512,7 +509,7 @@ function TierPathItem({ tier, isActive, isCompleted, index }: { tier: TierKey; i
           transform: isActive ? "scale(1.15)" : "scale(1)",
         }}
       >
-        <div className={`${isActive ? "w-10 h-10" : "w-8 h-8"} transition-all duration-300`}>
+        <div className={`${isActive ? "w-28 h-28" : "w-24 h-24"} transition-all duration-300`}>
           {config.icon}
         </div>
       </motion.div>
@@ -748,7 +745,7 @@ export default function RankingPage() {
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 6, repeat: Infinity }}
               >
-                <div className="w-9 h-9">{config.icon}</div>
+                <div className="w-28 h-28">{config.icon}</div>
               </motion.div>
 
               <div className="flex-1">
