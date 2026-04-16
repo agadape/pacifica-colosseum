@@ -1282,6 +1282,98 @@ function BreachFin() {
 }
 
 
+// ── RIGHT-SIDE BORDER CREATURES (ranks 1-4 only) ─────────────────────────────
+// Same z:3 layer as the left creatures — visible over card bg, under card content
+
+// Rank 1 right — Boat with vertical waves
+function BreachWhaleSideRight() {
+  return (
+    <div
+      className="absolute pointer-events-none select-none hidden md:block"
+      style={{
+        right: "-100px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "200px",
+        height: "230px",
+        zIndex: 3,
+        animation: "whale-breach 7s ease-in-out infinite",
+        filter: "drop-shadow(0 8px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 18px rgba(77,191,255,0.18))",
+      }}
+    >
+      <img src="/creatures/LabelNumber1RightSide.png" alt="" draggable={false}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+    </div>
+  );
+}
+
+// Rank 2 right — Boat with sharks underneath
+function BreachSharkRight() {
+  return (
+    <div
+      className="absolute pointer-events-none select-none hidden md:block"
+      style={{
+        right: "-80px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "165px",
+        height: "215px",
+        zIndex: 3,
+        animation: "shark-circle 9s ease-in-out infinite",
+        filter: "drop-shadow(0 8px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 16px rgba(77,191,255,0.16))",
+      }}
+    >
+      <img src="/creatures/LabelNumber2RightSide.png" alt="" draggable={false}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+    </div>
+  );
+}
+
+// Rank 3 right — Orange koi fish in waves
+function BreachWaveRight() {
+  return (
+    <div
+      className="absolute pointer-events-none select-none hidden md:block"
+      style={{
+        right: "-90px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "190px",
+        height: "190px",
+        zIndex: 3,
+        animation: "wave-roll 6s ease-in-out infinite",
+        filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(255,107,74,0.18))",
+      }}
+    >
+      <img src="/creatures/LabelNumber3RightSide.png" alt="" draggable={false}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+    </div>
+  );
+}
+
+// Rank 4 right — Red boat sailing on waves
+function BreachDolphinRight() {
+  return (
+    <div
+      className="absolute pointer-events-none select-none hidden md:block"
+      style={{
+        right: "-105px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "215px",
+        height: "155px",
+        zIndex: 3,
+        animation: "dolphin-leap 6s ease-in-out infinite",
+        filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(77,191,255,0.15))",
+      }}
+    >
+      <img src="/creatures/LabelNumber4RightSide.png" alt="" draggable={false}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+    </div>
+  );
+}
+
+
 // ── Wave layer SVG paths ──────────────────────────────────────────────────────
 function WaveLayer({ y, opacity, dur, color }: { y: number; opacity: number; dur: string; color: string }) {
   // Two identical wave segments side by side so the loop is seamless
@@ -1467,12 +1559,18 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)`, opacity: borderOpacity }} />
       </div>
 
-      {/* ══ LAYER 2: PNG creature — floats over card background (z:3) ══ */}
+      {/* ══ LAYER 2: PNG creatures — float over card background (z:3) ══ */}
+      {/* Left creature (all ranks) */}
       {rank === 1 && <BreachWhaleSide />}
       {rank === 2 && <BreachShark />}
       {rank === 3 && <BreachWave />}
       {rank === 4 && <BreachDolphin />}
       {rank === 5 && <BreachFin />}
+      {/* Right border creature (ranks 1-4 only) — same z:3 layer */}
+      {rank === 1 && <BreachWhaleSideRight />}
+      {rank === 2 && <BreachSharkRight />}
+      {rank === 3 && <BreachWaveRight />}
+      {rank === 4 && <BreachDolphinRight />}
 
       {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
       <div
