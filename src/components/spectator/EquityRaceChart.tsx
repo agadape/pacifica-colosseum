@@ -4,7 +4,7 @@ import { useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useEquitySnapshots, type EquitySnapshot } from "@/hooks/use-leaderboard";
 
-const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EC4899", "#06B6D4", "#8B5CF6"];
+const COLORS = ["#00F0FF", "#FF006E", "#FFD700", "#8888AA", "#00FF88", "#FF6B35"];
 
 const VW = 1000;
 const VH = 260;

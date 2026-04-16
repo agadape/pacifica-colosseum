@@ -36,13 +36,13 @@ export default function EliminationBanner({
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
           className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg"
         >
-          <div className="bg-danger/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-2xl border border-danger/50">
+          <div className="bg-danger/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-2xl border border-danger/50 shadow-danger-glow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/70 text-xs uppercase tracking-wider font-semibold">
                   Eliminated
                 </p>
-                <p className="text-white font-display text-lg font-700 mt-0.5">
+                <p className="text-white font-display text-lg font-bold mt-0.5">
                   {traderAddress.slice(0, 6)}...{traderAddress.slice(-4)}
                 </p>
               </div>

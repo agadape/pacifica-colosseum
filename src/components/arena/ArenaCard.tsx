@@ -19,22 +19,22 @@ interface ArenaCardProps {
   };
 }
 
-const presetStyles: Record<string, { bg: string; text: string; border: string }> = {
-  blitz: { bg: "bg-red-50", text: "text-danger", border: "border-red-200" },
-  sprint: { bg: "bg-indigo-50", text: "text-accent-primary", border: "border-indigo-200" },
-  daily: { bg: "bg-emerald-50", text: "text-success-dark", border: "border-emerald-200" },
-  weekly: { bg: "bg-amber-50", text: "text-accent-gold", border: "border-amber-200" },
+const presetConfig: Record<string, { bg: string; text: string; border: string; glow: string; label: string }> = {
+  blitz: { bg: "rgba(232,83,83,0.1)", text: "#E85353", border: "rgba(232,83,83,0.3)", glow: "rgba(232,83,83,0.3)", label: "BLITZ" },
+  sprint: { bg: "rgba(93,217,168,0.08)", text: "#5DD9A8", border: "rgba(93,217,168,0.25)", glow: "rgba(93,217,168,0.25)", label: "SPRINT" },
+  daily: { bg: "rgba(242,208,107,0.08)", text: "#F2D06B", border: "rgba(242,208,107,0.25)", glow: "rgba(242,208,107,0.25)", label: "DAILY" },
+  weekly: { bg: "rgba(232,168,54,0.08)", text: "#E8A836", border: "rgba(232,168,54,0.25)", glow: "rgba(232,168,54,0.25)", label: "WEEKLY" },
 };
 
-const statusConfig: Record<string, { label: string; color: string; pulse: boolean }> = {
-  registration: { label: "Open", color: "text-success", pulse: true },
-  starting: { label: "Starting", color: "text-warning", pulse: true },
-  round_1: { label: "Round 1", color: "text-accent-primary", pulse: true },
-  round_2: { label: "Round 2", color: "text-accent-primary", pulse: true },
-  round_3: { label: "Round 3", color: "text-danger", pulse: true },
-  sudden_death: { label: "Sudden Death", color: "text-danger", pulse: true },
-  completed: { label: "Completed", color: "text-text-tertiary", pulse: false },
-  cancelled: { label: "Cancelled", color: "text-text-tertiary", pulse: false },
+const statusConfig: Record<string, { label: string; color: string; bgColor: string; pulse: boolean }> = {
+  registration: { label: "OPEN", color: "#5DD9A8", bgColor: "rgba(93,217,168,0.1)", pulse: true },
+  starting: { label: "STARTING", color: "#E8A836", bgColor: "rgba(232,168,54,0.1)", pulse: true },
+  round_1: { label: "ROUND 1", color: "#F2D06B", bgColor: "rgba(242,208,107,0.1)", pulse: true },
+  round_2: { label: "ROUND 2", color: "#F2D06B", bgColor: "rgba(242,208,107,0.1)", pulse: true },
+  round_3: { label: "ROUND 3", color: "#D97B4A", bgColor: "rgba(217,123,74,0.1)", pulse: true },
+  sudden_death: { label: "SUDDEN DEATH", color: "#E85353", bgColor: "rgba(232,83,83,0.1)", pulse: true },
+  completed: { label: "COMPLETED", color: "#5A5848", bgColor: "rgba(90,88,72,0.1)", pulse: false },
+  cancelled: { label: "CANCELLED", color: "#5A5848", bgColor: "rgba(90,88,72,0.1)", pulse: false },
 };
 
 function getParticipantCount(arena: ArenaCardProps["arena"]): number {
@@ -45,10 +45,30 @@ function getParticipantCount(arena: ArenaCardProps["arena"]): number {
   return 0;
 }
 
+function CardCorner({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
+  const transforms: Record<string, string> = {
+    tl: "top-0 left-0 -translate-x-1 -translate-y-1",
+    tr: "top-0 right-0 translate-x-1 -translate-y-1 rotate-90",
+    bl: "bottom-0 left-0 -translate-x-1 translate-y-1 rotate(-90deg)",
+    br: "bottom-0 right-0 translate-x-1 translate-y-1 rotate(180deg)",
+  };
+
+  return (
+    <div
+      className={`absolute w-4 h-4 pointer-events-none ${transforms[position]}`}
+      style={{ opacity: 0.4 }}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M0 16 L0 4 C0 1.8 1.8 0 4 0 L16 0" stroke="#F2D06B" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
 export default function ArenaCard({ arena }: ArenaCardProps) {
   const count = getParticipantCount(arena);
-  const statusInfo = statusConfig[arena.status] ?? { label: arena.status, color: "text-text-secondary", pulse: false };
-  const preset = presetStyles[arena.preset] ?? presetStyles.sprint;
+  const status = statusConfig[arena.status] ?? { label: arena.status, color: "#9A9688", bgColor: "rgba(154,150,136,0.1)", pulse: false };
+  const preset = presetConfig[arena.preset] ?? presetConfig.sprint;
   const isActive = ["round_1", "round_2", "round_3", "sudden_death"].includes(arena.status);
   const isCompleted = arena.status === "completed" || arena.status === "cancelled";
   const href = isActive ? `/arenas/${arena.id}/spectate` : `/arenas/${arena.id}`;
@@ -56,61 +76,113 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
   return (
     <Link href={href}>
       <motion.div
-        whileHover={isCompleted ? {} : { y: -4, scale: 1.01 }}
+        whileHover={isCompleted ? {} : { y: -6, scale: 1.01 }}
         whileTap={isCompleted ? {} : { scale: 0.99 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={`group relative bg-surface rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 ${
-          isActive
-            ? "border-accent-primary/30 shadow-md hover:shadow-lg"
-            : isCompleted
-            ? "border-border opacity-60"
-            : "border-border hover:shadow-md"
+        className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
+          isActive ? "genshin-card-ornate" : "genshin-card"
         }`}
+        style={{
+          borderColor: isActive ? "rgba(242,208,107,0.35)" : "rgba(242,208,107,0.12)",
+          boxShadow: isActive
+            ? "0 0 0 1px rgba(242,208,107,0.08), 0 8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(242,208,107,0.12)"
+            : "0 0 0 1px rgba(242,208,107,0.05), 0 4px 24px rgba(0,0,0,0.7)",
+        }}
       >
-        <div className={`h-1.5 ${isActive ? "bg-accent-primary" : isCompleted ? "bg-border" : preset.bg.replace("-50", "-500")}`} />
+        <CardCorner position="tl" />
+        <CardCorner position="tr" />
+        <CardCorner position="bl" />
+        <CardCorner position="br" />
 
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-5">
+        <div
+          className="h-1"
+          style={{
+            background: isActive
+              ? `linear-gradient(90deg, ${preset.text}, ${preset.text}60)`
+              : isCompleted
+              ? "var(--color-border)"
+              : preset.text,
+            boxShadow: isActive ? `0 0 20px ${preset.glow}` : "none",
+          }}
+        />
+
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className={`font-display text-lg font-bold transition-colors ${isCompleted ? "text-text-tertiary" : "text-text-primary group-hover:text-accent-primary"}`}>
+              <h3
+                className={`font-bold tracking-wide transition-colors text-base ${
+                  isCompleted ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-text-primary)] group-hover:text-[var(--color-gold-primary)]"
+                }`}
+                style={{ fontFamily: "var(--font-display)" }}
+              >
                 {arena.name}
               </h3>
-              <span className={`inline-block mt-2 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${preset.bg} ${preset.text} ${preset.border}`}>
-                {arena.preset}
-              </span>
+              <div
+                className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                style={{
+                  background: preset.bg,
+                  color: preset.text,
+                  borderColor: preset.border,
+                  fontFamily: "var(--font-display)",
+                  boxShadow: `0 0 10px ${preset.glow}`,
+                }}
+              >
+                {preset.label}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {statusInfo.pulse && (
-                <span className={`w-2 h-2 rounded-full ${statusInfo.color === "text-success" ? "bg-success" : statusInfo.color === "text-danger" ? "bg-danger" : "bg-accent-primary"} animate-pulse`} />
+
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold"
+              style={{
+                background: status.bgColor,
+                color: status.color,
+                fontFamily: "var(--font-display)",
+                boxShadow: status.pulse ? `0 0 10px ${status.color}30` : "none",
+              }}
+            >
+              {status.pulse && (
+                <motion.span
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: status.color, boxShadow: `0 0 6px ${status.color}` }}
+                />
               )}
-              <span className={`text-xs font-semibold ${statusInfo.color}`}>
-                {statusInfo.label}
-              </span>
+              {status.label}
             </div>
           </div>
 
           {arena.starting_capital && (
             <div className="flex items-center justify-between text-xs mb-4">
-              <span className="text-text-tertiary">Prize Pool</span>
-              <span className="font-mono font-semibold text-accent-gold">
+              <span className="text-[var(--color-text-tertiary)]">Prize Pool</span>
+              <span
+                className="font-mono font-bold gold-text"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
                 ${(arena.starting_capital * (arena.max_participants ?? 8)).toLocaleString()}
               </span>
             </div>
           )}
 
           <div className="mb-4">
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-text-tertiary">Traders</span>
-              <span className="font-mono text-text-secondary font-medium">
+            <div className="flex items-center justify-between text-xs mb-2">
+              <span className="text-[var(--color-text-tertiary)]">Traders</span>
+              <span className="font-mono font-semibold text-[var(--color-text-secondary)]">
                 {count}/{arena.max_participants}
               </span>
             </div>
-            <div className="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--color-bg-tertiary)", boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)" }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((count / arena.max_participants) * 100, 100)}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className={`h-full rounded-full ${isActive ? "bg-accent-primary" : "bg-accent-primary/60"}`}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="h-full rounded-full"
+                style={{
+                  background: isActive
+                    ? "linear-gradient(90deg, #F2D06B, #E8A836)"
+                    : "linear-gradient(90deg, #C8B273, #9A8070)",
+                  boxShadow: isActive ? `0 0 8px rgba(242,208,107,0.5)` : "none",
+                }}
               />
             </div>
           </div>
@@ -120,21 +192,38 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           )}
 
           {isActive && (
-            <div className="flex items-center justify-between pt-2 border-t border-border-medium">
-              <div className="flex items-center gap-2 text-xs text-accent-primary font-semibold">
+            <div
+              className="flex items-center justify-between pt-3 mt-2 border-t"
+              style={{ borderColor: "rgba(242,208,107,0.1)" }}
+            >
+              <div
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider gold-text"
+              >
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-accent-primary inline-block"
+                  className="w-2 h-2 rounded-full"
+                  style={{ background: "#F2D06B", boxShadow: "0 0 8px rgba(242,208,107,0.6)" }}
                 />
                 Live
               </div>
-              <span className="text-xs text-accent-primary font-medium uppercase tracking-wider">
+              <span className="text-xs font-semibold uppercase tracking-wider gold-text">
                 Watch →
               </span>
             </div>
           )}
         </div>
+
+        {isActive && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none rounded-xl"
+            style={{
+              background: "radial-gradient(ellipse at top, rgba(242,208,107,0.03) 0%, transparent 60%)",
+            }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+        )}
       </motion.div>
     </Link>
   );

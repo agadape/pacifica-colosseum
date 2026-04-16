@@ -15,7 +15,15 @@ export default function ConnectionStatus() {
           exit={{ y: -40, opacity: 0 }}
           className="fixed top-16 left-1/2 -translate-x-1/2 z-50"
         >
-          <div className="px-4 py-2 rounded-full bg-warning/90 text-text-primary text-xs font-semibold shadow-lg backdrop-blur-sm">
+          <div
+            className="px-4 py-2 rounded-full text-xs font-bold shadow-lg"
+            style={{
+              background: "rgba(255,149,0,0.9)",
+              color: "#07070D",
+              boxShadow: "0 0 20px rgba(255,149,0,0.4)",
+              fontFamily: "var(--font-display)",
+            }}
+          >
             Reconnecting to price feed...
           </div>
         </motion.div>

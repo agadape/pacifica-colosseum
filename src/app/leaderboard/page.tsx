@@ -24,8 +24,6 @@ function winRate(won: number, entered: number) {
   return `${Math.round((won / entered) * 100)}%`;
 }
 
-const MEDAL = ["🥇", "🥈", "🥉"];
-
 const container = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.04 } },
@@ -35,6 +33,30 @@ const rowVariant = {
   hidden: { opacity: 0, x: -12 },
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
 };
+
+function TrophyIcon({ rank }: { rank: number }) {
+  const colors = {
+    0: { primary: "#FFD700", glow: "rgba(255,215,0,0.5)" },
+    1: { primary: "#C0C0C0", glow: "rgba(192,192,192,0.4)" },
+    2: { primary: "#CD7F32", glow: "rgba(205,127,50,0.4)" },
+  };
+  const color = colors[rank as 0 | 1 | 2] ?? colors[0];
+
+  return (
+    <div
+      className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-black text-sm"
+      style={{
+        background: `${color.primary}15`,
+        color: color.primary,
+        border: `1px solid ${color.primary}40`,
+        boxShadow: `0 0 16px ${color.glow}`,
+        fontFamily: "var(--font-display)",
+      }}
+    >
+      {rank === 0 ? "I" : rank === 1 ? "II" : "III"}
+    </div>
+  );
+}
 
 export default function LeaderboardPage() {
   const { data, isLoading } = useQuery<{ data: LeaderboardUser[] }>({
@@ -55,31 +77,47 @@ export default function LeaderboardPage() {
           transition={{ duration: 0.5 }}
           className="mb-10"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-text-tertiary mb-2">Global</p>
-          <h1 className="font-display text-4xl font-800 tracking-tight text-text-primary">
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-neon-magenta)] mb-2 font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+            Global
+          </p>
+          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tight text-[var(--color-text-primary)]">
             Leaderboard
           </h1>
         </motion.div>
 
         {isLoading ? (
           <div className="flex justify-center py-24">
-            <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-10 h-10 rounded-full border-2 border-[var(--color-neon-cyan)] border-t-transparent"
+              style={{ boxShadow: "0 0 20px rgba(0,240,255,0.4)" }}
+            />
           </div>
         ) : traders.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-surface rounded-2xl border border-border-medium py-20 text-center"
+            className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] py-20 text-center"
           >
-            <p className="text-text-tertiary">No traders ranked yet</p>
-            <p className="text-text-tertiary text-sm mt-1">Complete an arena to appear here</p>
+            <div className="text-5xl mb-5 opacity-50">🏆</div>
+            <p className="text-[var(--color-text-tertiary)]">No traders ranked yet</p>
+            <p className="text-[var(--color-text-tertiary)] text-sm mt-1">Complete an arena to appear here</p>
           </motion.div>
         ) : (
-          <div className="bg-surface rounded-2xl border border-border-medium overflow-hidden">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden" style={{ boxShadow: "0 0 40px rgba(0,240,255,0.05)" }}>
             {/* Column headers */}
-            <div className="grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-3 border-b border-border-medium">
-              {["#", "Trader", "Wins", "Played", "Best PnL", "Win Rate", "Streak"].map((col) => (
-                <span key={col} className="text-xs uppercase tracking-wider text-text-tertiary font-semibold">
+            <div className="grid grid-cols-[3rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-4 border-b border-[var(--color-border)]" style={{ background: "rgba(0,240,255,0.02)" }}>
+              {["#", "Trader", "Wins", "Played", "Best PnL", "Win Rate", "Streak"].map((col, i) => (
+                <span
+                  key={col}
+                  className="text-[10px] uppercase tracking-[0.15em] font-bold"
+                  style={{
+                    color: "var(--color-text-tertiary)",
+                    fontFamily: "var(--font-display)",
+                    gridColumn: i === 1 ? undefined : undefined,
+                  }}
+                >
                   {col}
                 </span>
               ))}
@@ -97,28 +135,40 @@ export default function LeaderboardPage() {
                   <motion.div
                     key={user.id}
                     variants={rowVariant}
-                    className={`grid grid-cols-[2rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-4 items-center border-b border-border-medium/50 last:border-0 transition-colors hover:bg-bg-primary/50 ${
-                      i === 0 ? "bg-accent-gold/[0.03]" : ""
+                    className={`grid grid-cols-[3rem_1fr_4rem_4rem_5rem_4rem_4rem] gap-4 px-6 py-4 items-center border-b border-[var(--color-border)]/50 last:border-0 transition-all hover:bg-[var(--color-bg-secondary)]/50 ${
+                      isTop3 ? "" : ""
                     }`}
+                    style={isTop3 ? {
+                      background: i === 0
+                        ? "linear-gradient(90deg, rgba(255,215,0,0.03), transparent)"
+                        : "transparent"
+                    } : {}}
                   >
                     {/* Rank */}
-                    <span className="text-sm font-mono font-bold text-text-tertiary">
-                      {isTop3 ? MEDAL[i] : i + 1}
-                    </span>
+                    <div className="flex items-center justify-center">
+                      {isTop3 ? (
+                        <TrophyIcon rank={i} />
+                      ) : (
+                        <span className="font-mono text-sm font-bold" style={{ color: "var(--color-text-tertiary)" }}>
+                          {i + 1}
+                        </span>
+                      )}
+                    </div>
 
                     {/* Trader */}
                     <div className="flex items-center gap-3 min-w-0">
                       <img
                         src={getAvatarUrl(seed)}
                         alt={name}
-                        className="w-8 h-8 rounded-full flex-shrink-0 bg-bg-primary"
+                        className="w-8 h-8 rounded-lg flex-shrink-0"
+                        style={{ background: "var(--color-bg-tertiary)" }}
                       />
                       <div className="min-w-0">
-                        <span className={`text-sm font-semibold truncate block ${isTop3 ? "text-text-primary" : "text-text-secondary"}`}>
+                        <span className={`text-sm font-semibold truncate block ${isTop3 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]"}`}>
                           {name}
                         </span>
                         {user.total_rounds_survived > 0 && (
-                          <span className="text-xs text-text-tertiary">
+                          <span className="text-xs" style={{ color: "var(--color-text-tertiary)" }}>
                             {user.total_rounds_survived} rounds survived
                           </span>
                         )}
@@ -126,33 +176,47 @@ export default function LeaderboardPage() {
                     </div>
 
                     {/* Wins */}
-                    <span className={`font-mono text-sm font-bold ${user.total_arenas_won > 0 ? "text-accent-gold" : "text-text-tertiary"}`}>
+                    <span
+                      className="font-mono text-sm font-bold"
+                      style={user.total_arenas_won > 0 ? {
+                        color: "var(--color-neon-gold)",
+                        textShadow: "0 0 8px rgba(255,215,0,0.4)"
+                      } : { color: "var(--color-text-tertiary)" }}
+                    >
                       {user.total_arenas_won}
                     </span>
 
                     {/* Played */}
-                    <span className="font-mono text-sm text-text-secondary">
+                    <span className="font-mono text-sm" style={{ color: "var(--color-text-secondary)" }}>
                       {user.total_arenas_entered}
                     </span>
 
                     {/* Best PnL */}
-                    <span className={`font-mono text-sm font-bold ${pnlPos ? "text-success" : "text-danger"}`}>
+                    <span
+                      className="font-mono text-sm font-bold"
+                      style={{
+                        color: pnlPos ? "var(--color-success)" : "var(--color-danger)",
+                        textShadow: pnlPos ? "0 0 8px rgba(0,255,136,0.4)" : "0 0 8px rgba(255,51,51,0.4)"
+                      }}
+                    >
                       {pnlPos ? "+" : ""}{user.best_pnl_percent.toFixed(1)}%
                     </span>
 
                     {/* Win Rate */}
-                    <span className="font-mono text-sm text-text-secondary">
+                    <span className="font-mono text-sm" style={{ color: "var(--color-text-secondary)" }}>
                       {winRate(user.total_arenas_won, user.total_arenas_entered)}
                     </span>
 
                     {/* Streak */}
                     <span className="font-mono text-sm">
                       {user.current_win_streak > 0 ? (
-                        <span className="text-accent-primary font-bold">🔥{user.current_win_streak}</span>
+                        <span className="font-bold" style={{ color: "var(--color-neon-magenta)" }}>
+                          ⚡{user.current_win_streak}
+                        </span>
                       ) : user.win_streak > 0 ? (
-                        <span className="text-text-secondary">{user.win_streak}</span>
+                        <span style={{ color: "var(--color-text-secondary)" }}>{user.win_streak}</span>
                       ) : (
-                        <span className="text-text-tertiary">—</span>
+                        <span style={{ color: "var(--color-text-tertiary)" }}>—</span>
                       )}
                     </span>
                   </motion.div>
@@ -162,7 +226,7 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        <p className="text-[11px] text-text-tertiary mt-4 text-right font-mono">
+        <p className="text-[11px] mt-4 text-right font-mono" style={{ color: "var(--color-text-tertiary)" }}>
           Updates every 30s · {traders.length} traders ranked
         </p>
       </div>

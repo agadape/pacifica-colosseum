@@ -65,20 +65,20 @@ export default function TraderCard({
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className={`relative bg-surface rounded-2xl border p-5 transition-all ${
         isWinner
-          ? "border-accent-gold/40 shadow-lg shadow-accent-gold/10"
+          ? "border-neon-gold/40 shadow-lg shadow-neon-gold/10"
           : isTop3
-          ? "border-accent-primary/20 shadow-md"
+          ? "border-neon-cyan/20 shadow-md"
           : isEliminated
           ? "border-border"
-          : "border-border hover:shadow-md hover:border-accent-primary/20"
+          : "border-border hover:shadow-md hover:border-neon-cyan/20"
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-sm font-bold ${
-            rank === 1 ? "bg-amber-50 text-accent-gold border border-amber-200" :
-            rank === 2 ? "bg-gray-100 text-text-secondary border border-gray-200" :
-            rank === 3 ? "bg-orange-50 text-orange-status border border-orange-200" :
+            rank === 1 ? "bg-neon-gold/10 text-neon-gold border border-neon-gold/30" :
+            rank === 2 ? "bg-bg-tertiary text-text-secondary border border-border" :
+            rank === 3 ? "bg-neon-magenta/10 text-neon-magenta border border-neon-magenta/30" :
             "bg-bg-primary text-text-tertiary border border-border"
           }`}>
             {rank}
@@ -96,7 +96,7 @@ export default function TraderCard({
       <div className="flex items-end justify-between mb-4">
         <span className={`font-mono text-3xl font-bold tracking-tight ${
           isEliminated ? "text-text-tertiary" :
-          pnlPercent >= 0 ? "text-success" : "text-danger"
+          pnlPercent >= 0 ? "text-neon-cyan drop-shadow-[0_0_8px_rgba(0,240,255,0.4)]" : "text-neon-magenta drop-shadow-[0_0_8px_rgba(255,0,110,0.4)]"
         }`}>
           {pnlPercent >= 0 ? "+" : ""}{pnlPercent.toFixed(2)}%
         </span>
@@ -111,7 +111,7 @@ export default function TraderCard({
         <div className="flex gap-2 mt-4 flex-wrap">
           {hasWideZone && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
-              className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-accent-primary border border-indigo-200">
+              className="px-2.5 py-1 rounded-full text-xs font-semibold bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30">
               Wide Zone
             </motion.span>
           )}
@@ -119,8 +119,8 @@ export default function TraderCard({
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
               className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
                 secondLifeUsed
-                  ? "bg-gray-100 text-text-tertiary border-gray-200 line-through"
-                  : "bg-amber-50 text-accent-gold border-amber-200"
+                  ? "bg-bg-primary text-text-tertiary border-border line-through"
+                  : "bg-neon-gold/10 text-neon-gold border-neon-gold/30"
               }`}>
               2nd Life {secondLifeUsed ? "used" : ""}
             </motion.span>
@@ -130,7 +130,7 @@ export default function TraderCard({
 
       {isWinner && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className="absolute -top-3 -right-3 text-2xl">
+          className="absolute -top-3 -right-3 text-2xl drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]">
           👑
         </motion.div>
       )}

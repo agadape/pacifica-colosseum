@@ -24,12 +24,12 @@ function getStatusInfo(
   p: Participant,
   maxDrawdown: number
 ): { label: string; color: string } {
-  if (p.status === "winner") return { label: "WINNER", color: "text-accent-gold" };
+  if (p.status === "winner") return { label: "WINNER", color: "text-neon-gold" };
   if (p.status === "eliminated") return { label: "ELIMINATED", color: "text-danger" };
   const ratio = p.max_drawdown_hit / maxDrawdown;
   if (ratio >= 0.8) return { label: "CRITICAL", color: "text-danger" };
   if (ratio >= 0.5) return { label: "DANGER", color: "text-warning" };
-  return { label: "SAFE", color: "text-success" };
+  return { label: "SAFE", color: "text-neon-cyan" };
 }
 
 export default function TraderPopup({
@@ -96,7 +96,7 @@ export default function TraderPopup({
           <span className="text-text-tertiary">PnL</span>
           <span
             className={`font-mono font-bold ${
-              p.total_pnl_percent >= 0 ? "text-success" : "text-danger"
+              p.total_pnl_percent >= 0 ? "text-neon-cyan" : "text-neon-magenta"
             }`}
           >
             {p.total_pnl_percent >= 0 ? "+" : ""}

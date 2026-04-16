@@ -27,17 +27,17 @@ interface AbilityCardProps {
 }
 
 const RARITY_COLORS: Record<string, string> = {
-  common: "border-gray-200 bg-gray-50",
-  rare: "border-blue-200 bg-blue-50",
-  epic: "border-purple-200 bg-purple-50",
-  legendary: "border-amber-200 bg-amber-50",
+  common: "border-border bg-surface",
+  rare: "border-neon-cyan/30 bg-neon-cyan/5",
+  epic: "border-neon-magenta/30 bg-neon-magenta/5",
+  legendary: "border-neon-gold/30 bg-neon-gold/5",
 };
 
 const RARITY_BADGE: Record<string, string> = {
-  common: "bg-gray-100 text-gray-600",
-  rare: "bg-blue-100 text-blue-700",
-  epic: "bg-purple-100 text-purple-700",
-  legendary: "bg-amber-100 text-amber-700",
+  common: "bg-bg-tertiary text-text-secondary",
+  rare: "bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30",
+  epic: "bg-neon-magenta/10 text-neon-magenta border border-neon-magenta/30",
+  legendary: "bg-neon-gold/10 text-neon-gold border border-neon-gold/30",
 };
 
 export function AbilityCard({
@@ -94,7 +94,7 @@ export function AbilityCard({
         <span className="text-2xl leading-none">{ability.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-sm text-gray-900">{ability.name}</span>
+            <span className="font-semibold text-sm text-text-primary">{ability.name}</span>
             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${badgeClass}`}>
               {ability.rarity}
             </span>
@@ -109,7 +109,7 @@ export function AbilityCard({
           {ability.requires_target && !showTargetPicker ? (
             <button
               onClick={() => setShowTargetPicker(true)}
-              className="w-full text-xs font-medium py-1.5 px-3 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+              className="w-full text-xs font-medium py-1.5 px-3 rounded-lg bg-neon-cyan text-bg-primary hover:brightness-110 transition-colors"
             >
               Select Target
             </button>
@@ -141,7 +141,7 @@ export function AbilityCard({
             <button
               disabled={loading}
               onClick={() => activate()}
-              className="w-full text-xs font-medium py-1.5 px-3 rounded-lg bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+              className="w-full text-xs font-medium py-1.5 px-3 rounded-lg bg-neon-cyan text-bg-primary hover:brightness-110 disabled:opacity-50 transition-colors"
             >
               {loading ? "Activating…" : "Activate"}
             </button>
@@ -152,7 +152,7 @@ export function AbilityCard({
 
       {isUsed && (
         <div className="mt-2 text-center">
-          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Used</span>
+          <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-wider">Used</span>
         </div>
       )}
     </motion.div>

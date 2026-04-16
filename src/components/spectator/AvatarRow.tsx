@@ -27,7 +27,7 @@ function getRingClass(pnlPercent: number, drawdown: number, maxDrawdown: number)
   const dangerPct = drawdown / maxDrawdown;
   if (dangerPct >= 0.8) return "ring-2 ring-danger shadow-sm shadow-danger/30";
   if (dangerPct >= 0.5) return "ring-2 ring-warning shadow-sm shadow-warning/20";
-  if (pnlPercent > 0) return "ring-2 ring-success/50";
+  if (pnlPercent > 0) return "ring-2 ring-neon-cyan/50";
   return "ring-1 ring-border-medium";
 }
 
@@ -97,7 +97,7 @@ export default function AvatarRow({ participants, maxDrawdown }: AvatarRowProps)
                         ? "bg-danger/15"
                         : p.max_drawdown_hit / maxDrawdown >= 0.5
                         ? "bg-warning/10"
-                        : "bg-success/8"
+                        : "bg-neon-cyan/8"
                     }`}
                   />
                 )}

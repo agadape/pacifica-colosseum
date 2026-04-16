@@ -70,7 +70,7 @@ export default function TerritoryInfoCard({ arenaId, myParticipantId }: Territor
       animate={{ opacity: 1, y: 0 }}
       className={`bg-surface rounded-2xl border p-4 space-y-3 ${
         myCell.isEliminationZone
-          ? "border-rose-300/60 bg-rose-50/30"
+          ? "border-neon-magenta/30 bg-neon-magenta/5"
           : "border-border-medium"
       }`}
     >
@@ -82,7 +82,7 @@ export default function TerritoryInfoCard({ arenaId, myParticipantId }: Territor
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-sm font-bold text-text-primary">{myCell.label}</span>
           {myCell.isEliminationZone && (
-            <span className="text-xs font-semibold text-rose-600 uppercase tracking-wider bg-rose-100 px-1.5 py-0.5 rounded-full">
+            <span className="text-xs font-semibold text-neon-gold uppercase tracking-wider bg-neon-gold/10 border border-neon-gold/30 px-1.5 py-0.5 rounded-full">
               Danger
             </span>
           )}
@@ -94,7 +94,7 @@ export default function TerritoryInfoCard({ arenaId, myParticipantId }: Territor
         {hasBonus && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-tertiary">PnL Bonus</span>
-            <span className="text-[11px] font-mono font-semibold text-emerald-600">
+            <span className="text-[11px] font-mono font-semibold text-neon-cyan">
               +{myCell.pnlBonusPercent.toFixed(1)}%
             </span>
           </div>
@@ -121,9 +121,9 @@ export default function TerritoryInfoCard({ arenaId, myParticipantId }: Territor
       </div>
 
       {myCell.isEliminationZone && (
-        <div className="rounded-lg bg-rose-50 border border-rose-200/60 px-3 py-2">
-          <p className="text-xs text-rose-700 font-semibold">⚠ Elimination zone</p>
-          <p className="text-xs text-rose-600/70 mt-0.5">
+        <div className="rounded-lg bg-neon-magenta/10 border border-neon-magenta/30 px-3 py-2">
+          <p className="text-xs text-neon-magenta font-semibold">⚠ Elimination zone</p>
+          <p className="text-xs text-text-secondary mt-0.5">
             Traders in bottom rows are eliminated first at round end. Attack upward to escape.
           </p>
         </div>

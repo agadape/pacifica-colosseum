@@ -16,18 +16,22 @@ export default function Timer({ targetDate, label, className = "" }: TimerProps)
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {label && (
-        <span className="text-xs text-text-tertiary uppercase tracking-wider">
+        <span className="text-xs text-[var(--color-text-tertiary)] uppercase tracking-wider font-semibold">
           {label}
         </span>
       )}
       <span
-        className={`font-mono text-sm font-semibold tabular-nums transition-colors ${
+        className={`font-mono text-sm font-bold tabular-nums tracking-wider transition-colors ${
           isExpired
-            ? "text-text-tertiary"
+            ? "text-[var(--color-text-tertiary)]"
             : isUrgent
-            ? "text-danger animate-pulse"
-            : "text-text-primary"
+            ? "text-[var(--color-danger)]"
+            : "text-[var(--color-neon-cyan)]"
         }`}
+        style={{
+          fontFamily: "var(--font-mono)",
+          textShadow: isExpired ? "none" : isUrgent ? "0 0 8px rgba(255,51,51,0.6)" : "0 0 8px rgba(0,240,255,0.4)",
+        }}
       >
         {formatted}
       </span>

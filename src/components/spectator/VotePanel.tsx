@@ -134,7 +134,7 @@ export default function VotePanel({
               )}
               <div className="relative flex items-center gap-2 min-w-0">
                 <span className="font-semibold text-sm text-text-primary truncate">{name}</span>
-                <span className={`font-mono text-xs flex-shrink-0 ${c.total_pnl_percent >= 0 ? "text-success" : "text-danger"}`}>
+                <span className={`font-mono text-xs flex-shrink-0 ${c.total_pnl_percent >= 0 ? "text-neon-cyan" : "text-neon-magenta"}`}>
                   {c.total_pnl_percent >= 0 ? "+" : ""}{c.total_pnl_percent?.toFixed(1)}%
                 </span>
               </div>

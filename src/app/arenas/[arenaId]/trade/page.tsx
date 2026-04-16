@@ -46,15 +46,13 @@ export default function TradePage({
 
   const STARTING = 1000;
   const myPnlPct = (myParticipant?.total_pnl_percent as number | undefined) ?? 0;
-  const myEquity  = Math.round(STARTING * (1 + myPnlPct / 100) * 100) / 100;
+  const myEquity = Math.round(STARTING * (1 + myPnlPct / 100) * 100) / 100;
   const myDrawdown = (myParticipant?.max_drawdown_hit as number | undefined) ?? 0;
   const myStatus = (myParticipant?.status as string | undefined) ?? null;
 
-  // Connect to WS prices + Supabase Realtime
   usePacificaWS();
   useArenaRealtime(arenaId);
 
-  // Symbol selector — defaults to first allowed pair
   const rounds = arena?.rounds ?? [];
   const currentRound = rounds.find(
     (r: Record<string, unknown>) => r.round_number === arena?.current_round
@@ -62,14 +60,12 @@ export default function TradePage({
   const allowedPairs: string[] = currentRound?.allowed_pairs ?? ["BTC"];
   const [symbol, setSymbol] = useState(allowedPairs[0] ?? "BTC");
 
-  // Notification states
   const [showEliminated, setShowEliminated] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [roundEndMsg, setRoundEndMsg] = useState<string | null>(null);
   const prevRound = useRef<number | null>(null);
   const prevStatus = useRef<string | null>(null);
 
-  // Detect round change → show toast
   useEffect(() => {
     if (!arena) return;
     const r = arena.current_round as number;
@@ -84,10 +80,8 @@ export default function TradePage({
       return () => clearTimeout(t);
     }
     prevRound.current = r;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arena?.current_round]);
 
-  // Detect status transitions → show overlays
   useEffect(() => {
     if (prevStatus.current === "active" && myStatus === "eliminated") {
       setShowEliminated(true);
@@ -100,7 +94,12 @@ export default function TradePage({
   if (!arena) {
     return (
       <main className="min-h-screen pt-24 px-6 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-10 h-10 rounded-full border-2 border-[var(--color-neon-cyan)] border-t-transparent"
+          style={{ boxShadow: "0 0 20px rgba(0,240,255,0.4)" }}
+        />
       </main>
     );
   }
@@ -113,28 +112,21 @@ export default function TradePage({
 
   return (
     <>
-      {/* Hazard Banner — fixed top, shows warning/active hazards */}
       <HazardBanner arenaId={arenaId} />
-
-      {/* Progression Modal — shown to active participants after round ends */}
       {myStatus === "active" && <ProgressionModal arenaId={arenaId} />}
-
-      {/* Betrayal Vote Modal — shown during alliance betrayal phase */}
       {myStatus === "active" && !!myParticipant?.id && (
-        <BetrayalVoteModal
-          arenaId={arenaId}
-          partnerName="your ally"
-        />
+        <BetrayalVoteModal arenaId={arenaId} partnerName="your ally" />
       )}
 
-      {/* Elimination overlay — fullscreen */}
+      {/* Elimination overlay */}
       <AnimatePresence>
         {showEliminated && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/92 flex flex-col items-center justify-center p-8"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8"
+            style={{ background: "rgba(7,7,13,0.97)" }}
           >
             <motion.div
               initial={{ scale: 0.85, y: 30 }}
@@ -142,17 +134,44 @@ export default function TradePage({
               transition={{ type: "spring", damping: 14 }}
               className="text-center max-w-xs"
             >
-              <div className="text-7xl mb-5">💀</div>
-              <h1 className="font-display text-4xl font-800 text-white mb-2">Eliminated</h1>
-              <p className="text-white/50 text-sm mb-1">Your drawdown exceeded the round limit.</p>
-              <p className="font-mono text-danger text-xl font-bold mb-8">
+              <div
+                className="w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: "rgba(255,51,51,0.1)",
+                  border: "1px solid rgba(255,51,51,0.3)",
+                  boxShadow: "0 0 60px rgba(255,51,51,0.3)",
+                }}
+              >
+                <svg className="w-14 h-14" style={{ color: "var(--color-danger)" }} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h1
+                className="font-display text-4xl font-black mb-2"
+                style={{ color: "var(--color-danger)", textShadow: "0 0 40px rgba(255,51,51,0.5)" }}
+              >
+                ELIMINATED
+              </h1>
+              <p className="text-sm mb-1" style={{ color: "var(--color-text-secondary)" }}>
+                Your drawdown exceeded the round limit.
+              </p>
+              <p
+                className="font-mono text-xl font-bold mb-8"
+                style={{ color: "var(--color-danger)", textShadow: "0 0 20px rgba(255,51,51,0.4)" }}
+              >
                 −{myDrawdown.toFixed(1)}% drawdown
               </p>
               <Link href={`/arenas/${arenaId}/spectate`}>
                 <motion.span
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,240,255,0.5)" }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-block px-6 py-3 rounded-full bg-white text-black font-semibold text-sm"
+                  className="inline-block px-6 py-3 rounded-full font-bold text-sm text-black"
+                  style={{
+                    background: "var(--color-neon-cyan)",
+                    fontFamily: "var(--font-display)",
+                    boxShadow: "0 0 20px rgba(0,240,255,0.4)",
+                  }}
                 >
                   Watch the arena →
                 </motion.span>
@@ -162,14 +181,15 @@ export default function TradePage({
         )}
       </AnimatePresence>
 
-      {/* Winner overlay — fullscreen */}
+      {/* Winner overlay */}
       <AnimatePresence>
         {showWinner && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/92 flex flex-col items-center justify-center p-8"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center p-8"
+            style={{ background: "rgba(7,7,13,0.97)" }}
           >
             <motion.div
               initial={{ scale: 0.85, y: 30 }}
@@ -177,17 +197,43 @@ export default function TradePage({
               transition={{ type: "spring", damping: 14 }}
               className="text-center max-w-xs"
             >
-              <div className="text-7xl mb-5">🏆</div>
-              <h1 className="font-display text-4xl font-800 text-white mb-2">You Win!</h1>
-              <p className="text-white/50 text-sm mb-1">You outlasted every trader.</p>
-              <p className="font-mono text-yellow-400 text-xl font-bold mb-8">
+              <div
+                className="w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: "rgba(255,215,0,0.1)",
+                  border: "1px solid rgba(255,215,0,0.3)",
+                  boxShadow: "0 0 60px rgba(255,215,0,0.3)",
+                }}
+              >
+                <svg className="w-14 h-14" style={{ color: "var(--color-neon-gold)" }} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>
+                </svg>
+              </div>
+              <h1
+                className="font-display text-4xl font-black mb-2"
+                style={{ color: "var(--color-neon-gold)", textShadow: "0 0 40px rgba(255,215,0,0.5)" }}
+              >
+                YOU WIN!
+              </h1>
+              <p className="text-sm mb-1" style={{ color: "var(--color-text-secondary)" }}>
+                You outlasted every trader.
+              </p>
+              <p
+                className="font-mono text-xl font-bold mb-8"
+                style={{ color: "var(--color-neon-gold)", textShadow: "0 0 20px rgba(255,215,0,0.4)" }}
+              >
                 {myPnlPct >= 0 ? "+" : ""}{myPnlPct.toFixed(1)}% final PnL
               </p>
               <Link href={`/arenas/${arenaId}/spectate`}>
                 <motion.span
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(255,215,0,0.5)" }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-block px-6 py-3 rounded-full bg-white text-black font-semibold text-sm"
+                  className="inline-block px-6 py-3 rounded-full font-bold text-sm text-black"
+                  style={{
+                    background: "var(--color-neon-gold)",
+                    fontFamily: "var(--font-display)",
+                    boxShadow: "0 0 20px rgba(255,215,0,0.4)",
+                  }}
                 >
                   See Results →
                 </motion.span>
@@ -204,16 +250,22 @@ export default function TradePage({
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-surface border border-border-medium rounded-full px-5 py-2 shadow-lg pointer-events-none"
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-40 rounded-full px-5 py-2 shadow-lg pointer-events-none"
+            style={{
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-neon-cyan)",
+              boxShadow: "0 0 30px rgba(0,240,255,0.2)",
+            }}
           >
-            <p className="text-sm font-semibold text-text-primary whitespace-nowrap">{roundEndMsg}</p>
+            <p className="text-sm font-semibold whitespace-nowrap" style={{ color: "var(--color-neon-cyan)", fontFamily: "var(--font-display)" }}>
+              {roundEndMsg}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
 
       <main className="min-h-screen pt-20 px-4 md:px-6 pb-8">
         <div className="max-w-7xl mx-auto">
-          {/* Round info bar */}
           {currentRound && (
             <div className="mb-4">
               <RoundIndicator
@@ -232,16 +284,26 @@ export default function TradePage({
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 rounded-2xl border border-danger/40 bg-danger/5 px-5 py-3 flex items-center gap-3"
+              className="mb-4 rounded-2xl border px-5 py-3 flex items-center gap-3"
+              style={{
+                background: "rgba(255,51,51,0.05)",
+                borderColor: "rgba(255,51,51,0.3)",
+                boxShadow: "0 0 20px rgba(255,51,51,0.15)",
+              }}
             >
               <motion.span
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
-                className="w-2 h-2 rounded-full bg-danger flex-shrink-0"
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ background: "var(--color-danger)", boxShadow: "0 0 12px var(--color-danger)" }}
               />
               <div>
-                <p className="text-sm font-semibold text-danger">Sudden Death</p>
-                <p className="text-xs text-danger/60">One trader survives. Trade for your life.</p>
+                <p className="text-sm font-bold" style={{ color: "var(--color-danger)" }}>
+                  ⚠ Sudden Death
+                </p>
+                <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                  One trader survives. Trade for your life.
+                </p>
               </div>
             </motion.div>
           )}
@@ -253,11 +315,19 @@ export default function TradePage({
                 <button
                   key={pair}
                   onClick={() => setSymbol(pair)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                     symbol === pair
-                      ? "bg-accent-primary text-white"
-                      : "bg-surface border border-border-medium text-text-secondary hover:text-text-primary"
+                      ? "text-black"
+                      : "border text-[var(--color-text-secondary)]"
                   }`}
+                  style={symbol === pair ? {
+                    background: "var(--color-neon-cyan)",
+                    boxShadow: "0 0 12px rgba(0,240,255,0.4)",
+                    fontFamily: "var(--font-display)",
+                  } : {
+                    background: "var(--color-surface)",
+                    borderColor: "var(--color-border)",
+                  }}
                 >
                   {pair}
                 </button>
@@ -265,7 +335,7 @@ export default function TradePage({
             </div>
           )}
 
-          {/* Main grid: Chart + Order Form */}
+          {/* Main grid */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
             <div className="lg:col-span-3">
               <Chart symbol={symbol} />
@@ -282,16 +352,20 @@ export default function TradePage({
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`rounded-xl px-4 py-3 border ${
+                  className="rounded-xl px-4 py-3 border"
+                  style={
                     drawdownCritical
-                      ? "bg-danger/10 border-danger/40"
-                      : "bg-amber-50 border-amber-300/40"
-                  }`}
+                      ? { background: "rgba(255,51,51,0.1)", borderColor: "rgba(255,51,51,0.3)" }
+                      : { background: "rgba(255,149,0,0.1)", borderColor: "rgba(255,149,0,0.3)" }
+                  }
                 >
-                  <p className={`text-xs font-semibold ${drawdownCritical ? "text-danger" : "text-amber-700"}`}>
+                  <p
+                    className="text-xs font-bold"
+                    style={{ color: drawdownCritical ? "var(--color-danger)" : "var(--color-warning)" }}
+                  >
                     {drawdownCritical ? "⚠ Drawdown limit hit" : "⚠ Approaching drawdown limit"}
                   </p>
-                  <p className={`text-xs mt-0.5 ${drawdownCritical ? "text-danger/60" : "text-amber-600/70"}`}>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--color-text-secondary)" }}>
                     {myDrawdown.toFixed(1)}% / {maxDrawdown}% max
                   </p>
                 </motion.div>
@@ -308,15 +382,10 @@ export default function TradePage({
                 secondLifeUsed={(myParticipant?.second_life_used as boolean | undefined) ?? false}
               />
 
-              {/* Territory info — shows cell modifiers for current round */}
               {!!myParticipant?.id && myStatus === "active" && (
-                <TerritoryInfoCard
-                  arenaId={arenaId}
-                  myParticipantId={myParticipant.id as string}
-                />
+                <TerritoryInfoCard arenaId={arenaId} myParticipantId={myParticipant.id as string} />
               )}
 
-              {/* Ability panel — shows owned abilities and active effects */}
               {!!myParticipant?.id && myStatus === "active" && (
                 <AbilityPanel
                   arenaId={arenaId}
@@ -330,7 +399,6 @@ export default function TradePage({
                 />
               )}
 
-              {/* Alliance panel — propose / view / manage alliances */}
               {!!myParticipant?.id && myStatus === "active" && (
                 <AlliancePanel
                   arenaId={arenaId}
@@ -345,8 +413,19 @@ export default function TradePage({
               )}
 
               {leaderboard.length > 0 && (
-                <div className="bg-surface rounded-2xl border border-border-medium p-4">
-                  <h3 className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3">Standings</h3>
+                <div
+                  className="rounded-2xl border p-4"
+                  style={{
+                    background: "var(--color-surface)",
+                    borderColor: "var(--color-border)",
+                  }}
+                >
+                  <h3
+                    className="text-xs font-bold uppercase tracking-wider mb-3"
+                    style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}
+                  >
+                    Standings
+                  </h3>
                   <div className="space-y-1.5">
                     {leaderboard.slice(0, 6).map((p, i) => {
                       const username = (p.users as { username?: string | null } | null)?.username ?? null;
@@ -354,14 +433,21 @@ export default function TradePage({
                       return (
                         <div key={p.id as string} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-text-tertiary w-4">{i + 1}</span>
-                            <span className={`font-medium truncate max-w-[72px] ${p.user_id === currentUserId ? "text-accent-primary" : "text-text-primary"}`}>
+                            <span style={{ color: "var(--color-text-tertiary)", width: "1rem" }}>{i + 1}</span>
+                            <span
+                              className="font-medium truncate max-w-[72px]"
+                              style={{ color: p.user_id === currentUserId ? "var(--color-neon-cyan)" : "var(--color-text-primary)" }}
+                            >
                               {username ?? (p.subaccount_address as string)?.slice(0, 6) ?? "..."}
                             </span>
-                            {isBot && <span className="text-xs text-text-tertiary/40">🤖</span>}
+                            {isBot && <span className="text-[var(--color-text-tertiary)] opacity-40">🤖</span>}
                           </div>
-                          <span className={`font-mono font-semibold ${((p.total_pnl_percent as number) ?? 0) >= 0 ? "text-success" : "text-danger"}`}>
-                            {((p.total_pnl_percent as number) ?? 0) >= 0 ? "+" : ""}{((p.total_pnl_percent as number) ?? 0).toFixed(1)}%
+                          <span
+                            className="font-mono font-semibold"
+                            style={{ color: ((p.total_pnl_percent as number) ?? 0) >= 0 ? "var(--color-success)" : "var(--color-danger)" }}
+                          >
+                            {((p.total_pnl_percent as number) ?? 0) >= 0 ? "+" : ""}
+                            {((p.total_pnl_percent as number) ?? 0).toFixed(1)}%
                           </span>
                         </div>
                       );
@@ -372,7 +458,7 @@ export default function TradePage({
             </div>
           </div>
 
-          {/* Bottom: Positions + Orders */}
+          {/* Bottom grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <PositionList arenaId={arenaId} />
             <OrderList arenaId={arenaId} />

@@ -21,23 +21,23 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
     const chart = createChart(containerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#6B7280",
+        textColor: "#55556E",
         fontFamily: "JetBrains Mono, monospace",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "#E5E7EB" },
-        horzLines: { color: "#E5E7EB" },
+        vertLines: { color: "#1E1E3A" },
+        horzLines: { color: "#1E1E3A" },
       },
       crosshair: {
-        vertLine: { color: "#6366f140", width: 1, style: 2 },
-        horzLine: { color: "#6366f140", width: 1, style: 2 },
+        vertLine: { color: "#00F0FF30", width: 1, style: 2 },
+        horzLine: { color: "#00F0FF30", width: 1, style: 2 },
       },
       rightPriceScale: {
-        borderColor: "#E5E7EB",
+        borderColor: "#1E1E3A",
       },
       timeScale: {
-        borderColor: "#E5E7EB",
+        borderColor: "#1E1E3A",
         timeVisible: true,
         secondsVisible: false,
       },
@@ -45,10 +45,10 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
     });
 
     const series = chart.addSeries(LineSeries, {
-      color: "#6366f1",
+      color: "#00F0FF",
       lineWidth: 2,
       priceLineVisible: true,
-      priceLineColor: "#6366f180",
+      priceLineColor: "#00F0FF80",
       lastValueVisible: true,
     });
 
@@ -88,7 +88,7 @@ export default function Chart({ symbol, className = "" }: ChartProps) {
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-3">
           <span className="font-display text-sm font-bold text-text-primary">{symbol}-PERP</span>
-          <span className="font-mono text-sm font-bold text-accent-primary">
+          <span className="font-mono text-sm font-bold text-neon-cyan drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]">
             {prices.get(symbol)?.markPrice.toFixed(2) ?? "—"}
           </span>
         </div>

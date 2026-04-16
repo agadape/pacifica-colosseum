@@ -81,7 +81,7 @@ export default function TerritoryDraftModal({
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
-                  className="w-1.5 h-1.5 rounded-full bg-accent-primary inline-block"
+                  className="w-1.5 h-1.5 rounded-full bg-neon-cyan inline-block"
                 />
                 <span className="text-xs font-semibold text-text-primary">
                   Territory Draft — Round {currentRound}
@@ -123,7 +123,7 @@ export default function TerritoryDraftModal({
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="font-mono text-text-primary font-bold">{label}</span>
                         {bonus !== undefined && bonus > 0 && (
-                          <span className="text-xs font-semibold text-emerald-600">
+                          <span className="text-xs font-semibold text-neon-cyan">
                             +{bonus.toFixed(0)}%
                           </span>
                         )}

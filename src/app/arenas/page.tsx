@@ -31,7 +31,7 @@ export default function ArenasPage() {
   const arenas = data?.data ?? [];
 
   return (
-    <main className="min-h-screen pt-24 px-4 sm:px-6 md:px-10">
+    <main className="min-h-screen pt-24 px-4 sm:px-6 md:px-10 pb-16">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -41,21 +41,22 @@ export default function ArenasPage() {
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10"
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-text-tertiary mb-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-neon-cyan)] mb-2 font-semibold" style={{ fontFamily: "var(--font-display)" }}>
               Compete
             </p>
-            <h1 className="font-display text-3xl sm:text-4xl font-800 tracking-tight text-text-primary">
+            <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-[var(--color-text-primary)]">
               Arenas
             </h1>
           </div>
 
           <Link href="/arenas/create">
             <motion.span
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,240,255,0.5)" }}
               whileTap={{ scale: 0.97 }}
-              className="inline-block px-6 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors"
+              className="inline-block px-6 py-2.5 rounded-full text-sm font-bold tracking-wide shadow-[0_0_16px_rgba(0,240,255,0.3)] bg-gradient-to-r from-[var(--color-neon-cyan)] to-[var(--color-neon-cyan-dim)] text-black"
+              style={{ fontFamily: "var(--font-display)" }}
             >
-              Create Arena
+              + Create Arena
             </motion.span>
           </Link>
         </motion.div>
@@ -71,11 +72,12 @@ export default function ArenasPage() {
             <button
               key={f.label}
               onClick={() => setStatus(f.value)}
-              className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                 filters.status === f.value
-                  ? "bg-accent-primary text-white"
-                  : "bg-surface border border-border-medium text-text-secondary hover:text-text-primary"
+                  ? "bg-[var(--color-neon-cyan)] text-black shadow-[0_0_16px_rgba(0,240,255,0.4)]"
+                  : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-neon-cyan)]/30 hover:text-[var(--color-text-primary)]"
               }`}
+              style={{ fontFamily: "var(--font-display)" }}
             >
               {f.label}
             </button>

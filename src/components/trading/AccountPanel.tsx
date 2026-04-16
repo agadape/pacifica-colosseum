@@ -44,7 +44,7 @@ export default function AccountPanel({
         </div>
         <div className="flex-1">
           <p className="text-xs text-text-secondary mb-1">Unrealized PnL</p>
-          <p className={`font-mono text-sm font-semibold ${unrealizedPnl >= 0 ? "text-success" : "text-danger"}`}>
+          <p className={`font-mono text-sm font-semibold ${unrealizedPnl >= 0 ? "text-neon-cyan drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]" : "text-neon-magenta drop-shadow-[0_0_6px_rgba(255,0,110,0.5)]"}`}>
             {unrealizedPnl >= 0 ? "+" : ""}${unrealizedPnl.toFixed(2)}
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function AccountPanel({
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-accent-primary border border-indigo-200"
+                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30"
               >
                 Wide Zone +5%
               </motion.span>
@@ -71,8 +71,8 @@ export default function AccountPanel({
                 animate={{ scale: 1 }}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
                   secondLifeUsed
-                    ? "bg-gray-100 text-text-tertiary border-gray-200 line-through"
-                    : "bg-amber-50 text-accent-gold border-amber-200"
+                    ? "bg-bg-primary text-text-tertiary border-border line-through"
+                    : "bg-neon-gold/10 text-neon-gold border-neon-gold/30"
                 }`}
               >
                 Second Life {secondLifeUsed ? "(Used)" : ""}

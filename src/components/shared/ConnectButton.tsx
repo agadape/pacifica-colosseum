@@ -15,8 +15,8 @@ export default function ConnectButton() {
 
   if (!ready) {
     return (
-      <div className="px-5 py-2 rounded-full bg-border-light text-text-tertiary text-sm">
-        Loading...
+      <div className="px-5 py-2 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-tertiary)] text-sm font-semibold">
+        <span className="opacity-50">Loading...</span>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export default function ConnectButton() {
       <div className="flex items-center gap-3">
         <Link
           href={walletAddress ? `/profile/${walletAddress}` : "#"}
-          className="text-sm text-text-secondary font-mono hover:text-text-primary transition-colors"
+          className="cursor-target text-sm font-mono text-[var(--color-text-secondary)] hover:text-[var(--color-neon-cyan)] transition-colors"
         >
           {displayName}
         </Link>
@@ -38,7 +38,7 @@ export default function ConnectButton() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={logout}
-          className="px-4 py-2 rounded-full text-sm text-text-secondary border border-border hover:border-text-secondary hover:text-text-primary transition-colors"
+          className="cursor-target px-4 py-2 rounded-full text-sm font-semibold border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan)] transition-all"
         >
           Disconnect
         </motion.button>
@@ -48,12 +48,13 @@ export default function ConnectButton() {
 
   return (
     <motion.button
-      whileHover={{ scale: 1.03 }}
+      whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,240,255,0.5)" }}
       whileTap={{ scale: 0.97 }}
       onClick={login}
-      className="px-5 py-2.5 rounded-full bg-accent-primary text-white text-sm font-semibold hover:bg-accent-hover transition-colors shadow-sm"
+      className="cursor-target px-5 py-2.5 rounded-full text-sm font-bold tracking-wide shadow-[0_0_16px_rgba(0,240,255,0.3)] bg-gradient-to-r from-[var(--color-neon-cyan)] to-[var(--color-neon-cyan-dim)] text-black hover:shadow-[0_0_32px_rgba(0,240,255,0.6)] transition-all"
+      style={{ fontFamily: "var(--font-display)" }}
     >
-      Connect
+      ENTER THE ARENA
     </motion.button>
   );
 }

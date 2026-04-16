@@ -43,13 +43,13 @@ export default function RoundTransition({
   return (
     <AnimatePresence>
       {phase !== "done" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] bg-text-primary/95 flex items-center justify-center"
-        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] bg-bg-primary/95 flex items-center justify-center"
+          >
           {phase === "announce" && (
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -57,15 +57,15 @@ export default function RoundTransition({
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
               className="text-center"
             >
-              <p className="text-white/40 text-xs uppercase tracking-[0.4em] mb-4">
+              <p className="text-text-tertiary text-xs uppercase tracking-[0.4em] mb-4">
                 Round {roundNumber}
               </p>
-              <h1 className="font-display text-5xl md:text-7xl font-800 text-white tracking-tight">
+              <h1 className="font-display text-5xl md:text-7xl font-bold text-text-primary tracking-tight">
                 {roundName}
               </h1>
               <div className="flex items-center justify-center gap-6 mt-6">
-                <span className="text-white/60 text-sm">
-                  Max <span className="text-white font-mono font-bold">{maxLeverage}x</span>
+                <span className="text-text-secondary text-sm">
+                  Max <span className="text-neon-cyan font-mono font-bold">{maxLeverage}x</span>
                 </span>
                 <span className="text-danger text-sm">
                   Drawdown <span className="font-mono font-bold">{maxDrawdown}%</span>
@@ -81,7 +81,7 @@ export default function RoundTransition({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="font-display text-8xl font-800 text-white"
+              className="font-display text-8xl font-bold text-neon-cyan drop-shadow-[0_0_30px_rgba(0,240,255,0.6)]"
             >
               {count}
             </motion.span>

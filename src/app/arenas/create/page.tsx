@@ -6,10 +6,10 @@ import { motion } from "framer-motion";
 import { useCreateArena } from "@/hooks/use-arena";
 
 const presets = [
-  { value: "blitz", label: "Blitz", desc: "5 min", color: "border-danger text-danger" },
-  { value: "sprint", label: "Sprint", desc: "2 hours", color: "border-accent-primary text-accent-primary" },
-  { value: "daily", label: "Daily", desc: "24 hours", color: "border-success text-success" },
-  { value: "weekly", label: "Weekly", desc: "7 days", color: "border-accent-gold text-accent-gold" },
+  { value: "blitz", label: "Blitz", desc: "5 min", color: "#FF3333", bg: "rgba(255,51,51,0.1)", border: "rgba(255,51,51,0.3)" },
+  { value: "sprint", label: "Sprint", desc: "2 hours", color: "#00F0FF", bg: "rgba(0,240,255,0.1)", border: "rgba(0,240,255,0.3)" },
+  { value: "daily", label: "Daily", desc: "24 hours", color: "#00FF88", bg: "rgba(0,255,136,0.1)", border: "rgba(0,255,136,0.3)" },
+  { value: "weekly", label: "Weekly", desc: "7 days", color: "#FFD700", bg: "rgba(255,215,0,0.1)", border: "rgba(255,215,0,0.3)" },
 ];
 
 export default function CreateArenaPage() {
@@ -19,7 +19,7 @@ export default function CreateArenaPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [preset, setPreset] = useState("sprint");
-  const [startsIn, setStartsIn] = useState(5); // minutes from now
+  const [startsIn, setStartsIn] = useState(5);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,24 +38,33 @@ export default function CreateArenaPage() {
   };
 
   return (
-    <main className="min-h-screen pt-24 px-6 md:px-10">
+    <main className="min-h-screen pt-24 px-4 md:px-6 pb-16">
       <div className="max-w-lg mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-text-tertiary mb-2">
+          <p
+            className="text-xs uppercase tracking-[0.3em] mb-2 font-semibold"
+            style={{ color: "var(--color-neon-magenta)", fontFamily: "var(--font-display)" }}
+          >
             New
           </p>
-          <h1 className="font-display text-4xl font-800 tracking-tight text-text-primary mb-10">
+          <h1
+            className="font-display text-4xl font-black tracking-tight mb-10"
+            style={{ color: "var(--color-text-primary)" }}
+          >
             Create Arena
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
-              <label className="block text-xs uppercase tracking-wider text-text-tertiary mb-2">
+              <label
+                className="block text-xs uppercase tracking-wider mb-2 font-semibold"
+                style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}
+              >
                 Arena Name
               </label>
               <input
@@ -66,15 +75,24 @@ export default function CreateArenaPage() {
                 required
                 minLength={3}
                 maxLength={50}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl text-sm"
+                style={{
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-primary)",
+                  fontFamily: "var(--font-sans)",
+                }}
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs uppercase tracking-wider text-text-tertiary mb-2">
+              <label
+                className="block text-xs uppercase tracking-wider mb-2 font-semibold"
+                style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}
+              >
                 Description
-                <span className="text-text-tertiary ml-1">(optional)</span>
+                <span className="ml-1 normal-case font-normal" style={{ color: "var(--color-text-tertiary)" }}>(optional)</span>
               </label>
               <input
                 type="text"
@@ -82,43 +100,72 @@ export default function CreateArenaPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Short description"
                 maxLength={200}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl text-sm"
+                style={{
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-primary)",
+                  fontFamily: "var(--font-sans)",
+                }}
               />
             </div>
 
             {/* Preset */}
             <div>
-              <label className="block text-xs uppercase tracking-wider text-text-tertiary mb-3">
+              <label
+                className="block text-xs uppercase tracking-wider mb-3 font-semibold"
+                style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}
+              >
                 Preset
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {presets.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPreset(p.value)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      preset === p.value
-                        ? `${p.color} bg-surface`
-                        : "border-border-medium text-text-secondary hover:border-border"
-                    }`}
-                  >
-                    <span className="block text-sm font-semibold">{p.label}</span>
-                    <span className="block text-xs text-text-tertiary mt-0.5">{p.desc}</span>
-                  </button>
-                ))}
+                {presets.map((p) => {
+                  const isSelected = preset === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPreset(p.value)}
+                      className="p-4 rounded-xl border-2 text-left transition-all"
+                      style={{
+                        background: isSelected ? p.bg : "var(--color-surface)",
+                        borderColor: isSelected ? p.border : "var(--color-border)",
+                        boxShadow: isSelected ? `0 0 20px ${p.color}30` : "none",
+                      }}
+                    >
+                      <span
+                        className="block text-sm font-bold"
+                        style={{ color: isSelected ? p.color : "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}
+                      >
+                        {p.label}
+                      </span>
+                      <span className="block text-xs mt-0.5" style={{ color: "var(--color-text-tertiary)" }}>
+                        {p.desc}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Start Time */}
             <div>
-              <label className="block text-xs uppercase tracking-wider text-text-tertiary mb-2">
+              <label
+                className="block text-xs uppercase tracking-wider mb-2 font-semibold"
+                style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}
+              >
                 Starts in
               </label>
               <select
                 value={startsIn}
                 onChange={(e) => setStartsIn(Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-xl bg-surface border border-border-medium text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                className="w-full px-4 py-3 rounded-xl text-sm"
+                style={{
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-primary)",
+                  fontFamily: "var(--font-sans)",
+                }}
               >
                 <option value={1}>1 minute</option>
                 <option value={2}>2 minutes</option>
@@ -130,24 +177,33 @@ export default function CreateArenaPage() {
                 <option value={360}>6 hours</option>
                 <option value={1440}>24 hours</option>
               </select>
-              <p className="mt-2 text-xs text-text-tertiary">
-                Arena starts automatically at the scheduled time. Solo play supported — <span className="text-accent-primary font-semibold">no minimum</span> required.
+              <p className="mt-2 text-xs" style={{ color: "var(--color-text-tertiary)" }}>
+                Arena starts automatically at the scheduled time. Solo play supported —{" "}
+                <span className="font-bold" style={{ color: "var(--color-neon-cyan)" }}>
+                  no minimum
+                </span>{" "}
+                required.
               </p>
             </div>
 
             {/* Submit */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, boxShadow: "0 0 32px rgba(0,240,255,0.5)" }}
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={createArena.isPending || !name}
-              className="w-full py-3.5 rounded-full bg-accent-primary text-white font-semibold text-sm hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-full text-sm font-bold text-black disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{
+                background: "linear-gradient(135deg, var(--color-neon-cyan), var(--color-neon-cyan-dim))",
+                fontFamily: "var(--font-display)",
+                boxShadow: "0 0 24px rgba(0,240,255,0.3)",
+              }}
             >
               {createArena.isPending ? "Creating..." : "Create Arena"}
             </motion.button>
 
             {createArena.isError && (
-              <p className="text-sm text-danger text-center">
+              <p className="text-sm text-center" style={{ color: "var(--color-danger)" }}>
                 Failed to create arena. Please try again.
               </p>
             )}

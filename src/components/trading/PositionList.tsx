@@ -99,7 +99,7 @@ export default function PositionList({ arenaId }: PositionListProps) {
                     className="border-b border-border last:border-0 hover:bg-bg-primary/50 transition-colors"
                   >
                     <td className="py-2.5 font-mono font-semibold text-text-primary">{symbol}</td>
-                    <td className={`py-2.5 font-semibold ${sideStr === "bid" ? "text-success" : "text-danger"}`}>
+                    <td className={`py-2.5 font-semibold ${sideStr === "bid" ? "text-neon-cyan drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]" : "text-neon-magenta drop-shadow-[0_0_4px_rgba(255,0,110,0.4)]"}`}>
                       {sideStr === "bid" ? "Long" : "Short"}
                     </td>
                     <td className="py-2.5 text-right font-mono text-text-primary">{size.toFixed(4)}</td>
@@ -107,7 +107,7 @@ export default function PositionList({ arenaId }: PositionListProps) {
                     <td className="py-2.5 text-right font-mono text-text-primary">
                       {markPrice?.toFixed(2) ?? "—"}
                     </td>
-                    <td className={`py-2.5 text-right font-mono font-semibold ${unrealizedPnl >= 0 ? "text-success" : "text-danger"}`}>
+                    <td className={`py-2.5 text-right font-mono font-semibold ${unrealizedPnl >= 0 ? "text-neon-cyan drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]" : "text-neon-magenta drop-shadow-[0_0_4px_rgba(255,0,110,0.4)]"}`}>
                       {unrealizedPnl >= 0 ? "+" : ""}{unrealizedPnl.toFixed(2)}
                     </td>
                     <td className="py-2.5 text-right">

@@ -102,11 +102,11 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-3">
-        <div className="h-4 w-24 bg-gray-100 rounded animate-pulse mb-3" />
+      <div className="rounded-xl border border-border bg-surface p-3">
+        <div className="h-4 w-24 bg-bg-primary rounded animate-pulse mb-3" />
         <div className="space-y-2">
           {[1, 2].map(i => (
-            <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
+            <div key={i} className="h-16 bg-bg-primary rounded-xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -115,22 +115,22 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
 
   if (abilities.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white p-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Abilities</p>
-        <p className="text-xs text-gray-400">No abilities yet — earn them at round end.</p>
-        <p className="text-[11px] text-gray-400 mt-1">
-          Top PnL → Sabotage &middot; Min DD → Fortress &middot; Most Trades → Shield
+      <div className="rounded-xl border border-border bg-surface p-3">
+        <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-1">Abilities</p>
+        <p className="text-xs text-text-tertiary">No abilities yet — earn them at round end.</p>
+        <p className="text-[11px] text-text-tertiary mt-1">
+          Top PnL → Sabotage · Min DD → Fortress · Most Trades → Shield
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-3 space-y-3">
+    <div className="rounded-xl border border-border bg-surface p-3 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Abilities</p>
+        <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest">Abilities</p>
         {unusedAbilities.length > 0 && (
-          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-neon-gold/10 text-neon-gold border border-neon-gold/30">
             {unusedAbilities.length} ready
           </span>
         )}
@@ -156,8 +156,8 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
                   key={i}
                   className={`flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg font-medium ${
                     isSabotage
-                      ? "bg-red-50 text-red-700 border border-red-200"
-                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      ? "bg-neon-magenta/10 text-neon-magenta border border-neon-magenta/30"
+                      : "bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30"
                   } ${isExpiringSoon ? "animate-pulse" : ""}`}
                 >
                   <span>{effect.abilities?.icon ?? "✨"}</span>
@@ -193,7 +193,7 @@ export function AbilityPanel({ arenaId, myParticipantId, targets = [] }: Ability
       {/* Used abilities (greyed out) */}
       {usedAbilities.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Used</p>
+          <p className="text-xs text-text-tertiary uppercase tracking-wider font-medium">Used</p>
           {usedAbilities.map(a => (
             <AbilityCardWithToken
               key={`${a.ability_id}-${a.acquired_in_round}-used`}

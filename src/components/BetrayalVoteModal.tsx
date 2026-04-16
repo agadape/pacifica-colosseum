@@ -37,7 +37,6 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
 
   const alliance = data?.data?.myAlliance;
 
-  // Countdown
   useEffect(() => {
     if (!alliance?.betrayalDeadlineAt) return;
     const deadline = new Date(alliance.betrayalDeadlineAt).getTime();
@@ -66,7 +65,6 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["alliances", arenaId] });
-      // Dismiss after vote registered
       setTimeout(() => setDismissed(true), 2500);
     },
   });
@@ -91,18 +89,16 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 16 }}
-            className="bg-surface rounded-3xl border border-border-medium shadow-2xl w-full max-w-sm p-8"
+            className="bg-surface rounded-3xl border border-border shadow-2xl w-full max-w-sm p-8"
           >
-            {/* Header */}
             <div className="text-center mb-6">
               <div className="text-5xl mb-3">🗡️</div>
-              <h2 className="font-display text-2xl font-800 text-text-primary mb-1">Betrayal Phase</h2>
+              <h2 className="font-display text-2xl font-bold text-text-primary mb-1">Betrayal Phase</h2>
               <p className="text-sm text-text-secondary">
-                Your alliance with <span className="font-semibold text-text-primary">{partnerName}</span> reaches its reckoning.
+                Your alliance with <span className="font-semibold text-neon-gold">{partnerName}</span> reaches its reckoning.
               </p>
             </div>
 
-            {/* Countdown */}
             {secondsLeft !== null && (
               <div className={`text-center mb-6 ${secondsLeft <= 15 ? "text-danger" : "text-text-secondary"}`}>
                 <span className="font-mono text-3xl font-bold">
@@ -112,12 +108,11 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
               </div>
             )}
 
-            {/* Explanation */}
             <div className="bg-bg-primary rounded-2xl p-4 mb-6 space-y-2">
               <div className="flex items-start gap-2">
                 <span className="text-sm">🤝</span>
                 <p className="text-xs text-text-secondary">
-                  <span className="font-semibold text-emerald-600">Stay</span> — alliance dissolves peacefully. Both survive independently.
+                  <span className="font-semibold text-neon-cyan">Stay</span> — alliance dissolves peacefully. Both survive independently.
                 </p>
               </div>
               <div className="flex items-start gap-2">
@@ -128,7 +123,6 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
               </div>
             </div>
 
-            {/* Buttons */}
             {!voteMutation.isSuccess ? (
               <div className="grid grid-cols-2 gap-3">
                 <motion.button
@@ -136,7 +130,7 @@ export function BetrayalVoteModal({ arenaId, partnerName }: BetrayalVoteModalPro
                   whileTap={{ scale: 0.97 }}
                   onClick={() => voteMutation.mutate("stay")}
                   disabled={voteMutation.isPending}
-                  className="py-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold text-sm hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                  className="py-3 rounded-2xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan font-semibold text-sm hover:bg-neon-cyan/20 transition-colors disabled:opacity-50"
                 >
                   Stay Loyal
                 </motion.button>

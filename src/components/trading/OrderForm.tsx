@@ -72,9 +72,9 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
             key={type}
             type="button"
             onClick={() => setOrderType(type)}
-            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent-primary ${
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-neon-cyan ${
               orderType === type
-                ? "bg-surface text-text-primary shadow-sm"
+                ? "bg-surface text-text-primary shadow-sm border border-border"
                 : "text-text-tertiary hover:text-text-secondary"
             }`}
           >
@@ -87,10 +87,10 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         <button
           type="button"
           onClick={() => setSide("bid")}
-          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-success ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-neon-cyan ${
             side === "bid"
-              ? "bg-success text-white shadow-sm"
-              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary"
+              ? "bg-neon-cyan text-bg-primary shadow-[0_0_16px_rgba(0,240,255,0.4)]"
+              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary border border-border"
           }`}
         >
           Long
@@ -98,10 +98,10 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         <button
           type="button"
           onClick={() => setSide("ask")}
-          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-danger ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-neon-magenta ${
             side === "ask"
-              ? "bg-danger text-white shadow-sm"
-              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary"
+              ? "bg-neon-magenta text-white shadow-[0_0_16px_rgba(255,0,110,0.4)]"
+              : "bg-bg-primary text-text-secondary hover:bg-bg-tertiary border border-border"
           }`}
         >
           Short
@@ -122,7 +122,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           value={size}
           onChange={(e) => setSize(e.target.value)}
           placeholder="100"
-          className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+          className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 placeholder:text-text-tertiary"
         />
       </div>
 
@@ -132,7 +132,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
             key={v}
             type="button"
             onClick={() => setSize(v)}
-            className="flex-1 py-2 rounded-lg text-xs font-semibold text-text-secondary bg-bg-primary border border-border hover:border-accent-primary hover:text-accent-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent-primary"
+            className="flex-1 py-2 rounded-lg text-xs font-semibold text-text-secondary bg-bg-primary border border-border hover:border-neon-cyan hover:text-neon-cyan transition-all focus-visible:ring-2 focus-visible:ring-neon-cyan"
           >
             ${v}
           </button>
@@ -147,7 +147,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="0.00"
-            className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+            className="w-full px-3 py-2.5 rounded-xl bg-bg-primary border border-border text-text-primary font-mono text-sm focus:outline-none focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 placeholder:text-text-tertiary"
           />
         </div>
       )}
@@ -157,7 +157,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           <label className="text-xs text-text-secondary font-medium">
             Leverage <span className="text-text-tertiary">(max {maxLeverage}x)</span>
           </label>
-          <span className="font-mono text-sm font-bold text-accent-primary">{leverage}x</span>
+          <span className="font-mono text-sm font-bold text-neon-cyan drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]">{leverage}x</span>
         </div>
         <input
           type="range"
@@ -165,7 +165,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           max={maxLeverage}
           value={leverage}
           onChange={(e) => setLeverage(Number(e.target.value))}
-          className="w-full accent-accent-primary"
+          className="w-full accent-neon-cyan"
         />
       </div>
 
@@ -178,7 +178,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
           type="checkbox"
           checked={reduceOnly}
           onChange={(e) => setReduceOnly(e.target.checked)}
-          className="accent-accent-primary w-4 h-4 rounded"
+          className="accent-neon-cyan w-4 h-4 rounded"
         />
         <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors">Reduce only</span>
       </label>
@@ -188,10 +188,10 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         whileTap={{ scale: 0.99 }}
         type="submit"
         disabled={submitOrder.isPending}
-        className={`w-full py-3.5 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-50 shadow-sm focus-visible:ring-2 ${
+        className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 ${
           side === "bid"
-            ? "bg-success hover:bg-emerald-600 focus-visible:ring-success"
-            : "bg-danger hover:bg-red-600 focus-visible:ring-danger"
+            ? "bg-neon-cyan text-bg-primary hover:brightness-110 shadow-[0_0_20px_rgba(0,240,255,0.4)] focus-visible:ring-neon-cyan"
+            : "bg-neon-magenta text-white hover:brightness-110 shadow-[0_0_20px_rgba(255,0,110,0.4)] focus-visible:ring-neon-magenta"
         }`}
       >
         {submitOrder.isPending
@@ -203,7 +203,7 @@ export default function OrderForm({ arenaId, symbol, maxLeverage }: OrderFormPro
         <motion.p
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-3 text-xs text-success text-center font-medium"
+          className="mt-3 text-xs text-neon-cyan text-center font-medium drop-shadow-[0_0_6px_rgba(0,240,255,0.5)]"
         >
           Order placed ✓
         </motion.p>

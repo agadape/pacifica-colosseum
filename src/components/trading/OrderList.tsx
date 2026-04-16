@@ -49,7 +49,7 @@ export default function OrderList({ arenaId }: OrderListProps) {
                   <td className="py-2.5 font-mono font-semibold text-text-primary">
                     {trade.symbol as string}-PERP
                   </td>
-                  <td className={`py-2.5 font-semibold ${trade.side === "buy" ? "text-success" : "text-danger"}`}>
+                  <td className={`py-2.5 font-semibold ${trade.side === "buy" ? "text-neon-cyan drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]" : "text-neon-magenta drop-shadow-[0_0_4px_rgba(255,0,110,0.4)]"}`}>
                     {trade.side === "buy" ? "Long" : "Short"}
                   </td>
                   <td className="py-2.5 text-right font-mono text-text-primary">

@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 type StatusLevel = "safe" | "caution" | "danger" | "critical" | "eliminated";
 
 interface StatusBadgeProps {
@@ -17,21 +19,62 @@ function getLevel(drawdown: number, maxDrawdown: number, isEliminated?: boolean)
   return "critical";
 }
 
-const config: Record<StatusLevel, { label: string; classes: string }> = {
-  safe: { label: "SAFE", classes: "bg-success/10 text-success-dark border border-success/20" },
-  caution: { label: "CAUTION", classes: "bg-amber-50 text-warning border border-warning/20" },
-  danger: { label: "DANGER", classes: "bg-orange-50 text-orange-status border border-orange-500/20" },
-  critical: { label: "CRITICAL", classes: "bg-red-50 text-danger border border-danger/20 animate-pulse" },
-  eliminated: { label: "ELIMINATED", classes: "bg-gray-100 text-text-tertiary border border-gray-200 line-through" },
+const config: Record<StatusLevel, { label: string; classes: string; glow: string; borderColor: string; bgColor: string }> = {
+  safe: {
+    label: "SAFE",
+    classes: "text-[#5DD9A8]",
+    glow: "rgba(93, 217, 168, 0.4)",
+    borderColor: "rgba(93, 217, 168, 0.3)",
+    bgColor: "rgba(93, 217, 168, 0.08)",
+  },
+  caution: {
+    label: "CAUTION",
+    classes: "text-[#E8A836]",
+    glow: "rgba(232, 168, 54, 0.4)",
+    borderColor: "rgba(232, 168, 54, 0.3)",
+    bgColor: "rgba(232, 168, 54, 0.08)",
+  },
+  danger: {
+    label: "DANGER",
+    classes: "text-[#D97B4A]",
+    glow: "rgba(217, 123, 74, 0.4)",
+    borderColor: "rgba(217, 123, 74, 0.3)",
+    bgColor: "rgba(217, 123, 74, 0.08)",
+  },
+  critical: {
+    label: "CRITICAL",
+    classes: "text-[#E85353]",
+    glow: "rgba(232, 83, 83, 0.5)",
+    borderColor: "rgba(232, 83, 83, 0.4)",
+    bgColor: "rgba(232, 83, 83, 0.08)",
+  },
+  eliminated: {
+    label: "ELIMINATED",
+    classes: "text-[var(--color-text-tertiary)]",
+    glow: "none",
+    borderColor: "rgba(90,88,72,0.3)",
+    bgColor: "rgba(90,88,72,0.06)",
+  },
 };
 
 export default function StatusBadge({ drawdown, maxDrawdown, isEliminated }: StatusBadgeProps) {
   const level = getLevel(drawdown, maxDrawdown, isEliminated);
-  const { label, classes } = config[level];
+  const { label, glow, borderColor, bgColor } = config[level];
 
   return (
-    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${classes}`}>
+    <motion.span
+      whileHover={{ scale: 1.05 }}
+      className="inline-block px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border genshin-card"
+      style={{
+        background: bgColor,
+        color: config[level].classes,
+        borderColor,
+        boxShadow: glow !== "none" ? `0 0 10px ${glow}, inset 0 0 6px ${bgColor}` : "none",
+        fontFamily: "var(--font-display)",
+        letterSpacing: "0.12em",
+      }}
+    >
       {label}
-    </span>
+    </motion.span>
   );
 }

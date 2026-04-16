@@ -15,15 +15,15 @@ interface ActivityFeedProps {
 }
 
 const typeColors: Record<string, string> = {
-  trade_opened: "text-success",
-  trade_closed: "text-accent-primary",
+  trade_opened: "text-neon-cyan",
+  trade_closed: "text-neon-cyan",
   elimination: "text-danger",
-  round_start: "text-accent-primary",
+  round_start: "text-neon-cyan",
   round_end: "text-text-secondary",
-  loot_awarded: "text-accent-gold",
-  arena_start: "text-accent-primary",
+  loot_awarded: "text-neon-gold",
+  arena_start: "text-neon-cyan",
   arena_end: "text-text-primary",
-  second_life_used: "text-accent-gold",
+  second_life_used: "text-neon-gold",
   leverage_warning: "text-warning",
   vote_cast: "text-text-secondary",
 };

@@ -16,9 +16,9 @@ interface Sentiment {
 }
 
 const labelColors: Record<string, string> = {
-  bullish: "text-success",
+  bullish: "text-neon-cyan",
   neutral: "text-text-secondary",
-  bearish: "text-danger",
+  bearish: "text-neon-magenta",
 };
 
 export default function MarketContext({ arenaId, symbols }: MarketContextProps) {

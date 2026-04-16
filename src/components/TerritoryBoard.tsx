@@ -39,17 +39,17 @@ interface TerritoryBoardProps {
 }
 
 function pnlColor(pnl: number): string {
-  if (pnl >= 0.05) return "text-emerald-600";
-  if (pnl >= 0) return "text-emerald-500/80";
-  if (pnl >= -0.05) return "text-rose-400";
-  return "text-rose-600";
+  if (pnl >= 0.05) return "text-neon-cyan drop-shadow-[0_0_4px_rgba(0,240,255,0.4)]";
+  if (pnl >= 0) return "text-neon-cyan/70";
+  if (pnl >= -0.05) return "text-neon-magenta/70";
+  return "text-neon-magenta drop-shadow-[0_0_4px_rgba(255,0,110,0.4)]";
 }
 
 function cellBg(cell: TerritoryCell, isMe: boolean, isTarget: boolean): string {
-  if (isTarget) return "bg-amber-50 border-amber-400 shadow-amber-100";
-  if (isMe) return "bg-accent-primary/8 border-accent-primary shadow-sm";
-  if (cell.isEliminationZone && !cell.holder) return "bg-rose-50/60 border-rose-200/60";
-  if (cell.isEliminationZone) return "bg-rose-50 border-rose-300/60";
+  if (isTarget) return "bg-neon-gold/10 border-neon-gold shadow-neon-gold/20";
+  if (isMe) return "bg-neon-cyan/8 border-neon-cyan shadow-sm";
+  if (cell.isEliminationZone && !cell.holder) return "bg-neon-magenta/5 border-neon-magenta/30";
+  if (cell.isEliminationZone) return "bg-neon-magenta/10 border-neon-magenta/40";
   if (!cell.holder) return "bg-surface/40 border-border-medium border-dashed";
   return "bg-surface border-border-medium";
 }
