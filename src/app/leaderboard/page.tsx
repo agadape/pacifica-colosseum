@@ -1282,93 +1282,42 @@ function BreachFin() {
 }
 
 
-// ── RIGHT-SIDE BORDER CREATURES (ranks 1-4 only) ─────────────────────────────
-// Same z:3 layer as the left creatures — visible over card bg, under card content
+// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child of card content row ────────────
+// Lives inside the card grid so the layout naturally adjusts around it.
+// The image vertically overflows the row (taller than card height) but the
+// parent has overflow:visible so it shows above and below.
+const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; slot: number; imgH: number; anim: string; glow: string }> = {
+  1: { src: "/creatures/LabelNumber1RightSide.png", slot: 110, imgH: 220, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.18)" },
+  2: { src: "/creatures/LabelNumber2RightSide.png", slot: 100, imgH: 215, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.16)" },
+  3: { src: "/creatures/LabelNumber3RightSide.png", slot: 110, imgH: 200, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.18)" },
+  4: { src: "/creatures/LabelNumber4RightSide.png", slot: 130, imgH: 165, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.15)" },
+};
 
-// Rank 1 right — Boat with vertical waves
-function BreachWhaleSideRight() {
+function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
+  const c = RIGHT_LABEL_CFG[rank];
   return (
     <div
-      className="absolute pointer-events-none select-none hidden md:block"
-      style={{
-        right: "-100px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "200px",
-        height: "230px",
-        zIndex: 3,
-        animation: "whale-breach 7s ease-in-out infinite",
-        filter: "drop-shadow(0 8px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 18px rgba(77,191,255,0.18))",
-      }}
+      className="hidden md:block flex-shrink-0 relative pointer-events-none select-none"
+      style={{ width: c.slot, alignSelf: "stretch" }}
+      aria-hidden
     >
-      <img src="/creatures/LabelNumber1RightSide.png" alt="" draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-    </div>
-  );
-}
-
-// Rank 2 right — Boat with sharks underneath
-function BreachSharkRight() {
-  return (
-    <div
-      className="absolute pointer-events-none select-none hidden md:block"
-      style={{
-        right: "-80px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "165px",
-        height: "215px",
-        zIndex: 3,
-        animation: "shark-circle 9s ease-in-out infinite",
-        filter: "drop-shadow(0 8px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 16px rgba(77,191,255,0.16))",
-      }}
-    >
-      <img src="/creatures/LabelNumber2RightSide.png" alt="" draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-    </div>
-  );
-}
-
-// Rank 3 right — Orange koi fish in waves
-function BreachWaveRight() {
-  return (
-    <div
-      className="absolute pointer-events-none select-none hidden md:block"
-      style={{
-        right: "-90px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "190px",
-        height: "190px",
-        zIndex: 3,
-        animation: "wave-roll 6s ease-in-out infinite",
-        filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(255,107,74,0.18))",
-      }}
-    >
-      <img src="/creatures/LabelNumber3RightSide.png" alt="" draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-    </div>
-  );
-}
-
-// Rank 4 right — Red boat sailing on waves
-function BreachDolphinRight() {
-  return (
-    <div
-      className="absolute pointer-events-none select-none hidden md:block"
-      style={{
-        right: "-105px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: "215px",
-        height: "155px",
-        zIndex: 3,
-        animation: "dolphin-leap 6s ease-in-out infinite",
-        filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(77,191,255,0.15))",
-      }}
-    >
-      <img src="/creatures/LabelNumber4RightSide.png" alt="" draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+      <img
+        src={c.src}
+        alt=""
+        draggable={false}
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          height: c.imgH,
+          width: "auto",
+          maxWidth: "none",
+          objectFit: "contain",
+          filter: `drop-shadow(0 8px 20px rgba(0,0,0,0.55)) drop-shadow(0 0 16px ${c.glow})`,
+          animation: c.anim,
+        }}
+      />
     </div>
   );
 }
@@ -1559,18 +1508,13 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)`, opacity: borderOpacity }} />
       </div>
 
-      {/* ══ LAYER 2: PNG creatures — float over card background (z:3) ══ */}
-      {/* Left creature (all ranks) */}
+      {/* ══ LAYER 2: Left-side PNG creatures — float over card background (z:3) ══ */}
+      {/* Right-side labels are inside the content row as flex children (see below) */}
       {rank === 1 && <BreachWhaleSide />}
       {rank === 2 && <BreachShark />}
       {rank === 3 && <BreachWave />}
       {rank === 4 && <BreachDolphin />}
       {rank === 5 && <BreachFin />}
-      {/* Right border creature (ranks 1-4 only) — same z:3 layer */}
-      {rank === 1 && <BreachWhaleSideRight />}
-      {rank === 2 && <BreachSharkRight />}
-      {rank === 3 && <BreachWaveRight />}
-      {rank === 4 && <BreachDolphinRight />}
 
       {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
       <div
@@ -1660,6 +1604,9 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           <svg className="w-4 h-4 flex-shrink-0" style={{ opacity: 0.4, color: accent }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
+
+          {/* Right-side label — flex child, card grid adjusts around it */}
+          {rank <= 4 && <RightSideLabel rank={rank as 1 | 2 | 3 | 4} />}
         </div>
       </div>
     </motion.div>
