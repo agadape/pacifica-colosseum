@@ -465,12 +465,12 @@ function StatCard({ label, value, sub, color, delay }: { label: string; value: s
           {value}
         </div>
 
-        <div className="text-[10px] uppercase tracking-[0.2em] mt-1.5" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>
+        <div className="text-xs uppercase tracking-[0.2em] mt-1.5" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>
           {label}
         </div>
 
         {sub && (
-          <div className="text-[9px] mt-0.5" style={{ color: "var(--color-text-tertiary)", opacity: 0.7 }}>
+          <div className="text-[10px] mt-0.5" style={{ color: "var(--color-text-tertiary)", opacity: 0.7 }}>
             {sub}
           </div>
         )}
@@ -518,7 +518,7 @@ function TierPathItem({ tier, isActive, isCompleted, index }: { tier: TierKey; i
       </motion.div>
 
       <span
-        className="text-[9px] font-bold uppercase tracking-wider mt-2"
+        className="text-[10px] font-bold uppercase tracking-wider mt-2"
         style={{
           color: isActive ? config.primary : isCompleted ? "var(--color-text-secondary)" : "var(--color-text-tertiary)",
           fontFamily: "var(--font-display)",
@@ -569,7 +569,7 @@ function NavButton({ icon, label, href, primary }: { icon: React.ReactNode; labe
             }}
           />
         </motion.div>
-        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: GOLD, fontFamily: "var(--font-display)" }}>
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: GOLD, fontFamily: "var(--font-display)" }}>
           {label}
         </span>
       </Link>
@@ -590,7 +590,7 @@ function NavButton({ icon, label, href, primary }: { icon: React.ReactNode; labe
       >
         {icon}
       </motion.div>
-      <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>
+      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-display)" }}>
         {label}
       </span>
     </Link>
@@ -764,7 +764,7 @@ export default function RankingPage() {
                 <div className="text-xl font-black" style={{ color: config.primary, fontFamily: "var(--font-display)", textShadow: `0 0 15px ${config.glow}` }}>
                   #{wins}
                 </div>
-                <div className="text-[9px] uppercase tracking-widest" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>
+                <div className="text-[10px] uppercase tracking-widest" style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-display)" }}>
                   Rank
                 </div>
               </div>
