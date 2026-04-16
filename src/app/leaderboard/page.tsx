@@ -1275,7 +1275,7 @@ function BreachFin() {
         filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(77,191,255,0.15))",
       }}
     >
-      <img src="/creatures/WaveLabel.png" alt="" draggable={false}
+      <img src="/creatures/WaveLabel2.png" alt="" draggable={false}
         style={{ width: "100%", height: "100%", objectFit: "contain" }} />
     </div>
   );
