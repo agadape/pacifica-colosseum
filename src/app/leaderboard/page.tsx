@@ -1282,6 +1282,42 @@ function BreachFin() {
 }
 
 
+// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child, objectFit cover ───────────────
+const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; w: number; h: number; anim: string; glow: string; pos: string }> = {
+  // pos: "right center" anchors the right side of the image to the right edge
+  // of the slot, so the image fills flush right with no gap.
+  1: { src: "/creatures/LabelNumber1RightSide.png", w: 140, h: 96, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.20)", pos: "right center" },
+  2: { src: "/creatures/LabelNumber2RightSide.png", w: 130, h: 88, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "right center" },
+  3: { src: "/creatures/LabelNumber3RightSide.png", w: 130, h: 80, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.20)", pos: "center"       },
+  4: { src: "/creatures/LabelNumber4RightSide.png", w: 140, h: 72, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.18)", pos: "left center"  },
+};
+
+function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
+  const c = RIGHT_LABEL_CFG[rank];
+  return (
+    <div
+      className="hidden md:block flex-shrink-0 pointer-events-none select-none overflow-hidden rounded-r-xl"
+      style={{ width: c.w, height: c.h, alignSelf: "stretch" }}
+      aria-hidden
+    >
+      <img
+        src={c.src}
+        alt=""
+        draggable={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: c.pos,
+          filter: `drop-shadow(0 3px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${c.glow})`,
+          animation: c.anim,
+        }}
+      />
+    </div>
+  );
+}
+
+
 // ── Wave layer SVG paths ──────────────────────────────────────────────────────
 function WaveLayer({ y, opacity, dur, color }: { y: number; opacity: number; dur: string; color: string }) {
   // Two identical wave segments side by side so the loop is seamless
@@ -1477,7 +1513,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
 
       {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
       <div
-        className={`relative flex items-center gap-4 px-5 ${rowPy} rounded-xl`}
+        className={`relative flex items-center gap-4 pl-5 pr-0 ${rowPy} rounded-xl`}
         style={{ zIndex: 5 }}
       >
         <div className="flex-shrink-0 flex items-center justify-center"
@@ -1564,6 +1600,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
             <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
 
+          {rank <= 4 && <RightSideLabel rank={rank as 1 | 2 | 3 | 4} />}
         </div>
       </div>
     </motion.div>
