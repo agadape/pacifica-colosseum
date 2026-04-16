@@ -1282,23 +1282,25 @@ function BreachFin() {
 }
 
 
-// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child fully contained within row ─────
-// The image is sized to the card row height (no overflow above/below or beyond).
-// Card flex grid naturally reserves the slot.
-const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; maxH: number; anim: string; glow: string }> = {
-  // Per-rank max-height tuned to each row's actual height (rowPy + content).
-  // Rank 1 row ≈ 100px, rank 2 ≈ 92px, rank 3 ≈ 84px, rank 4 ≈ 76px.
-  1: { src: "/creatures/LabelNumber1RightSide.png", maxH: 92, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.18)" },
-  2: { src: "/creatures/LabelNumber2RightSide.png", maxH: 84, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.16)" },
-  3: { src: "/creatures/LabelNumber3RightSide.png", maxH: 78, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.18)" },
-  4: { src: "/creatures/LabelNumber4RightSide.png", maxH: 70, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.15)" },
+// ── RIGHT-SIDE LABEL (ranks 1-4) — flex child with hard width+height bounds ──
+// Both dimensions are pinned so the image cannot exceed the card boundary.
+// Container has overflow:hidden as a safety net; image uses objectFit:contain
+// to scale-down inside the box without losing aspect ratio.
+const RIGHT_LABEL_CFG: Record<1 | 2 | 3 | 4, { src: string; w: number; h: number; anim: string; glow: string }> = {
+  // Per-rank slot — kept conservative so it never breaks the rounded border.
+  // Card row heights ≈ 100/92/84/76 for ranks 1/2/3/4.
+  1: { src: "/creatures/LabelNumber1RightSide.png", w: 88, h: 88, anim: "whale-breach 7s ease-in-out infinite", glow: "rgba(77,191,255,0.18)" },
+  2: { src: "/creatures/LabelNumber2RightSide.png", w: 78, h: 80, anim: "shark-circle 9s ease-in-out infinite",  glow: "rgba(77,191,255,0.16)" },
+  3: { src: "/creatures/LabelNumber3RightSide.png", w: 82, h: 74, anim: "wave-roll 6s ease-in-out infinite",     glow: "rgba(255,107,74,0.18)" },
+  4: { src: "/creatures/LabelNumber4RightSide.png", w: 86, h: 64, anim: "dolphin-leap 6s ease-in-out infinite",  glow: "rgba(77,191,255,0.15)" },
 };
 
 function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
   const c = RIGHT_LABEL_CFG[rank];
   return (
     <div
-      className="hidden md:flex flex-shrink-0 items-center justify-center pointer-events-none select-none"
+      className="hidden md:flex flex-shrink-0 items-center justify-center pointer-events-none select-none overflow-hidden"
+      style={{ width: c.w, height: c.h }}
       aria-hidden
     >
       <img
@@ -1306,12 +1308,12 @@ function RightSideLabel({ rank }: { rank: 1 | 2 | 3 | 4 }) {
         alt=""
         draggable={false}
         style={{
-          maxHeight: c.maxH,
-          height: "auto",
+          maxWidth: "100%",
+          maxHeight: "100%",
           width: "auto",
-          maxWidth: "none",
+          height: "auto",
           objectFit: "contain",
-          filter: `drop-shadow(0 4px 12px rgba(0,0,0,0.45)) drop-shadow(0 0 12px ${c.glow})`,
+          filter: `drop-shadow(0 3px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 10px ${c.glow})`,
           animation: c.anim,
         }}
       />
