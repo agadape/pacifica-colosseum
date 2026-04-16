@@ -26,16 +26,16 @@ function CrownArch() {
           strokeWidth="1.5"
           fill="none"
         />
-        <circle cx="40" cy="8" r="2" fill="#F2D06B" />
-        <circle cx="28" cy="12" r="1.2" fill="#F2D06B" />
-        <circle cx="52" cy="12" r="1.2" fill="#F2D06B" />
-        <circle cx="16" cy="18" r="1" fill="#C8B273" />
-        <circle cx="64" cy="18" r="1" fill="#C8B273" />
+        <circle cx="40" cy="8" r="2" fill="#4DBFFF" />
+        <circle cx="28" cy="12" r="1.2" fill="#4DBFFF" />
+        <circle cx="52" cy="12" r="1.2" fill="#4DBFFF" />
+        <circle cx="16" cy="18" r="1" fill="#2A9FE8" />
+        <circle cx="64" cy="18" r="1" fill="#2A9FE8" />
         <defs>
           <linearGradient id="crownGrad" x1="2" y1="2" x2="78" y2="28" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#F2D06B" />
-            <stop offset="0.5" stopColor="#C8B273" />
-            <stop offset="1" stopColor="#F2D06B" />
+            <stop stopColor="#4DBFFF" />
+            <stop offset="0.5" stopColor="#2A9FE8" />
+            <stop offset="1" stopColor="#4DBFFF" />
           </linearGradient>
         </defs>
       </svg>
@@ -57,14 +57,14 @@ export default function Navbar() {
         <div
           className="relative glass-surface rounded-2xl border overflow-hidden"
           style={{
-            borderColor: "rgba(242, 208, 107, 0.2)",
-            boxShadow: "0 0 0 1px rgba(242,208,107,0.06), 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(242,208,107,0.08)",
+            borderColor: "rgba(77, 191, 255, 0.2)",
+            boxShadow: "0 0 0 1px rgba(77,191,255,0.06), 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(77,191,255,0.08)",
           }}
         >
           <div
             className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{
-              background: "linear-gradient(135deg, rgba(242,208,107,0.04) 0%, transparent 50%)",
+              background: "linear-gradient(135deg, rgba(77,191,255,0.04) 0%, transparent 50%)",
             }}
           />
 
@@ -74,8 +74,8 @@ export default function Navbar() {
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
                   style={{
-                    background: "linear-gradient(135deg, #F2D06B 0%, #C8B273 100%)",
-                    boxShadow: "0 0 16px rgba(242,208,107,0.4)",
+                    background: "linear-gradient(135deg, #4DBFFF 0%, #2A9FE8 100%)",
+                    boxShadow: "0 0 16px rgba(77,191,255,0.4)",
                   }}
                 >
                   <span
@@ -87,18 +87,18 @@ export default function Navbar() {
                 </div>
                 <div
                   className="absolute inset-0 rounded-lg opacity-30 blur-md"
-                  style={{ background: "rgba(242,208,107,0.5)" }}
+                  style={{ background: "rgba(77,191,255,0.5)" }}
                 />
               </div>
               <div className="flex flex-col leading-none">
                 <span
-                  className="text-sm font-bold tracking-[0.2em] text-[var(--color-gold-primary)]"
+                  className="text-sm font-bold tracking-[0.2em] text-[var(--color-sky-primary)]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   PACIFICA
                 </span>
                 <span
-                  className="text-[9px] tracking-[0.3em] text-[var(--color-gold-primary-dim)] mt-0.5"
+                  className="text-[9px] tracking-[0.3em] text-[var(--color-sky-secondary)] mt-0.5"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   COLOSSEUM
@@ -116,7 +116,7 @@ export default function Navbar() {
                       href={link.href}
                       className={`cursor-target relative text-sm font-semibold tracking-wide transition-all duration-200 ${
                         isActive
-                          ? "text-[var(--color-gold-primary)]"
+                          ? "text-[var(--color-sky-primary)]"
                           : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                       }`}
                       style={isActive ? { fontFamily: "var(--font-display)" } : {}}
@@ -127,8 +127,8 @@ export default function Navbar() {
                           layoutId="nav-indicator"
                           className="absolute -bottom-1 left-0 right-0 h-px rounded-full"
                           style={{
-                            background: "linear-gradient(90deg, transparent, var(--color-gold-primary), transparent)",
-                            boxShadow: "0 0 8px var(--color-gold-glow)",
+                            background: "linear-gradient(90deg, transparent, var(--color-sky-primary), transparent)",
+                            boxShadow: "0 0 8px rgba(77,191,255,0.5)",
                           }}
                         />
                       )}
@@ -143,7 +143,7 @@ export default function Navbar() {
           <div
             className="absolute bottom-0 left-0 right-0 h-px"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(242,208,107,0.3), transparent)",
+              background: "linear-gradient(90deg, transparent, rgba(77,191,255,0.3), transparent)",
             }}
           />
         </div>

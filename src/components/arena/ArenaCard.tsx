@@ -22,16 +22,16 @@ interface ArenaCardProps {
 const presetConfig: Record<string, { bg: string; text: string; border: string; glow: string; label: string }> = {
   blitz: { bg: "rgba(232,83,83,0.1)", text: "#E85353", border: "rgba(232,83,83,0.3)", glow: "rgba(232,83,83,0.3)", label: "BLITZ" },
   sprint: { bg: "rgba(93,217,168,0.08)", text: "#5DD9A8", border: "rgba(93,217,168,0.25)", glow: "rgba(93,217,168,0.25)", label: "SPRINT" },
-  daily: { bg: "rgba(242,208,107,0.08)", text: "#F2D06B", border: "rgba(242,208,107,0.25)", glow: "rgba(242,208,107,0.25)", label: "DAILY" },
-  weekly: { bg: "rgba(232,168,54,0.08)", text: "#E8A836", border: "rgba(232,168,54,0.25)", glow: "rgba(232,168,54,0.25)", label: "WEEKLY" },
+  daily: { bg: "rgba(77,191,255,0.08)", text: "#4DBFFF", border: "rgba(77,191,255,0.25)", glow: "rgba(77,191,255,0.25)", label: "DAILY" },
+  weekly: { bg: "rgba(42,159,232,0.08)", text: "#2A9FE8", border: "rgba(42,159,232,0.25)", glow: "rgba(42,159,232,0.25)", label: "WEEKLY" },
 };
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string; pulse: boolean }> = {
   registration: { label: "OPEN", color: "#5DD9A8", bgColor: "rgba(93,217,168,0.1)", pulse: true },
   starting: { label: "STARTING", color: "#E8A836", bgColor: "rgba(232,168,54,0.1)", pulse: true },
-  round_1: { label: "ROUND 1", color: "#F2D06B", bgColor: "rgba(242,208,107,0.1)", pulse: true },
-  round_2: { label: "ROUND 2", color: "#F2D06B", bgColor: "rgba(242,208,107,0.1)", pulse: true },
-  round_3: { label: "ROUND 3", color: "#D97B4A", bgColor: "rgba(217,123,74,0.1)", pulse: true },
+  round_1: { label: "ROUND 1", color: "#4DBFFF", bgColor: "rgba(77,191,255,0.1)", pulse: true },
+  round_2: { label: "ROUND 2", color: "#4DBFFF", bgColor: "rgba(77,191,255,0.1)", pulse: true },
+  round_3: { label: "ROUND 3", color: "#FF6B4A", bgColor: "rgba(255,107,74,0.1)", pulse: true },
   sudden_death: { label: "SUDDEN DEATH", color: "#E85353", bgColor: "rgba(232,83,83,0.1)", pulse: true },
   completed: { label: "COMPLETED", color: "#5A5848", bgColor: "rgba(90,88,72,0.1)", pulse: false },
   cancelled: { label: "CANCELLED", color: "#5A5848", bgColor: "rgba(90,88,72,0.1)", pulse: false },
@@ -59,7 +59,7 @@ function CardCorner({ position }: { position: "tl" | "tr" | "bl" | "br" }) {
       style={{ opacity: 0.4 }}
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M0 16 L0 4 C0 1.8 1.8 0 4 0 L16 0" stroke="#F2D06B" strokeWidth="1.5" />
+        <path d="M0 16 L0 4 C0 1.8 1.8 0 4 0 L16 0" stroke="#4DBFFF" strokeWidth="1.5" />
       </svg>
     </div>
   );
@@ -83,10 +83,10 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           isActive ? "genshin-card-ornate" : "genshin-card"
         }`}
         style={{
-          borderColor: isActive ? "rgba(242,208,107,0.35)" : "rgba(242,208,107,0.12)",
+          borderColor: isActive ? "rgba(77,191,255,0.35)" : "rgba(77,191,255,0.12)",
           boxShadow: isActive
-            ? "0 0 0 1px rgba(242,208,107,0.08), 0 8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(242,208,107,0.12)"
-            : "0 0 0 1px rgba(242,208,107,0.05), 0 4px 24px rgba(0,0,0,0.7)",
+            ? "0 0 0 1px rgba(77,191,255,0.08), 0 8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(77,191,255,0.12)"
+            : "0 0 0 1px rgba(77,191,255,0.05), 0 4px 24px rgba(0,0,0,0.7)",
         }}
       >
         <CardCorner position="tl" />
@@ -109,12 +109,12 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
         <div className="p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3
-                className={`font-bold tracking-wide transition-colors text-base ${
-                  isCompleted ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-text-primary)] group-hover:text-[var(--color-gold-primary)]"
-                }`}
-                style={{ fontFamily: "var(--font-display)" }}
-              >
+                <h3
+                  className={`font-bold tracking-wide transition-colors text-base ${
+                    isCompleted ? "text-[var(--color-text-tertiary)]" : "text-[var(--color-text-primary)] group-hover:text-[var(--color-sky-primary)]"
+                  }`}
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
                 {arena.name}
               </h3>
               <div
@@ -156,8 +156,8 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
             <div className="flex items-center justify-between text-xs mb-4">
               <span className="text-[var(--color-text-tertiary)]">Prize Pool</span>
               <span
-                className="font-mono font-bold gold-text"
-                style={{ fontFamily: "var(--font-display)" }}
+                className="font-mono font-bold"
+                style={{ fontFamily: "var(--font-display)", color: "var(--color-sky-primary)" }}
               >
                 ${(arena.starting_capital * (arena.max_participants ?? 8)).toLocaleString()}
               </span>
@@ -179,9 +179,9 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
                 className="h-full rounded-full"
                 style={{
                   background: isActive
-                    ? "linear-gradient(90deg, #F2D06B, #E8A836)"
-                    : "linear-gradient(90deg, #C8B273, #9A8070)",
-                  boxShadow: isActive ? `0 0 8px rgba(242,208,107,0.5)` : "none",
+                    ? "linear-gradient(90deg, #4DBFFF, #2A9FE8)"
+                    : "linear-gradient(90deg, #4DBFFF80, #2A9FE880)",
+                  boxShadow: isActive ? `0 0 8px rgba(77,191,255,0.5)` : "none",
                 }}
               />
             </div>
@@ -194,20 +194,21 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           {isActive && (
             <div
               className="flex items-center justify-between pt-3 mt-2 border-t"
-              style={{ borderColor: "rgba(242,208,107,0.1)" }}
+              style={{ borderColor: "rgba(77,191,255,0.1)" }}
             >
               <div
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider gold-text"
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
+                style={{ color: "var(--color-sky-primary)" }}
               >
                 <motion.span
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
                   className="w-2 h-2 rounded-full"
-                  style={{ background: "#F2D06B", boxShadow: "0 0 8px rgba(242,208,107,0.6)" }}
+                  style={{ background: "#4DBFFF", boxShadow: "0 0 8px rgba(77,191,255,0.6)" }}
                 />
                 Live
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider gold-text">
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-sky-primary)" }}>
                 Watch →
               </span>
             </div>
@@ -218,7 +219,7 @@ export default function ArenaCard({ arena }: ArenaCardProps) {
           <motion.div
             className="absolute inset-0 pointer-events-none rounded-xl"
             style={{
-              background: "radial-gradient(ellipse at top, rgba(242,208,107,0.03) 0%, transparent 60%)",
+              background: "radial-gradient(ellipse at top, rgba(77,191,255,0.03) 0%, transparent 60%)",
             }}
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 4, repeat: Infinity }}

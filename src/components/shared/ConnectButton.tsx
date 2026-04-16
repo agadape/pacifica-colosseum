@@ -30,7 +30,7 @@ export default function ConnectButton() {
       <div className="flex items-center gap-3">
         <Link
           href={walletAddress ? `/profile/${walletAddress}` : "#"}
-          className="cursor-target text-sm font-mono text-[var(--color-text-secondary)] hover:text-[var(--color-neon-cyan)] transition-colors"
+          className="cursor-target text-sm font-mono text-[var(--color-text-secondary)] hover:text-[var(--color-sky-primary)] transition-colors"
         >
           {displayName}
         </Link>
@@ -38,7 +38,7 @@ export default function ConnectButton() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={logout}
-          className="cursor-target px-4 py-2 rounded-full text-sm font-semibold border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan)] transition-all"
+          className="cursor-target px-4 py-2 rounded-full text-sm font-semibold border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-sky-primary)] hover:text-[var(--color-sky-primary)] transition-all"
         >
           Disconnect
         </motion.button>
@@ -48,10 +48,10 @@ export default function ConnectButton() {
 
   return (
     <motion.button
-      whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,240,255,0.5)" }}
+      whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(77,191,255,0.5)" }}
       whileTap={{ scale: 0.97 }}
       onClick={login}
-      className="cursor-target px-5 py-2.5 rounded-full text-sm font-bold tracking-wide shadow-[0_0_16px_rgba(0,240,255,0.3)] bg-gradient-to-r from-[var(--color-neon-cyan)] to-[var(--color-neon-cyan-dim)] text-black hover:shadow-[0_0_32px_rgba(0,240,255,0.6)] transition-all"
+      className="cursor-target px-5 py-2.5 rounded-full text-sm font-bold tracking-wide shadow-[0_0_16px_rgba(77,191,255,0.3)] bg-gradient-to-r from-[var(--color-sky-primary)] to-[var(--color-sky-secondary)] text-black hover:shadow-[0_0_32px_rgba(77,191,255,0.6)] transition-all"
       style={{ fontFamily: "var(--font-display)" }}
     >
       ENTER THE ARENA
