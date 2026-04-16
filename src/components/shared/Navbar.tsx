@@ -7,6 +7,7 @@ import ConnectButton from "./ConnectButton";
 
 const navLinks = [
   { href: "/arenas", label: "Arenas" },
+  { href: "/ranking", label: "Ranking" },
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
