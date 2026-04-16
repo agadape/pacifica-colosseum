@@ -98,7 +98,7 @@ export default function Navbar() {
                   PACIFICA
                 </span>
                 <span
-                  className="text-[9px] tracking-[0.3em] text-[var(--color-sky-secondary)] mt-0.5"
+                  className="text-[9px] tracking-[0.3em] text-[var(--color-sky-primary-dim)] mt-0.5"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   COLOSSEUM
