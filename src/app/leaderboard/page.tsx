@@ -1430,125 +1430,82 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
   const topMargin    = rank === 1 ? 80 : rank === 2 ? 65 : rank === 3 ? 38 : rank === 4 ? 68 : 48;
   const bottomMargin = rank === 1 ? 75 : rank === 2 ? 62 : rank === 3 ? 35 : rank === 4 ? 64 : 44;
 
+  const borderHex = Math.round(borderOpacity * 255).toString(16).padStart(2, "0");
+
   return (
-    <div
-      className="leaderboard-row relative"
+    <motion.div
+      className="leaderboard-row group relative cursor-pointer"
       style={{ overflow: "visible", marginTop: topMargin, marginBottom: bottomMargin }}
+      whileHover={{ scale: 1.008 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      {/* ═══ BREACHING CREATURE — sibling of the card, z:3, positioned LEFT side ═══ */}
+      {/* ══ LAYER 1: Card background — gradients, textures, waves (z:2, overflow:hidden) ══ */}
+      <div
+        className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
+        style={{
+          background: `linear-gradient(135deg, ${bgTop}, ${bgBot})`,
+          border: `1px solid ${accent}${borderHex}`,
+          boxShadow: `0 0 ${waves * 8}px ${glow}, 0 0 ${waves * 16}px ${glow.replace(/[\d.]+\)$/, "0.2)")}, 0 4px 24px rgba(0,0,0,0.7)`,
+          zIndex: 2,
+        }}
+      >
+        <MarineTexture rank={rank} accent={accent} />
+        {[...Array(waves)].map((_, i) => (
+          <WaveLayer key={i} y={45 - i * 8} opacity={0.4 - i * 0.06} dur={waveDurs[i]} color={accent} />
+        ))}
+        {rank === 1 && <BiolumOrbs count={5} color={accent} />}
+        {fc.delay.map((dur, i) => (
+          <div key={i} className="absolute pointer-events-none"
+            style={{ top: `${20 + (i % 3) * 22}%`, right: 0, animation: `fish-swim ${dur} linear infinite`, animationDelay: `${i * -4}s`, filter: `drop-shadow(0 0 4px ${accent})`, opacity: 0.45 }}>
+            <FishSvg color={accent} size={rank === 1 ? 1.3 : rank === 2 ? 1.1 : 0.9} />
+          </div>
+        ))}
+        {/* Depth label */}
+        <div className="absolute bottom-1 right-3">
+          <span className="text-[8px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: accent, opacity: 0.55, fontFamily: "var(--font-display)" }}>
+            {depth} · {waves}×
+          </span>
+        </div>
+        {/* Left edge glow line */}
+        <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+          style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)`, opacity: borderOpacity }} />
+      </div>
+
+      {/* ══ LAYER 2: PNG creature — floats over card background (z:3) ══ */}
       {rank === 1 && <BreachWhaleSide />}
       {rank === 2 && <BreachShark />}
       {rank === 3 && <BreachWave />}
       {rank === 4 && <BreachDolphin />}
       {rank === 5 && <BreachFin />}
 
-      {/* ═══ INNER CARD — clipped, textured, contains all content ═══ */}
-      <motion.div
-        className={`group relative flex items-center gap-4 px-5 ${rowPy} rounded-xl overflow-hidden cursor-pointer`}
-        style={{
-          background: `linear-gradient(135deg, ${bgTop}, ${bgBot})`,
-          border: `1px solid ${accent}${Math.round(borderOpacity * 255).toString(16).padStart(2, "0")}`,
-          boxShadow: `0 0 ${waves * 8}px ${glow}, 0 0 ${waves * 16}px ${glow.replace(/[\d.]+\)$/, "0.2)")}, 0 4px 24px rgba(0,0,0,0.7)`,
-          zIndex: 4, // above creature PNG (z:3) so card content is never covered
-        }}
-        whileHover={{
-          scale: 1.008,
-          boxShadow: `0 0 ${waves * 12}px ${glow}, 0 0 ${waves * 24}px ${glow.replace(/[\d.]+\)$/, "0.3)")}, 0 8px 32px rgba(0,0,0,0.8)`,
-        }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      {/* ══ LAYER 3: Card content — always on top of creature (z:5) ══ */}
+      <div
+        className={`relative flex items-center gap-4 px-5 ${rowPy} rounded-xl`}
+        style={{ zIndex: 5 }}
       >
-        {/* ── BACKGROUND LAYERS (clipped inside card) ── */}
-
-        {/* 1. SVG pattern texture (unique per rank) */}
-        <MarineTexture rank={rank} accent={accent} />
-
-        {/* 2. Wave layers (count = waves multiplier) */}
-        {[...Array(waves)].map((_, i) => (
-          <WaveLayer
-            key={i}
-            y={45 - i * 8}
-            opacity={0.4 - i * 0.06}
-            dur={waveDurs[i]}
-            color={accent}
-          />
-        ))}
-
-        {/* 3. Bioluminescent orbs (rank 1 only, 5 orbs = 5x) */}
-        {rank === 1 && <BiolumOrbs count={5} color={accent} />}
-
-        {/* 4. Swimming fish */}
-        {fc.delay.map((dur, i) => (
-          <div
-            key={i}
-            className="absolute pointer-events-none"
-            style={{
-              top: `${20 + (i % 3) * 22}%`,
-              right: 0,
-              animation: `fish-swim ${dur} linear infinite`,
-              animationDelay: `${i * -4}s`,
-              filter: `drop-shadow(0 0 4px ${accent})`,
-              opacity: 0.45,
-            }}
-          >
-            <FishSvg color={accent} size={rank === 1 ? 1.3 : rank === 2 ? 1.1 : 0.9} />
-          </div>
-        ))}
-
-        {/* 5. Rank depth label bottom-right */}
-        <div className="absolute bottom-1 right-3 pointer-events-none z-[3]">
-          <span className="text-[8px] font-bold uppercase tracking-[0.2em]"
-            style={{ color: accent, opacity: 0.55, fontFamily: "var(--font-display)" }}>
-            {depth} · {waves}×
-          </span>
-        </div>
-
-        {/* Left edge glow line */}
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
-          style={{ background: `linear-gradient(180deg, transparent, ${accent}, transparent)`, opacity: borderOpacity }} />
-
-        {/* ── CONTENT (z-10, always on top of textures) ── */}
-
-        {/* Creature is purely absolute-positioned — no spacer needed, content is full-width */}
-
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center"
+        <div className="flex-shrink-0 flex items-center justify-center"
           style={{ width: rank === 1 ? 72 : rank === 2 ? 66 : rank === 3 ? 60 : 52 }}>
           <RankMedalBadge rank={rank} />
         </div>
 
-        <div className="relative z-10 flex-shrink-0">
+        <div className="flex-shrink-0">
           <AvatarFrame seed={user.username ?? user.wallet_address} rank={rank} size={rank <= 2 ? 52 : 44} />
         </div>
 
-        <div className="relative z-10 flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="font-bold truncate"
-              style={{
-                color: accent,
-                fontFamily: "var(--font-display)",
-                fontSize: rank === 1 ? "15px" : rank === 2 ? "14px" : "13px",
-                textShadow: `0 0 10px ${glow}`,
-              }}
-            >
+            <span className="font-bold truncate"
+              style={{ color: accent, fontFamily: "var(--font-display)", fontSize: rank === 1 ? "15px" : rank === 2 ? "14px" : "13px", textShadow: `0 0 10px ${glow}` }}>
               {name}
             </span>
-            <span
-              className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border"
-              style={{
-                background: `${accent}15`,
-                borderColor: `${accent}40`,
-                color: accent,
-                fontFamily: "var(--font-display)",
-                boxShadow: `0 0 8px ${glow}`,
-              }}
-            >
+            <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border"
+              style={{ background: `${accent}15`, borderColor: `${accent}40`, color: accent, fontFamily: "var(--font-display)", boxShadow: `0 0 8px ${glow}` }}>
               {label}
             </span>
             {user.current_win_streak >= 3 && (
-              <span
-                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase"
-                style={{ background: `${CORAL}20`, border: `1px solid ${CORAL}40`, color: CORAL, fontFamily: "var(--font-display)" }}
-              >
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase"
+                style={{ background: `${CORAL}20`, border: `1px solid ${CORAL}40`, color: CORAL, fontFamily: "var(--font-display)" }}>
                 <span>⚡</span>{user.current_win_streak}x
               </span>
             )}
@@ -1565,11 +1522,12 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-4 flex-shrink-0">
           <div className="text-right">
             <div className="flex items-center justify-end gap-1">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M5 0L6.2 3.5H10L7 5.8L8.2 9.5L5 7L1.8 9.5L3 5.8L0 3.5H3.8Z" fill={GOLD} fillOpacity={user.total_arenas_won > 0 ? 1 : 0.3} />
+                <path d="M5 0L6.2 3.5H10L7 5.8L8.2 9.5L5 7L1.8 9.5L3 5.8L0 3.5H3.8Z"
+                  fill={GOLD} fillOpacity={user.total_arenas_won > 0 ? 1 : 0.3} />
               </svg>
               <span className="font-mono text-sm font-bold"
                 style={{ color: user.total_arenas_won > 0 ? GOLD : "var(--color-text-tertiary)", fontFamily: "var(--font-mono)", textShadow: user.total_arenas_won > 0 ? `0 0 8px rgba(232,200,122,0.4)` : "none" }}>
@@ -1605,8 +1563,8 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
             <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
 
