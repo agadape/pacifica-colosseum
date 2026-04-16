@@ -79,7 +79,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Challenger",
     rankName: "Silver Warrior",
     icon: (
-      <Image src="/badges/Badge1.png" alt="Silver Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge1.png" alt="Silver Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
   gold: {
@@ -94,7 +94,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Warrior",
     rankName: "Gold Champion",
     icon: (
-      <Image src="/badges/Badge2.png" alt="Gold Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge2.png" alt="Gold Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
   epic: {
@@ -109,7 +109,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Elite",
     rankName: "Epic Master",
     icon: (
-      <Image src="/badges/Badge3.png" alt="Epic Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge3.png" alt="Epic Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
   legend: {
@@ -124,7 +124,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Master",
     rankName: "Legendary Champion",
     icon: (
-      <Image src="/badges/Badge4.png" alt="Legend Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge4.png" alt="Legend Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
   mythic: {
@@ -139,7 +139,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Supreme",
     rankName: "Mythic Overlord",
     icon: (
-      <Image src="/badges/Badge5.png" alt="Mythic Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge5.png" alt="Mythic Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
   champion: {
@@ -154,7 +154,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Colosseum Legend",
     rankName: "Supreme Champion",
     icon: (
-      <Image src="/badges/Badge6.png" alt="Champion Badge" width={400} height={400} className="w-full h-full object-contain" />
+      <Image src="/badges/Badge6.png" alt="Champion Badge" width={450} height={450} className="w-full h-full object-contain" />
     ),
   },
 };
@@ -299,7 +299,7 @@ function RankBadge({ tier, wins }: { tier: TierKey; wins: number }) {
         transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
       >
         <div
-          className="relative w-56 h-56"
+          className="relative w-60 h-60"
           style={{ filter: `drop-shadow(0 0 30px ${config.glow}) drop-shadow(0 0 60px ${config.glow}50)` }}
         >
           <div className="absolute inset-0 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${config.glow} 0%, transparent 70%)` }} />
@@ -316,7 +316,7 @@ function RankBadge({ tier, wins }: { tier: TierKey; wins: number }) {
               <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle at 30% 30%, ${config.primary}10 0%, transparent 50%)` }} />
 
               <div className="absolute inset-3 rounded-full flex items-center justify-center overflow-hidden" style={{ border: `1px solid ${config.primary}30` }}>
-                <div className="w-44 h-44 relative">
+                <div className="w-52 h-52 relative">
                   <motion.div
                     className="absolute inset-0"
                     animate={{ rotate: 360 }}
@@ -509,7 +509,7 @@ function TierPathItem({ tier, isActive, isCompleted, index }: { tier: TierKey; i
           transform: isActive ? "scale(1.15)" : "scale(1)",
         }}
       >
-        <div className={`${isActive ? "w-36 h-36" : "w-32 h-32"} transition-all duration-300`}>
+        <div className={`${isActive ? "w-24 h-24" : "w-24 h-24"} transition-all duration-300`}>
           {config.icon}
         </div>
       </motion.div>
@@ -745,7 +745,7 @@ export default function RankingPage() {
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 6, repeat: Infinity }}
               >
-                <div className="w-36 h-36">{config.icon}</div>
+                <div className="w-24 h-24">{config.icon}</div>
               </motion.div>
 
               <div className="flex-1">
