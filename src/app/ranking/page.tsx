@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 const SKY = "#4DBFFF";
@@ -78,32 +79,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Challenger",
     rankName: "Silver Warrior",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="silverOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#888" />
-            <stop offset="50%" stopColor="#C0C0C0" />
-            <stop offset="100%" stopColor="#888" />
-          </linearGradient>
-          <linearGradient id="silverInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#E8E8E8" />
-            <stop offset="100%" stopColor="#C0C0C0" />
-          </linearGradient>
-          <filter id="silverGlow">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feFlood floodColor="#C0C0C0" floodOpacity="0.6" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#silverOuter)" filter="url(#silverGlow)" />
-        <circle cx="50" cy="50" r="43" fill="none" stroke="#E8E8E8" strokeWidth="1.5" strokeOpacity="0.6" />
-        <polygon points="50,12 88,33 88,67 50,88 12,67 12,33" fill="url(#silverInner)" stroke="#E8E8E8" strokeWidth="2.5" />
-        <polygon points="50,20 80,38 80,62 50,80 20,62 20,38" fill="#C0C0C0" fillOpacity="0.2" stroke="#E8E8E8" strokeWidth="1" />
-        <path d="M50 25 L60 42 L78 45 L64 58 L68 76 L50 66 L32 76 L36 58 L22 45 L40 42 Z" fill="url(#silverInner)" stroke="#E8E8E8" strokeWidth="1.5" />
-        <circle cx="50" cy="50" r="10" fill="url(#silverOuter)" stroke="#E8E8E8" strokeWidth="2" />
-        <circle cx="50" cy="50" r="4" fill="#FFFFFF" />
-      </svg>
+      <Image src="/badges/Badge1.png" alt="Silver Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
   gold: {
@@ -118,41 +94,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Warrior",
     rankName: "Gold Champion",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="goldOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#B8860B" />
-            <stop offset="30%" stopColor="#FFD700" />
-            <stop offset="70%" stopColor="#FFF0A0" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </linearGradient>
-          <linearGradient id="goldInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#FFF0A0" />
-            <stop offset="50%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </linearGradient>
-          <radialGradient id="goldCenter" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="50%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </radialGradient>
-          <filter id="goldGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feFlood floodColor="#FFD700" floodOpacity="0.7" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#goldOuter)" filter="url(#goldGlow)" />
-        <circle cx="50" cy="50" r="44" fill="none" stroke="#FFF0A0" strokeWidth="2" strokeOpacity="0.7" />
-        <circle cx="50" cy="50" r="40" fill="none" stroke="#FFD700" strokeWidth="1" strokeDasharray="3 3" />
-        <polygon points="50,8 92,30 92,70 50,92 8,70 8,30" fill="url(#goldInner)" stroke="#FFF0A0" strokeWidth="3" />
-        <polygon points="50,18 82,36 82,64 50,82 18,64 18,36" fill="#FFD700" fillOpacity="0.15" stroke="#FFF0A0" strokeWidth="1.5" />
-        <path d="M50 22 L62 40 L82 43 L66 56 L70 76 L50 65 L30 76 L34 56 L18 43 L38 40 Z" fill="url(#goldInner)" stroke="#FFF0A0" strokeWidth="2" />
-        <circle cx="50" cy="50" r="14" fill="url(#goldCenter)" stroke="#FFF0A0" strokeWidth="2.5" />
-        <circle cx="50" cy="50" r="6" fill="#FFFFFF" />
-        <path d="M50 36 L54 46 L65 47 L57 54 L59 65 L50 59 L41 65 L43 54 L35 47 L46 46 Z" fill="#FFF0A0" />
-      </svg>
+      <Image src="/badges/Badge2.png" alt="Gold Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
   epic: {
@@ -167,39 +109,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Elite",
     rankName: "Epic Master",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="epicOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#6B2D8B" />
-            <stop offset="50%" stopColor="#9D50BB" />
-            <stop offset="100%" stopColor="#6B2D8B" />
-          </linearGradient>
-          <linearGradient id="epicInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#C88AFF" />
-            <stop offset="100%" stopColor="#9D50BB" />
-          </linearGradient>
-          <radialGradient id="epicCore" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#E0B8FF" />
-            <stop offset="100%" stopColor="#9D50BB" />
-          </radialGradient>
-          <filter id="epicGlow">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
-            <feFlood floodColor="#9D50BB" floodOpacity="0.8" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#epicOuter)" filter="url(#epicGlow)" />
-        <circle cx="50" cy="50" r="45" fill="none" stroke="#C88AFF" strokeWidth="2" strokeOpacity="0.6" />
-        <polygon points="50,5 95,28 95,72 50,95 5,72 5,28" fill="url(#epicInner)" stroke="#C88AFF" strokeWidth="3" />
-        <polygon points="50,14 86,34 86,66 50,86 14,66 14,34" fill="#9D50BB" fillOpacity="0.2" stroke="#C88AFF" strokeWidth="1.5" />
-        <polygon points="50,24 76,40 76,60 50,76 24,60 24,40" fill="url(#epicInner)" stroke="#C88AFF" strokeWidth="1" />
-        <path d="M50 20 L64 38 L84 40 L68 52 L74 72 L50 60 L26 72 L32 52 L16 40 L36 38 Z" fill="url(#epicInner)" stroke="#E0B8FF" strokeWidth="2" />
-        <circle cx="50" cy="50" r="16" fill="url(#epicCore)" stroke="#C88AFF" strokeWidth="3" />
-        <circle cx="50" cy="50" r="8" fill="#E0B8FF" />
-        <circle cx="50" cy="50" r="3" fill="#FFFFFF" />
-        <path d="M50 34 L55 45 L67 46 L58 53 L60 65 L50 58 L40 65 L42 53 L33 46 L45 45 Z" fill="#C88AFF" fillOpacity="0.8" />
-      </svg>
+      <Image src="/badges/Badge3.png" alt="Epic Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
   legend: {
@@ -214,41 +124,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Master",
     rankName: "Legendary Champion",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="legendOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#CC4422" />
-            <stop offset="50%" stopColor="#FF6B4A" />
-            <stop offset="100%" stopColor="#CC4422" />
-          </linearGradient>
-          <linearGradient id="legendInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#FF9A7A" />
-            <stop offset="100%" stopColor="#FF6B4A" />
-          </linearGradient>
-          <radialGradient id="legendCore" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFDDD0" />
-            <stop offset="50%" stopColor="#FF6B4A" />
-            <stop offset="100%" stopColor="#CC4422" />
-          </radialGradient>
-          <filter id="legendGlow">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor="#FF6B4A" floodOpacity="0.9" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#legendOuter)" filter="url(#legendGlow)" />
-        <circle cx="50" cy="50" r="46" fill="none" stroke="#FF9A7A" strokeWidth="2.5" strokeOpacity="0.7" />
-        <circle cx="50" cy="50" r="43" fill="none" stroke="#FF6B4A" strokeWidth="1" strokeDasharray="5 3" />
-        <polygon points="50,3 97,26 97,74 50,97 3,74 3,26" fill="url(#legendInner)" stroke="#FF9A7A" strokeWidth="3.5" />
-        <polygon points="50,12 88,32 88,68 50,88 12,68 12,32" fill="#FF6B4A" fillOpacity="0.15" stroke="#FF9A7A" strokeWidth="2" />
-        <polygon points="50,22 78,38 78,62 50,78 22,62 22,38" fill="url(#legendInner)" stroke="#FF9A7A" strokeWidth="1.5" />
-        <path d="M50 18 L66 36 L86 38 L70 50 L76 70 L50 58 L24 70 L30 50 L14 38 L34 36 Z" fill="url(#legendInner)" stroke="#FFDDD0" strokeWidth="2.5" />
-        <circle cx="50" cy="50" r="18" fill="url(#legendCore)" stroke="#FF9A7A" strokeWidth="3" />
-        <circle cx="50" cy="50" r="8" fill="#FFDDD0" />
-        <path d="M50 32 L56 44 L69 45 L59 53 L62 66 L50 59 L38 66 L41 53 L31 45 L44 44 Z" fill="#FF9A7A" />
-        <circle cx="50" cy="50" r="4" fill="#FFFFFF" />
-      </svg>
+      <Image src="/badges/Badge4.png" alt="Legend Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
   mythic: {
@@ -263,43 +139,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Arena Supreme",
     rankName: "Mythic Overlord",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="mythicOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#1A8CCC" />
-            <stop offset="50%" stopColor="#4DBFFF" />
-            <stop offset="100%" stopColor="#1A8CCC" />
-          </linearGradient>
-          <linearGradient id="mythicInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#A8DEFF" />
-            <stop offset="100%" stopColor="#4DBFFF" />
-          </linearGradient>
-          <radialGradient id="mythicCore" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="40%" stopColor="#A8DEFF" />
-            <stop offset="100%" stopColor="#4DBFFF" />
-          </radialGradient>
-          <filter id="mythicGlow">
-            <feGaussianBlur stdDeviation="4.5" result="blur" />
-            <feFlood floodColor="#4DBFFF" floodOpacity="1" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#mythicOuter)" filter="url(#mythicGlow)" />
-        <circle cx="50" cy="50" r="46" fill="none" stroke="#A8DEFF" strokeWidth="2.5" strokeOpacity="0.8" />
-        <circle cx="50" cy="50" r="44" fill="none" stroke="#4DBFFF" strokeWidth="1.5" strokeDasharray="4 4" />
-        <circle cx="50" cy="50" r="41" fill="none" stroke="#A8DEFF" strokeWidth="1" strokeOpacity="0.5" />
-        <polygon points="50,1 99,25 99,75 50,99 1,75 1,25" fill="url(#mythicInner)" stroke="#A8DEFF" strokeWidth="4" />
-        <polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="#4DBFFF" fillOpacity="0.1" stroke="#A8DEFF" strokeWidth="2" />
-        <polygon points="50,20 80,36 80,64 50,80 20,64 20,36" fill="url(#mythicInner)" stroke="#A8DEFF" strokeWidth="1.5" />
-        <path d="M50 16 L68 34 L88 36 L72 48 L78 68 L50 55 L22 68 L28 48 L12 36 L32 34 Z" fill="url(#mythicInner)" stroke="#FFFFFF" strokeWidth="2.5" />
-        <circle cx="50" cy="50" r="20" fill="url(#mythicCore)" stroke="#A8DEFF" strokeWidth="3.5" />
-        <circle cx="50" cy="50" r="10" fill="#FFFFFF" fillOpacity="0.9" />
-        <path d="M50 30 L57 43 L71 44 L60 53 L63 67 L50 59 L37 67 L40 53 L29 44 L43 43 Z" fill="#A8DEFF" />
-        <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
-        <circle cx="50" cy="50" r="2" fill="#4DBFFF" />
-      </svg>
+      <Image src="/badges/Badge5.png" alt="Mythic Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
   champion: {
@@ -314,55 +154,7 @@ const TIER_CONFIG: Record<TierKey, {
     description: "Colosseum Legend",
     rankName: "Supreme Champion",
     icon: (
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        <defs>
-          <linearGradient id="champOuter" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#996515" />
-            <stop offset="25%" stopColor="#FFD700" />
-            <stop offset="50%" stopColor="#FFF8DC" />
-            <stop offset="75%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#996515" />
-          </linearGradient>
-          <linearGradient id="champInner" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="50%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </linearGradient>
-          <radialGradient id="champCore" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="30%" stopColor="#FFF8DC" />
-            <stop offset="70%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#996515" />
-          </radialGradient>
-          <filter id="champGlow">
-            <feGaussianBlur stdDeviation="5" result="blur" />
-            <feFlood floodColor="#FFD700" floodOpacity="1" />
-            <feComposite in2="blur" operator="in" />
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-        <circle cx="50" cy="50" r="49" fill="url(#champOuter)" filter="url(#champGlow)" />
-        <circle cx="50" cy="50" r="47" fill="none" stroke="#FFF8DC" strokeWidth="3" strokeOpacity="0.9" />
-        <circle cx="50" cy="50" r="44" fill="none" stroke="#FFD700" strokeWidth="2" strokeOpacity="0.7" />
-        <circle cx="50" cy="50" r="42" fill="none" stroke="#FFF8DC" strokeWidth="1" strokeDasharray="6 4" />
-        <circle cx="50" cy="50" r="39" fill="none" stroke="#FFD700" strokeWidth="1.5" strokeOpacity="0.5" />
-        <polygon points="50,-2 102,24 102,76 50,102 -2,76 -2,24" fill="url(#champInner)" stroke="#FFF8DC" strokeWidth="4.5" />
-        <polygon points="50,8 92,28 92,72 50,92 8,72 8,28" fill="#FFD700" fillOpacity="0.08" stroke="#FFF8DC" strokeWidth="2.5" />
-        <polygon points="50,18 84,34 84,66 50,82 16,66 16,34" fill="url(#champInner)" stroke="#FFF8DC" strokeWidth="2" />
-        <polygon points="50,28 76,40 76,60 50,72 24,60 24,40" fill="url(#champInner)" stroke="#FFFFFF" strokeWidth="1.5" />
-        <path d="M50 14 L70 32 L90 34 L74 46 L80 66 L50 52 L20 66 L26 46 L10 34 L30 32 Z" fill="url(#champInner)" stroke="#FFFFFF" strokeWidth="3" />
-        <circle cx="50" cy="50" r="22" fill="url(#champCore)" stroke="#FFF8DC" strokeWidth="4" />
-        <circle cx="50" cy="50" r="12" fill="#FFFFFF" />
-        <path d="M50 28 L58 42 L73 43 L62 53 L65 68 L50 59 L35 68 L38 53 L27 43 L42 42 Z" fill="#FFD700" />
-        <circle cx="50" cy="50" r="6" fill="#FFF8DC" />
-        <circle cx="50" cy="50" r="3" fill="#FFFFFF" />
-        {[...Array(8)].map((_, i) => {
-          const angle = (i * 45) * Math.PI / 180;
-          const x = 50 + 37 * Math.cos(angle);
-          const y = 50 + 37 * Math.sin(angle);
-          return <circle key={i} cx={x} cy={y} r="2" fill="#FFF8DC" fillOpacity="0.8" />;
-        })}
-      </svg>
+      <Image src="/badges/Badge6.png" alt="Champion Badge" width={100} height={100} className="w-full h-full object-contain" />
     ),
   },
 };
