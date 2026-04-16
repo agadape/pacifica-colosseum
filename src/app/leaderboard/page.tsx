@@ -1508,16 +1508,7 @@ function MarineLeaderboardRow({ user, rank }: { user: LeaderboardUser; rank: num
 
         {/* ── CONTENT (z-10, always on top of textures) ── */}
 
-        {/* Desktop spacer — pushes content right to clear creature on md+ screens */}
-        <div
-          className="hidden md:block flex-shrink-0"
-          style={{
-            // overlap = imageWidth - |leftOffset|
-            // Rank1 Shark  185-95=90  Rank2 Whale  155-78=77  Rank3 Manta  255-120=135
-            // Rank4 Jelly  135-68=67  Rank5 Wave   175-88=87
-            width: rank === 1 ? "90px" : rank === 2 ? "77px" : rank === 3 ? "135px" : rank === 4 ? "67px" : "87px",
-          }}
-        />
+        {/* Creature is purely absolute-positioned — no spacer needed, content is full-width */}
 
         <div className="relative z-10 flex-shrink-0 flex items-center justify-center"
           style={{ width: rank === 1 ? 72 : rank === 2 ? 66 : rank === 3 ? 60 : 52 }}>
@@ -1935,7 +1926,7 @@ export default function LeaderboardPage() {
           )}
 
           {/* ── MAIN LEADERBOARD LIST ── */}
-          <div className="space-y-0 md:pl-36" style={{ overflow: "visible" }}>
+          <div className="space-y-0" style={{ overflow: "visible" }}>
             {isLoading ? (
               <LoadingSkeleton />
             ) : traders.length === 0 ? (
